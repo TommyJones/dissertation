@@ -14,6 +14,10 @@ csl: ieee.csl
 link-citations: yes
 
 header-includes:
+    - \usepackage{bm}
+    - \usepackage{amsbsy}
+    - \usepackage{amsmath}
+    - \usepackage{amsfonts}
     - \usepackage{setspace}\doublespacing
     - \usepackage[utf8]{inputenc}
     - \usepackage[T1]{fontenc}
