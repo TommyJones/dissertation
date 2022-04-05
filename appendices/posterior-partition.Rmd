@@ -1,0 +1,63 @@
+# Appendix 4: Partitioning the Posterior
+
+The posterior distribution of topic $k$ is
+
+\begin{align}
+  \boldsymbol\beta_k &\sim 
+    \text{Dirichlet}(\boldsymbol{Cv}_k + \boldsymbol\eta_k)
+\end{align}
+
+For two arbitrary sets of documents, we can break up the posterior parameter.
+
+\begin{align}
+  \boldsymbol\beta_k &\sim 
+    \text{Dirichlet}(\boldsymbol{Cv}_k^{(1)} + \boldsymbol{Cv}_k^{(2)} + \boldsymbol\eta_k)
+\end{align}
+
+This has two implications:
+
+1. We can quantify how much a set of documents contributes to the posterior topics. This may allow us to quantify biases in our topic models. (This is left for future research.)
+2. We can interpret the weight parameter, $\omega_k$ for transfer learning as the weight that documents from the base model affect the posterior of the fine-tuned model.
+
+Changing notation, for (2) we have
+
+\begin{align}
+  \boldsymbol\beta_k &\sim 
+    \text{Dirichlet}(\boldsymbol{Cv}_k^{(t)} + \boldsymbol\eta_k^{(t)})\\
+  &\sim
+    \text{Dirichlet}(\boldsymbol{Cv}_k^{(t)} + 
+      \boldsymbol{Cv}_k^{(t-1)} + \boldsymbol\eta_k^{(t-1)})
+\end{align}
+
+Substituting in the definition from tLDA, we have
+
+\begin{align}
+  \boldsymbol\eta_k^{(t)} &= 
+    \boldsymbol{Cv}_k^{(t-1)} + \boldsymbol\eta_k^{(t-1)}\\
+    &= 
+    \omega_k^{(t)} \cdot \mathbb{E}\left[\boldsymbol\beta_k^{(t-1)}\right]
+\end{align}
+
+Solving for $\omega_k^{(t)}$ in $\boldsymbol{Cv}_k^{(t-1)} + \boldsymbol\eta_k^{(t-1)} = \omega_k^{(t)} \cdot \mathbb{E}\left[\boldsymbol\beta_k^{(t-1)}\right]$ gives us
+
+\begin{align}
+  \omega_k^{*(t)} &=
+    \sum_{v=1}^V\left(Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)} \right)
+\end{align}
+
+Where $\omega_k^{*(t)}$ is a critical value such that fine tuning is just like adding data to the base model. In other words each token from the base model, $\boldsymbol{X}^{(t-1)}$, has the same weight as each token from $\boldsymbol{X}^{(t)}$. This gives us an intuitive means to tune the weight of the base model when fine tuning and collapses $K$ tuning parameters into one. Specifically:
+
+\begin{align}
+  \omega_k^{(t)} 
+    &= a^{(t)} \cdot \omega_k^{*(t)}\\
+    &= a^{(t)} \cdot \sum_{v=1}^V\left(Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)} \right)
+\end{align}
+
+and 
+
+\begin{align}
+  \boldsymbol\eta_k^{(t)}
+    &= a^{(t)} \cdot 
+      \sum_{v=1}^V\left(Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)} \right) \cdot
+      \mathbb{E}\left[\boldsymbol\beta_k^{(t-1)}\right]
+\end{align}

@@ -1,0 +1,96 @@
+# Appendix 3: Transfer Learning Algorithm for LDA
+
+* $t-1$ indexes the base model parameters and data
+* $t$ indexes the current model parameters and data
+* $(i)$ indexes the $i$-th iteration of a Markov chain sampler
+
+\begin{align}
+  & \boldsymbol\Theta_t^{(0)} 
+    =
+    \left[ \boldsymbol{X}_t \odot \vec{\boldsymbol{N}}_t^{-1}\right] \cdot \boldsymbol\Lambda_{t-1}^T \\
+  & \dot{\boldsymbol{B}}_t
+    =
+     \begin{pmatrix}
+       \boldsymbol{B}_{t-1} & \boldsymbol{Y}_{k_{t-1},v_t} \\
+       \boldsymbol{Y}_{k_t,v_{t-1}} & \boldsymbol{Y}_{k_t, v_t}
+     \end{pmatrix} \\
+  & \boldsymbol{B}_t^{(0)}
+    = \text{Normalize}(\dot{\boldsymbol{B}}_t)
+\end{align}
+
+where $\boldsymbol{Y}_{k_{t-1}, v_t}$ is a prior distribution for topics contained in $\boldsymbol{B}_{t-1}$ with vocabulary in $X_t$ but not $X_{t-1}$, $\boldsymbol{Y}_{k_t,v_{t-1}}$ and $\boldsymbol{Y}_{k_t, v_t}$ combine to form a prior distribtion for new topics over the union of vocabulary over $X_{t-1}$ and $X_t$, and $\text{Normalize}()$ is a function that divides each row of $\dot{\boldsymbol{B}}_t$ by its sum, normalizing it. 
+
+Let $\dot{\boldsymbol\alpha}_t = \boldsymbol{1} \cdot \boldsymbol\alpha_t^T$, where $\boldsymbol{1}$ is a $D \times 1$ vector. Note that this makes $\dot{\boldsymbol\alpha}_t$ a $D \times K$ matrix.
+
+\begin{align}
+  & \dot{\boldsymbol{Cd}}_t
+    = 
+    \boldsymbol\Theta_t^{(0)} \odot 
+    \left[\boldsymbol{N}_t + K_t \cdot \dot{\boldsymbol\alpha}_t\right] -
+    \dot{\boldsymbol\alpha}_t \\
+  & \boldsymbol{Cd}_t^{(-1)}
+    = \text{Allocate}(\dot{\boldsymbol{Cd}}_t)
+\end{align}
+
+The algorithm $\text{Allocate}()$ is described in Algorithm 1, below. $\boldsymbol{Cd}_t^{(-1)}$ is proportional to $Cd_{t-1}$. However, differences in token counts between $X_{t-1}$ and $X_t$ mean that $\boldsymbol{Cd}_t^{(-1)}$ likely contains non integer values. The $\text{Allocate}()$ function ensures that each entry of $\boldsymbol{Cd}_t^{(-1)}$ is an integer and that each row's total remains the same as the row totals of $X_t$.
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\KwIn{$\dot{\boldsymbol{Cd}}_t$}
+\KwOut{$\boldsymbol{Cd}_t^{(-1)}$}
+
+\For{each row, $j$, of $\dot{\boldsymbol{Cd}}_t$}{
+  $\boldsymbol{cd}$ = $\dot{\boldsymbol{Cd}}_{j,t}$\;
+  tot = sum($\boldsymbol{cd}$)\;
+  $\boldsymbol{cdr}$ = round($\boldsymbol{cd}$)\;
+  rem = tot - round(sum($\boldsymbol{cdr}$))\;
+  
+   \If(//Nothing needs to be done.){rem = 0}{
+     $\boldsymbol{Cd}_{j,t}^{(-1)} = \boldsymbol{cdr}$\;
+   }
+   
+  \ElseIf(//Add rem counts at random.){rem > 0}{
+    \For{1 to rem}{
+      sample $i \in \{1, ..., K\}$ such that $P(i) \propto \boldsymbol{cd}$ \;
+      $\boldsymbol{cdr}_i$ = $\boldsymbol{cdr}_i$ + 1
+    }
+    $\boldsymbol{Cd}_{j,t}^{(-1)} = \boldsymbol{cdr}$\;
+  }
+  
+   \Else(//Remove rem counts at random.){
+    \For{1 to rem}{
+      sample $i \in \{1, ..., K\}$ such that $P(i) \propto \boldsymbol{cd}$ \;
+      $\boldsymbol{cdr}_i$ = $\boldsymbol{cdr}_i$ - 1
+    }
+    $\boldsymbol{Cd}_{j,t}^{(-1)} = \boldsymbol{cdr}$\;
+  }  
+}
+
+\caption{The $\text{Allocate}()$ algorithm distributes integers in $\dot{\boldsymbol{Cd}}_t$ }
+\end{algorithm}
+
+The final step allocates and aligns $\boldsymbol{Cd}_t^{(0)}$ and $\boldsymbol{Cv}_t^{(0)}$ with a single iteration of the sampler as shown in Algorithm 2. The probability of sampling a topic may differ between implementations. For example, a collapsed Gibbs sampler draws a topic for the $n$-th word of the $d$-th context subject to
+
+\begin{align}
+  P(z_{d,n} = k)
+    &=
+    \boldsymbol{B}_{k,n,t}^{(0)} \left[
+    \frac{\boldsymbol{Cd}_{d,k,t}^{(-1)} + \boldsymbol\alpha_k}
+      {\left(\sum_{k=1}^K \boldsymbol{Cd}_{d,k,t}^{(-1)} + \boldsymbol\alpha_k \right) - 1}
+    \right]
+\end{align}
+
+\begin{algorithm}[H]
+\SetAlgoLined
+
+initialize $\boldsymbol{Cd}_t^{(0)}$, $\boldsymbol{Cv}_t^{(0)}$ as zero-valued matrices\;
+
+\For{each context, $d$ }{
+  \For{each word in the $d$-th context, $n$}{
+    sample $z$ such that $P(z = k)$\;
+    $\boldsymbol{Cd}_{d,z,t}^{(0)}$ = $\boldsymbol{Cd}_{d,z,t}^{(0)}$ + 1\;
+    $\boldsymbol{Cv}_{z,n,t}^{(0)}$ = $\boldsymbol{Cv}_{z,n,t}^{(0)}$ + 1\;
+  }
+}
+\caption{Allocate $\boldsymbol{Cd}_t^{(0)}$ and $\boldsymbol{Cv}_t^{(0)}$ by sampling}
+\end{algorithm}

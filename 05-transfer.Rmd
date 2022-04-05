@@ -1,0 +1,166 @@
+# Fine Tuning Latent Dirichlet Allocation for Transfer Learning {#transfer}
+As stated in Section 1, properties of language make the fine tuning paradigm of transfer learning attractive for statistical analyses of corpora. The pervasiveness of power laws in language---the most famous example of which is Zipf's law [@zipf1949]---mean that we can expect just about any corpus of language to not contain information relevant to the analysis. (i.e., Linguistic information necessary for understanding the corpus of study would be contained in a super set of language around---but not contained in---said corpus.) Intuitively, humans approach corpus analytics in a way that on its surface appears consistent with fine tuning transfer learning. Humans have general competence in a language before consulting a corpus to learn a new subject---or even just to have human analysis of the corpus. Also as stated in Section 1, LDA has attractive properties as a model for statistical analyses of corpora. Its very nature allows us to use probability theory to guide model specification and quantify uncertainty around claims made with the model. 
+
+This chapter introduces _tLDA_, short for transfer-LDA. tLDA enables use cases for fine-tuning from a base model with a single incremental update (i.e., "fine tuning") or with many incremental updates---e.g., on-line learning, possibly in a time-series context---using Latent Dirichlet Allocation. tLDA uses collapsed Gibbs sampling [@griffiths2004scientific] but its methods should extend to other MCMC methods [@yao2009streaming][@lightlda][@yahoolda][@chen2015warplda]. tLDA is available for the R language for statistical computing [@rlang] in the _tidylda_ package [@tidylda].
+
+
+
+
+## Related Work
+
+Work on transfer learning with LDA and other probabilistic topic models falls into three categories. The first category contains topic models that explicitly model a topic's evolution over time [@blei2006dtm][@wang2012dynamic][@tmlda]. These models differ from true transfer learning in that time is explicitly part of the model, rather than being updated post-hoc. The second category contains models that allow external information to guide the development of topics. External information may be in the form of supervised outcomes [@mcauliffe2007supervised] [@ramage2009labled] [@andrzejewski2009latent], seeded by model structure [@jagarlamudi2012transfer], seeded in the prior [@andrzejewski2009], or constructed interactively with subject matter experts [@hu2014interactive]. The third category contains models designed for incremental and on-line learning [@alsumait2008][@hoffman2010online][@rollinglda].
+
+## Contribution
+tLDA is a model for updating topics in an existing model with new data, enabling incremental updates and time-series use cases. tLDA has three characteristics differentiating it from previous work:
+
+1. Flexibility - Most prior work can only address use cases from one of the above categories. In theory, tLDA can address all three. However, exploring use of tLDA to encode expert input into the $\boldsymbol\eta$ prior is left to future work.
+2. Tunability - tLDA introduces only a single new tuning parameter, $a$. Its use is intuitive, balancing the ratio of tokens in $\boldsymbol{X}^{(t)}$ to the base model's data, $\boldsymbol{X}^{(t-1)}$. 
+3. Analytical - tLDA allows data sets and model updates to be chained together preserving the Markov property, enabling analytical study through incremental updates.
+
+# tLDA
+
+## The Model
+
+Formally, tLDA can be stated as
+
+\begin{align}
+  z_{d_{n}}|\boldsymbol\theta_d &\sim 
+    \text{Categorical}(\boldsymbol\theta_d)\\
+  w_{d_{n}}|z_{k},\boldsymbol\beta_k^{(t)} &\sim
+    \text{Categorical}(\boldsymbol\beta_k^{(t)}) \\
+  \boldsymbol\theta_d &\sim
+    \text{Dirichlet}(\boldsymbol\alpha_d)\\
+  \boldsymbol\beta_k^{(t)} &\sim
+    \text{Dirichlet}(\omega_k^{(t)} \cdot \mathbb{E}\left[\boldsymbol\beta_k^{(t-1)}\right])
+\end{align}
+
+The above indicates that tLDA places a matrix prior for words over topics where $\eta_{k, v}^{(t)} = \omega_{k}^{(t)} \cdot \mathbb{E}\left[\beta_{k,v}^{(t-1)}\right] = \omega_{k}^{(t)} \cdot \frac{Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)}}{\sum_{v=1}^V Cv_{k,v}^{(t-1)}}$. Because the posterior at time $t$ depends only on data at time $t$ and the state of the model at time $t-1$, tLDA models retain the Markov property.
+
+### Selecting the prior weight
+Each $\omega_k^{(t)}$ tunes the relative weight between the base model (as prior) and new data in the posterior for each topic. This specification introduces $K$ new tuning parameters and setting $\omega_k^{(t)}$ directly is possible but not intuitive. Yet introducing a new parameter and performing some algebra collapses these $K$ tuning parameters into a single parameter with several intutive critical values. This tuning parameter, $a^{(t)}$, is related to each $\omega_k^{(t)}$ as follows:
+
+\begin{align}
+  \omega_k^{(t)} &=
+    a^{(t)} \cdot \sum_{v = 1}^V Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)}
+\end{align}
+
+Appendix 1 shows the full derivation of the relationship between $a^{(t)}$ and $\omega_k^{(t)}$.
+
+When $a^{(t)} = 1$, fine tuning is equivalent to adding the data in $\boldsymbol{X}^{(t)}$ to $\boldsymbol{X}^{(t-1)}$. In other words, each word occurrence in $\boldsymbol{X}^{(t)}$ carries the same weight in the posterior as each word occurrence in $\boldsymbol{X}^{(t-1)}$. If $\boldsymbol{X}^{(t)}$ has more data than $\boldsymbol{X}^{(t-1)}$, then it will carry more weight. If it has less, it will carry less.
+
+When $a^{(t)} < 1$, then the posterior has recency bias. Each word occurrence in $\boldsymbol{X}^{(t)}$ carries more weight than each word occurrence in $\boldsymbol{X}^{(t-1)}$. When When $a^{(t)} > 1$, then the posterior has precedent bias. Each word occurrence in $\boldsymbol{X}^{(t)}$ carries less weight than each word occurrence in $\boldsymbol{X}^{(t-1)}$.
+
+Another pair of critical values are $a^{(t)} = \frac{N^{(t)}}{N^{(t-1)}}$ and $a^{(t)} = \frac{N^{(t)}}{N^{(t-1)} +\sum_{d,v} \eta_{d,v}}$, where $N^{(\cdot)} = \sum_{d,v} X^{(\cdot)}_{d,v}$. These put the total number of word occurrences in $\boldsymbol{X}^{(t)}$ and $\boldsymbol{X}^{(t-1)}$ on equal footing excluding and including $\boldsymbol\eta^{(t-1)}$, respectively. These values may be useful when comparing topical differences between a baseline group in $\boldsymbol{X}^{(t-1)}$ and "treatment" group in $\boldsymbol{X}^{(t)}$, though this use case is left to future work.
+
+## The Algorithm
+The overall tLDA algorithm proceeds in 6 steps.
+
+1. Construct $\boldsymbol\eta^{(t)}$
+2. Predict $\hat{\boldsymbol\Theta}^{(t)}$ using topics from $\hat{\boldsymbol{B}}^{(t-1)}$
+3. Align vocabulary
+4. Add new topics
+5. Initialize $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$
+6. Begin Gibbs sampling with $P(z = k) = \frac{Cv_{k, n} + \eta_{k,n}}{\sum_{v=1}^V Cv_{k, v} + \eta_{k,v}} \cdot \frac{Cd_{d, k} + \alpha_k}{\left(\sum_{k=1}^K Cd_{d, k} + \alpha_k\right) - 1}$
+
+Any real-world application of tLDA presents several practical issues which are addressed in steps 3 - 5, described in more detail below. These issues include: the vocabularies in $\boldsymbol{X}^{(t-1)}$ and $\boldsymbol{X}^{(t)}$ will not be identical; users may wish to add topics, expecting $\boldsymbol{X}^{(t)}$ to contain topics not in $\boldsymbol{X}^{(t-1)}$; and $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ should be initialized proportional to $\boldsymbol{Cd}^{(t-1)}$ and $\boldsymbol{Cv}^{(t-1)}$, respectively.
+
+### Aligning Vocabulary
+tLDA implements an algorithm to fold in new words. This method slightly modifies the posterior probabilities in $\boldsymbol{B}^{(t-1)}$ and adds a non-zero prior by modifying $\boldsymbol\eta^{(t)}$. It involves three steps. First, append columns to $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$ that correspond to out-of-vocabulary words. Next, set the new entries for these new words to some small value, $\epsilon > 0$ in both $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$. Finally, re-normalize the rows of $\boldsymbol{B}^{(t-1)}$ so that they sum to one. For computational reasons, $\epsilon$ must be greater than zero. The _tidylda_ implementation chooses $\epsilon$ to the lowest decile of all values in $\boldsymbol{B}^{(t-1)}$ or $\boldsymbol\eta^{(t)}$, respectively. 
+
+### Adding New Topics
+tLDA employs a similar method to add new, randomly initialized, topics if desired. This is achieved by appending rows to both $\boldsymbol\eta^{(t)}$ and $\boldsymbol{B}^{(t)}$, adding entries to $\boldsymbol\alpha$, and adding columns to $\boldsymbol\Theta^{(t)}$, obtained in step two above. The tLDA implementation in _tidylda_ sets the rows of $\boldsymbol\eta^{(t)}$ equal to the column means across previous topics. Then new rows of $\boldsymbol{B}^{(t)}$ are the new rows of $\boldsymbol\eta^{(t)}$ but normalized to sum to one. This effectively sets the prior for new topics equal to the average of the weighted posteriors of pre-existing topics.
+
+The choice of setting the prior to new topics as the average of pre-existing topics is admittedly subjective. A uniform prior over words is unrealistic, being inconsistent with Zipf's law [@zipf1949]. (See also the appendix in [@jones2019coefficient].) The average over existing topics is only one viable choice. Another choice might be to choose the shape of new $\boldsymbol\eta_k$ from an estimated Zipf's coefficient of $\boldsymbol{X}^{(t)}$ and choose the magnitude by another means.
+
+New entries to $\boldsymbol\alpha$ are initialized to be the median value of the pre-existing topics in $\boldsymbol\alpha$. Similarly, columns are appended to $\boldsymbol\Theta^{(t)}$. Entries for new topics are taken to be the median value for pre-existing topics on a per-document basis. This effectively places a uniform prior for new topics. This choice is also subjective. Other heuristic choices may be made, but it is not obvious that they would be any better or worse choices. 
+
+### Initializing $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$
+Like most other LDA implementations, tLDA initializes tokens for $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ with a single Gibbs iteration. However, instead of sampling from a uniform random for this initial step, tLDA draws a topic for the $n$-th word of the $d$-th document from the following:
+
+\begin{align}
+  P(z_{d_{n}} = k) &= \hat{\boldsymbol\beta}_{k,n}^{(t)} \cdot \hat{\boldsymbol\theta}_{d,k}^{(t)}
+\end{align}
+
+After a single iteration, the number of times each topic was sampled at each document and word occurrence is counted to produce $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$. After initialization where topic-word distributions are fixed, tLDA continues in a standard fashion, recalculating $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ (and therefore $P(z_{d_{n}} = k)$) at each step.
+
+# Experiments
+To evaluate tLDA, we conduct two simulation experiments and an analysis on a real-world data set. The simulation experiments evaluate the degree to which tLDA converges towards a ground truth data generating distribution. The real-world analysis constructs time series of topics from a data set of Small Business Innovation Research (SBIR) grant abstracts from 1983 to 2021.
+
+## Simulation Analysis
+Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall i,j \geq 0, i \neq j$, and (2) if $a = 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyperparameters for any LDA model remains an open problem. Yet we hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
+
+To test the above, we conduct two simulation experiments. We generate topics by drawing from 128 data generating distributions. Then for each data generating distribution, we sample 100 corpora of 100 documents each. We fit a model on the first 100 documents of the data and iteratively add the remaining 100 documents at a time, fine tuning at each stage, with values of $a$ ranging from $0.2$ to $2$. The experiments are described in more detail in the below sections.
+
+We find that on average, models to converge towards the true topics of the data generating process when values of $a$ are within [x to y]. Yet, properties of the data generating process heavily influence whether or not the models converge at all within this range. This points towards a need for more study of LDA as a data generating process of language, rather than an inherent limitation of tLDA. When $a$ is smaller than [x], variance between models is high and there is little evidence of convergence. When $a$ is larger than [y], the model converges too quickly and adding more data does not improve the fit.
+
+### Simulation Setup
+
+#### Synthetic Data Generation
+We assume that the total vocabulary size, $V$, and number of topics, $K$, are fixed with value of $5,000$ and $25$ respectively. We further assume that $\boldsymbol\alpha$ is flat (symmetric) and that $\boldsymbol\eta$ is proportional to a power law (asymmetric) to account for Zipf's law (cite). We vary the magnitudes of $\boldsymbol\alpha$ and $\boldsymbol\eta$ and vary the number of words sampled in each context.
+
+
+Specifically, we chose the following:
+
+1. $\left(\sum_{v=1}^V \eta_v \right) \in \{50, 100, 200, 400\}$
+2. $\left(\sum_{k=1}^K \alpha_k \right) \in \{0.5, 1, 3, 5\}$
+3. $N_d \sim \text{Poi}(\lambda)$ where $\lambda \in \{50, 100, 200, 400\}$
+4. $V = 5,000$ and $K = 25$
+
+The above creates 64 unique sets of hyper parameters. From each, we generate two sets of population statistics, $\left\{ \boldsymbol\Theta, \boldsymbol{B} \right\}$, leaving 128 unique sets of population parameters to parametarize the generation process described in Section 1.1. From each of these sets of population parameters, $i$, we sample 100 word count matrices, $\boldsymbol{X}_i^{(t)}$, with 100 documents each.
+
+The magnitudes of the Dirichlet hyperparameters, $\boldsymbol\eta$ and $\boldsymbol\alpha$ vary while keeping their shapes fixed. The magnitude of the parameter of a Dirichlet distribution plays a strong role in tuning the covariance between draws from that distribution. A smaller magnitude means larger variability between draws. In other words, if $\left(\sum_{v=1}^V \eta_v \right)$ is smaller, topics are less linguistically similar. If $\left(\sum_{v=1}^V \eta_v \right)$ is larger, topics are more linguistically similar. Similarly, $\left(\sum_{k=1}^K \alpha_k \right)$ tunes the topical similarity of documents.
+
+#### Modeling Choices
+
+We fit a total of 128,000 LDA models to the simulated data. For each of the 128 unique sets of population parameters, we sequentially fit models on 100 batches of data, using TLDA to update the parameters. We do this for 10 different settings for $a$ from $a = 0.2$ to $a = 2$ with a step size of $0.2$.
+
+In each case, the base model was fit with $K = 30$ topics, and commonly-used flat priors with $\alpha_k = 0.05$ and $\eta_v = 0.01$. The Gibbs sampler runs for 200 iterations. Posterior estimates are taken averaging over the last 50 iterations. Subsequent models are fine tuned with an additional 200 iterations with posterior estimates averaged over the last 50 and $a$ set as described above.
+
+We fit more topics than in the population data for two reasons. First, it's unrealistic that a researcher will know the right number of topics a-priori. (In real data a true number does not even exist.) Second, fitting a fewer number of topics than is in the population would lead to a pathologically-mispecified model regardless of other choices. 
+
+#### Evaluation Metrics
+
+We base our analysis on calculations from the pairwise Hellinger distance [@hellinger1909] from the estimated topics to each of the ground truth simulated topics. For estimated topic $\hat{\boldsymbol\beta}_k^{(t)}$ and ground-truth topic $\boldsymbol\beta_{\mathfrak{k}}$, the Hellinger distance is calculated as
+
+\begin{align}
+  H(\hat{\boldsymbol\beta}_k^{(t)},\boldsymbol\beta_{\mathfrak{k}}) &=
+    \sqrt{\frac{1}{2} 
+    \sum_{v=1}^V (\sqrt{\hat{\beta}_{k,v}^{(t)}} - \sqrt{\beta_{\mathfrak{k},v}}) ^ 2}
+\end{align}
+
+Note that it is not necessarily true that $k = \mathfrak{k}$ for any pair of topics. For simplicity, we denote the above $H_{k,\mathfrak{k}}^{(t)}$ and its derivative with respect to $t$ as $H_{k,\mathfrak{k}}^{'(t)}$.
+
+From a theoretical perspective, the following should be true:
+\begin{align}
+  & \text{If } \hat{\boldsymbol\beta}_k^{(t)} 
+    \text{ converges towards a stable posterior, then }
+    \underset{t \to \infty}{\lim} 
+    H_{k,\mathfrak{k}}^{'(t)} = 0 \\
+  & \text{If } \hat{\boldsymbol\beta}_k^{(t)} \text{ converges to }
+    \boldsymbol\beta_{\mathfrak{k}} \text{, then (11) holds and }
+    \underset{t \to \infty}{\lim}
+    H_{k,\mathfrak{k}}^{(t)} = 0\\
+  & \text{We can compare convergence rates by finding } t \text{ such that }
+    H_{k,\mathfrak{k}}^{'(t)} \approx 0
+\end{align}
+
+By extension of (11), if a whole model converges to a stable posterior, then $\underset{t \to \infty}{\lim} \sum_{k=1}^K H_{k,\mathfrak{k}}^{'(t)} = 0$. Note that converging to a stable posterior does not mean that the model converged towards the true topics of the data generating distribution. If (12) holds, then that also implies that $\hat{\boldsymbol\beta}_k^{(t)}$ is a consistent estimator of $\boldsymbol\beta_{\mathfrak{k}}$. This is unlikely to be true as an imperfect specification of $\boldsymbol\alpha$ and $\boldsymbol\eta$ mean that $H_{k,\mathfrak{k}}^{(t)}$ will always be positive. However, if $\hat{\boldsymbol\beta}_k^{(t)}$ is heading *towards* $\boldsymbol\beta_{\mathfrak{k}}$, then $H_{k,\mathfrak{k}}^{'(t)} < 0$ as it approaches its limit.
+
+We estimate $H_{k,\mathfrak{k}}^{'(t)}$ by $H_{k,\mathfrak{k}}^{(t)} - H_{k,\mathfrak{k}}^{(t - 1)}$, normalized by $H_{k,\mathfrak{k}}^{(0)}$. Normalization allows each topic in every model to be on the same scale and allows us to chose a single threshold as being sufficiently close to zero to assess convergence or lack thereof.
+
+We use the hyperparameters that define the data generating process (described in 3.1.1.1) and the value of $a$ used in fine tuning that model as predictors for whether or not a model converged---using logistic regression---and the rate of convergence for those models which did converge---using linear regression. In the former case, the outcome variable is a binary for having converged or not. In the latter case, the outcome variable is $\left|0 - \frac{H_{k,\mathfrak{k}}^{(t)} - H_{k,\mathfrak{k}}^{(t - 1)}}{H_{k,\mathfrak{k}}^{(0)}}\right|$. For linear regression, we omit models that did not converge.
+
+
+### Findings
+
+## Emperical Analysis
+
+### Data Description
+
+### Modeling Choices
+
+### Findings
+
+# Discussion
+
+Note that you haven't explored adding expert input, but this could theoretically be encoded into the prior

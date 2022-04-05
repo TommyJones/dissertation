@@ -1,0 +1,141 @@
+# Latent Dirichlet Allocation and Related Models {#ldahistory}
+
+## Vector Space Model
+Most modern approaches to language modeling can trace their origin to the vector space model [@salton1975vector]. The vector space model represents contexts (usually documents) in multidimensional space whose coordinates are given by the frequencies of words within that context. These frequencies may be explicit counts, or they may be re-weighted. The vector space model makes the _bag of words_ assumption. Within a context, word order and proximity have no meaning. When one says a document is a "bag of words", they mean that word order is discarded and the document is only the relative frequencies of words within it. 
+
+More formally, let $\boldsymbol{X}$ be a $D \times V$ matrix of contexts. Each row represents a context, and each column a word.[^wordtoken] The key to the vector space model is that if $\boldsymbol{x}_i$ and $\boldsymbol{x}_j$ are close in the vector space given by $\boldsymbol{X}$, then the contexts represented by $\boldsymbol{x}_i$ and $\boldsymbol{x}_j$ must be semantically similar.
+
+[^wordtoken]: While there are distinct differences in the definitions of "word" and "token", for the purposes of this work I will use the two terms interchangeably for simplicity.
+
+The key limitation of the vector space model is that $\boldsymbol{X}$ is large and sparse. This leads to the "curse of dimensionality" where meaningful comparisons can be different because most dimensions have little signal [@lee1997document]. The bag of words assumption also disregards the use of synonyms or the fact that the same words can have multiple meanings---known as "polysemy".
+
+## Latent Semantic Indexing
+Latent Semantic Indexing (LSI) reduces the dimensions of $\boldsymbol{X}$ through a singular value decomposition (SVD) [@deerwester1990lsa]. Since $\boldsymbol{X}$ is large and sparse, one can approximate it by $\boldsymbol{X}_{(K)}$ which is of rank $K$ and corresponds to the $K$ largest eigenvalues of $\boldsymbol{X}$. This projects the data matrix $\boldsymbol{X}$ into a $K$-dimensional Euclidean "semantic" space. Formally,
+
+\begin{align}
+  \boldsymbol{X} \approx \boldsymbol{X}_{(K)}
+    &= \boldsymbol{U} \boldsymbol\Sigma \boldsymbol{V}^T
+\end{align}
+
+$\boldsymbol{U}$ and $\boldsymbol{V}^T$ are orthonormal matrices and $\boldsymbol\Sigma$ is a diagonal matrix of singular values. New documents, $\boldsymbol{X}'$ may be embedded by right multiplying them by the projection matrix, $\boldsymbol\Lambda = [\boldsymbol\Sigma \boldsymbol{V}^T]^{-1}$.
+
+A key limitation LSI brings is that there is no obvious way to choose $K$, the embedding dimension. This problem plagues nearly all models that follow it.
+
+## Probabilistic Latent Semantic Indexing
+Probabilistic Latent Semantic Indexing (pLSI) brings a probabilistic approach to LSI [@hofmann1999probabilistic]. pLSI models a generative process for $\boldsymbol{X}$ where $\boldsymbol{X}$ is explicitly a matrix of integer counts of word occurrences. Assuming there are $D$ contexts, $K$ topics, $V$ unique words, $N$ total words and $Nd$ words in the $d$-th document, the process is as follows. For each word, $n$, in context $d$:
+
+1. Draw topic $z_{d,n}$ from $\text{Multinomial}(\boldsymbol\theta_d)$
+2. Draw word $w_{d,n}$ from $\text{Multinomial}(\boldsymbol\beta_{z_{d,n}})$
+3. Repeat 1. and 2. $N_d$ times.
+
+From the above, it's clear that $P(z_k|d) = \theta_{d,k}$ and $P(w_v|z_k) = \beta_{k,v}$. 
+
+pLSI is fit using the EM algorithm to find the values of parameters in $\boldsymbol\Theta$ and $\boldsymbol{B}$ that maximize the joint likelihood of $\boldsymbol{X}$. The likelihood of a single word in a single document is $P(w_v, d) = P(d)P(w_v|d)$. Taking $P(d) = \frac{N_d}{N}$ and noting that $P(w_v|d) = \sum_{k=1}^K \theta_{d,k} \cdot \beta_{k,v}$ we can derive the joint likelihood
+
+\begin{align}
+  \mathcal{L}(\boldsymbol\Theta, \boldsymbol{B})
+    &= \prod_{d=1}^D \prod_{v=1}^V \left(\frac{N_d}{N} \sum_{k=1}^K \theta_{d,k} \cdot \beta_{k,v} \right) ^ {x_{d,v}}
+\end{align}
+
+It is stated that pLSI cannot be extended to unseen contexts. "It is not clear how to assign probability to a document outside of the training set" [@blei2002lda]. However, one can use Bayes's rule to derive a projection matrix, $\boldsymbol\Lambda$, to embed new contexts into the probability space fit by pLSI. A derivation is in Appendix 1. pLSI is alleged to habitually over fit its training data [@shi2019thesis]. And, as with LSI, there's no clear guidance for selecting the number of topics, $K$.
+
+[comment]: # (Not sure how to cite "no clear guidance for selecting K" since it cites a negative?)
+
+## Latent Dirichlet Allocation
+LDA is a Bayesian version of pLSI and was developed by David Blei, Andrew Ng, and Michael Jordan to address perceived shortcomings of pLSI [@blei2002lda]. LDA adds Dirichlet priors to the parameters $\boldsymbol\Theta$ and $\boldsymbol{B}$. This modifies the data generating process as
+
+1. Generate $\boldsymbol{B}$ by sampling $K$ topics $\boldsymbol\beta_k \sim \text{Dirichlet}(\boldsymbol\eta), \forall k \in \{1,2,...,K\}$
+2. Generate $\boldsymbol\Theta$ by sampling $D$ documents $\boldsymbol\theta_d \sim \text{Dirichlet}(\boldsymbol\alpha), \forall d \in \{1,2, ..., D\}$
+3. Then for each document, $d$
+    a. Draw topic $z_{d,n}$ from $\text{Multinomial}(\boldsymbol\theta_d)$
+    b. Draw word $w_{d,n}$ from $\text{Multinomial}(\boldsymbol\beta_{z_{d,n}})$
+    c. Repeat 1. and 2. $N_d$ times.
+
+For ease of notation, I refer to the above process as the LDA-DGP throughout this proposal.[^justaswell]
+
+[^justaswell]: The original specification of the LDA-DGP [@blei2002lda] specified that each document's length is drawn from a Poisson random variable. This specification has been dropped from most subsequent work on LDA. Likely this is because in practical applications document lengths are given by the data and do not need to be modeled. It's just as well since specifying a distribution of document lengths for any real-world corpus is likely overly prescriptive.
+
+The above process has a joint posterior of
+
+\begin{align}
+  P(\mathbf{W},\mathbf{Z},\boldsymbol\Theta,\boldsymbol{B}|\boldsymbol\alpha,\boldsymbol\eta)
+    &\propto \left[\prod_{d=1}^D \prod_{n=1}^{n_d} 
+      P(w_{d,n}|\boldsymbol\beta_{z_{d,n}})
+      P(z_{d,n}|\boldsymbol\theta_d)
+      P(\boldsymbol\theta_d|\boldsymbol\alpha)\right]
+      \left[\prod_{k=1}^K P(\boldsymbol\beta_k|\boldsymbol\eta)\right]
+\end{align}
+
+The above posterior does not have an analytical closed form. Consequently, a variety of Bayesian estimation methods have been employed to estimate the model. Blei et. al used variational expectation maximization (VEM). Shortly thereafter, Griffiths and Steyvers developed a collapsed Gibbs sampler for LDA [@griffiths2004scientific]. This sampler is "collapsed" in that the parameters of interest---$\boldsymbol\Theta$ and $\boldsymbol{B}$---are integrated out for faster computation. After iteration is complete, $\boldsymbol\Theta$ and $\boldsymbol{B}$ can be easily calculated. (See Appendix [X] for the collapsed Gibbs algorithm and posterior calculation.)  Others have since developed many other MCMC algorithms, discussed more in the next section. 
+
+The priors $\boldsymbol\alpha$ and $\boldsymbol\eta$ may be either asymmetric or symmetric. Asymmetric priors are those where the vector hyper parameter (e.g., $\boldsymbol\alpha$) has different values in each slot. Symmetric priors are those where the vector hyper parameter has the same value in each slot. In the latter case, researchers will often represent the hyper parameter as a scalar rather than a vector. The magnitudes of $\boldsymbol\alpha$ and $\boldsymbol\eta$ affect the average concentration of topics within documents and words within topics, respectively. This is a property of the Dirichlet Distribution.
+
+### Persistent Issues with LDA (and Most Other Topic Models)
+In spite of its being almost 20 years old, LDA has several persistent issues. Many of these are shared by the models that came before and after. Given its continued popularity (and the primary focus of my proposed research) it is worth further discussion. The critical issues relate to model specification, evaluation, algorithmic scalability, and LDA's strong assumptions of independence.
+
+First, there is no generally accepted method for choosing hyper parameters---i.e., model specification---for an LDA model [@zhao2015heuristic]. Anecdotally, the most concern is in choosing $K$, the number of topics.[^checkstackoverflow] There has been less exploration in choosing the prior parameters, $\boldsymbol\alpha$ and $\boldsymbol\eta$. Yet, I have some preliminary evidence that all three parameters need to work in concert, at least to get a semantically coherent model [@jones2019dcr]. A rigorous examination of how all three hyper parameters interact in the LDA-DGP is warranted.
+
+[^checkstackoverflow]: A quick search of Stack Overflow will quickly reveal a large number of questions related to choosing the number of topics.
+
+There are two philosophies for selecting $K$, the number of topics or dimensions of embedding for a topic model. The first is to select a value---perhaps including different values for $\boldsymbol\alpha$ and $\boldsymbol\eta$ as well---to optimize a metric. This metric may be the log likelihood [@griffiths2004scientific], perplexity [@zhao2015heuristic], a coherence metric[^notallcoherence] [@stevens2012coherence], or something else [@dieng2020tem]. Chen et al. use a fully-Bayesian approach and put a prior on the number of topics [@dosschoosek]. The second philosophy holds that optimizing for such metrics leads to topics that are too specific for human interpretability. Chang and Boyd-Graber constructed a topic model on a general news corpus, then had people using Amazon's Mechanical Turk evaluate topic quality [@chang2009tea]. The subjects covered by the model were broad and the audience were not subject matter experts.
+
+[^notallcoherence]: Not all coherence [@douven2007coherence] metrics are created equal. Evaluation of several coherence metrics has found considerable variation in correlation with human judgement [@roder2015coherence], [@pietilainen2020coherence]. In particular, the "UMASS" metric [@mimno2011coherence] is widely used, but does not correlate highly with human judgement [@roder2015coherence], [@pietilainen2020coherence].
+
+There has been less attention paid to selecting $\boldsymbol\alpha$ and $\boldsymbol\eta$. A notable---and influential---exception is Wallach, Mimno, and McCallum's _Rethinking LDA: Why Priors Matter_. They find that $\boldsymbol\alpha$ should be asymmetric and that $\boldsymbol\eta$ should be symmetric and small [@wallach2009rethinking]. This is counter to a proof included in Appendix 2, where I find that the expected term frequency of a collection of documents generated by the LDA-DGP is proportional to $\boldsymbol\eta$. Given Zipf's law [@zipf1949]---described in more detail in Section 4---a symmetric $\boldsymbol\eta$ constitutes a prior that is impossible in any real corpus. More recently, George and Doss explore an MCMC approach to help select $\boldsymbol\alpha$ and $\boldsymbol\eta$ [@george2018hyperparameters]. However, they too assume a symmetric $\boldsymbol\eta$.
+
+Second, there is still no consensus on how to evaluate topic models. Shi et al. divide approaches to evaluation into three categories: manual inspection, intrinsic evaluation, and extrinsic evaluation [@shi2019eval]. Manual inspection---such as the "intruder test" used in [@chang2009tea]---is subjective and labor intensive. Intrinsic evaluation evaluates the model directly against the data on which it was developed. This is measured in goodness of fit metrics such as log likelihood and perplexity, with a coherence metric[^coherenceintrinsic], or other metrics---such as comparing to baseline distributions [@alsumait2009]. Intrinsic evaluation may be measured in-sample or out-of-sample. Extrinsic methods evaluate the performance of topic models against some external task, such as identifying document class. In both his dissertation [@shi2019thesis] and related publication [@shi2019eval], Shi argues that comparing topic models to "gold standard" synthetic data is a more principled approach. This is correct, however the link between the data generating process and statistical laws of language is missing. 
+
+[^coherenceintrinsic]: Coherence metrics are intrinsic measures that are designed to approximate rigorous manual inspection.
+
+Third, algorithms to fit LDA models have scaleability issues. Gibbs sampling is a naturally sequential algorithm. When the data set is large, it can be prohibitively slow. Gibbs sampling scales quadratically with the number of documents, topics, vocabulary size, and total number of tokens. Newman et al. developed a distributed "approximate" Gibbs sampler for LDA [@newman2009distributed]. It is implemented in MALLET and the in-development version of _tidylda_. But quality of the model---by any intrinsic evaluation metric---decreases when used. This is due to the approximation voiding theoretical guarantees of convergence inherent to MCMC samplers, a point that Newman et al. concede [@newman2009distributed]. VEM has more-easily distributed computations, yet anecdotally VEM gives less coherent topics than MCMC algorithms, especially on smaller data sets [@antoniak2020tweet]. A host of other MCMC algorithms have been developed to try to scale LDA to very large corpora [@yao2009streaming], [@lightlda], [@yahoolda], [@chen2015warplda]. One approach uses a variational autoencoder to approximate VEM in a neural network [@srivastava2017]. Even so, the most approachable implementations of LDA still use VEM or collapsed Gibbs.
+
+Finally, the LDA-DGP makes strong independence assumptions. Human language is said to have a property called "burstiness" [@rychly2011words]. Burstiness is the idea that words cannot be independent draws from a distribution since they occur in clusters. i.e., Seeing a word once, greatly increases the probability you will see it again. Mimno and Blei developed posterior predictive checks for LDA to detect the degree to which burstiness affects LDA [@mimno2011checking]. 
+
+## Related Topic Models
+Researchers have developed many topic models intended to improve upon LDA. This section covers some notable examples. 
+
+Teh et al. used a hierarchical Dirichlet process (HDP) to determine the number of topics automatically [@teh2006hdp]. They show that HDP has performance advantages over LDA in terms of perplexity. Yet Chen et al. point out that HDP is both computationally intensive, that it is actually a fundamentally different model from LDA, and using it to select the number of topics is not well defined [@dosschoosek]. 
+
+Dynamic topic models (DTM) add a time series component to topic modeling [@blei2006dtm]. By incorporating date of publication, DTMs allow the linguistic mixture of topics to change dynamically over time. Consider an intuitive example; the amount of writing about a given topic changes over time, but also _how_ writers write about that topic changes as well. DTMs require explicit metadata on when a context appeared. 
+
+Topic models are often used to embed contexts into a vector space to aid a supervised task downstream. Supervised LDA (sLDA) incorporates this outcome in the modeling process [@mcauliffe2007supervised]. McAuliffe and Blei find that sLDA improves accuracy of the predictive task and gives improved topic quality over a two-step of LDA then using a separate supervised algorithm.
+
+Two closely-related algorithms are the correlated topic model (CTM) [@blei2007ctm] and structural topic model (STM) [@roberts2019stm]. CTMs modify LDA by placing a log-normal prior on $\boldsymbol\Theta$ to allow modeling the correlations between documents. STMs extend CTMs by allowing the user to declare context-level co-variates, rather than simply trying to estimate them. If no such co-variates are provided, then STM collapses to CTM [@roberts2019stm].
+
+The above models---and many more---encompass a large landscape, but they are not so different. Each of these models effectively embeds their contexts into a probability space. (See Section 2.7.) As a result, I hypothesize that much of my proposed research should extend---or can be modified to extend---to these models. 
+
+## Text Embeddings and Distributional Semantics
+Word embeddings were developed in parallel with topic models, beginning with the neural language model of Bengio et al. [@bengio2003neural]. The idea is to represent words as distributions embedded into a vector space such that proximity corresponds to semantic similarity. The correspondence of distance in vector space to semantic distance is known as _the distributional hypothesis_ and forms the basis of distributional semantics [@eisenstein2019introduction, ch.14]. The distributional hypothesis states that "you shall know a word by the company it keeps" [@firth1957synopsis]. In other words, a word's meaning may be inferred from the context in which it appears.[^context] Since 2003, word embeddings have been extended to cover larger linguistic units such as sentences and documents [@le2014distributed] and have taken on the more general moniker "text embeddings". Notable models include word2vec [@mikolov2013distributed], GloVe [@pennington2014glove], ELMo [@peters2018deep], and more.
+
+[^context]: I have heretofore been using the general word "context" instead of "document" to discuss topic models. This is intentionally related to text embeddings and discussed more in Section 2.7, _LDA for Corpus Statistics_.
+
+One popular method for constructing this "context" is a term co-occurrence matrix of _skip grams_. Skip grams count the number of times each word in the vocabulary occurs in a window around a target word [@mccormick2016word2vec]. For example, a skip gram window of five counts the number of times each word appears within five words to the left or five words to the right of the target word. The result is a symmetric $V \times V$ matrix of integers, with each row and column representing a word. Levy and Goldberg show that neural word embeddings may be viewed as a factorization of this matrix [@levy2014neural].
+
+Text embedding research brings exciting possibilities to distributional semantics. Researchers have found that comparisons and compositions of embeddings may be linked to semantic meaning. For example, Mikolov et al. found similarities between the vectors representing countries and their capitals [@mikolov2013distributed]. Compositions between word vectors may also capture semantic meaning as demonstrated by the oft-used "$\text{king} - \text{man} + \text{woman} \approx \text{queen}$" example [@mikolov2013linguistic]. And alignment between vector spaces across languages promises the ability to compare meaning of words and phrases across languages [@sogaard2019cross].
+ 
+As with topic models, there is no principled way to choose $K$, the number of embedding dimensions. Anecdotally, this is far less studied in the distributional semantics community than the topic modeling community. Yet, as I describe below, I believe the two communities are actually working on the same class of models, in spite of their disjoint lineage.
+
+## LDA for Corpus Statistics
+Latent Dirichlet Allocation has lost favor in machine learning circles. A colleague recently asked me without any irony, "who still uses LDA?!?!" This sentiment is unfortunately widespread in the machine learning community. Jacob Eisenstein---a research scientist at Google---recently published _Introduction to Natural Language Processing_---one of the first comprehensive textbooks on the subject since deep learning models came to dominate in NLP [@eisenstein2019introduction]. He does not mention LDA at all in the chapter on distributional semantics (pages 309--332) and only mentions it in a footnote in the chapter on discourse (on page 358).   
+
+Yet LDA is still in widespread use in the digital humanities and computational social science. Machine learning may have moved on, but applications of LDA are widespread in these less explicitly technical disciplines. This points to a need to make LDA more accessible [@boydgraber2017applications, ch. 10.2]. Accessibility means computational tools that are easy to use as well as a deeper understanding of _how_ these models may be deployed to answer questions these disciplines have.
+
+Moreover, I argue that the distinction between "topic models"---of which LDA is a member---and "text embeddings" made in the machine learning community is meaningless. Viewed through the lens of topology, LDA and newer text embeddings belong in the same class of models. In topology, an embedding, $f$, is a mapping between topological spaces. $f: \boldsymbol{X} \rightarrow \boldsymbol{Y}$ means that $f$ maps a point in topological space $\boldsymbol{X}$ to a point in topological space $\boldsymbol{Y}$. From this perspective, LDA maps $\boldsymbol{X}$---points in a $V$-dimensional integer space---to $\boldsymbol\Theta$---points in a $K$-dimensional probability space. Newer text embeddings typically map from $\boldsymbol{X}$ to Euclidean space $\boldsymbol{Y}$.[^eattransformers]
+
+[^eattransformers]: We can extend this logic to encompass Transformers as well. A multi layer neural network may be viewed through this lens as a collection of embeddings $\{f_0, f_1, ..., f_O\}$ such that $f_0: \boldsymbol{X} \rightarrow \boldsymbol{H_1}$, $f_1: \boldsymbol{H_1} \rightarrow \boldsymbol{H_2}$, and so on until $f_{o-1}: \boldsymbol{H}_{o-1} \rightarrow \boldsymbol{O}$. $\boldsymbol{X}$ is the input layer; $\boldsymbol{H}_i$ are hidden layers; and $\boldsymbol{O}$ is the output layer. One might then consider relationship between contexts at any layer $\boldsymbol{H}_i$ or $\boldsymbol{O}$. 
+
+LDA is also criticized for its over reliance of the bag of words assumption. This conflates data pre-processing with the model itself. For this reason, I prefer to refer to the rows of $\boldsymbol{X}$---the data being modeled---as "contexts" rather than "documents". A context may be a whole document, a chapter, a paragraph, a sentence, etc. Or a context may incorporate proximity or word order. For example a context could be the count of times each word in a corpus appears around a target word, as with skip-grams. A context could also be a count of each word appearing after or before a target word.[^leadlag] It's true that within a context, the bag-of-words assumption still holds. So, LDA cannot be a full sequence to sequence model. However, the way a context is constructed may encode proximity and order. And that construction affects the interpretations of probabilities resulting from the model. I have done this explicitly with LDA when writing the vignettes for a previously-released R package, _textmineR_ [@textminerembeddings]. Just this year, Adji Deng co-authored a paper with David Blei constructing the "embedding topic model" in a similar fashion [@dieng2020tem].[^missedit] Panigrahi et al. use LDA for word embeddings and find evidence that the "topic" dimensions encode different word senses, potentially addressing polysemy [@panigrahi2019word2sense].
+
+[^leadlag]: I'd call these lead-grams and lag-grams, respectively. 
+
+[^missedit]: I published the vignette doing this with LDA in 2017 and had made the connection years earlier. Coulda shoulda woulda published it then. But if I'm going to get scooped in topic modeling, I'm glad it was on a paper co-authored with David Blei.
+
+LDA and other probabilistic topic models also have an advantage _because_ they embed into a probability space. As we know from traditional statistics, probability spaces are well-suited to quantify uncertainty around claims and inferences made from data---with or without linguistic origins. It is possible that embedding to probability spaces may aid tasks in distributional semantics such as uncovering analogies and cross-lingual embedding alignment. Probability spaces have well-defined relationships, transformations, and methods for composition. Euclidean spaces have fewer constraints on operations within them, leading to greater researcher degrees of freedom. However, analogies and cross-lingual embedding alignment are beyond the scope of the work proposed at present.
+
+With this in mind, I believe that LDA is a good candidate of study for corpus statistics for three reasons. First, LDA is a parametric Bayesian statistical model, which allows for uncertainty quantification, model diagnostics, etc. in line with established statistical practices. Second, as stated above, LDA embeds into probability spaces with the benefits they bring. Finally, LDA is a generative model of language. This allows us to use simulation studies of the LDA-DGP to help develop methods to help build models and diagnose model misspecification, as described in section 4 below.
+
+LDA is a good candidate for corpus statistics, but corpus statistics can also be good for LDA. The tension over intrinsic evaluation versus human interpretability---as highlighted by Chang et al. [@chang2009tea]---is premature. LDA has an identification problem. If one cannot tell if a model is pathologically misspecified, then one should not rely on any interpretation of it. Analogously, if a linear regression model's residuals are clearly not Gaussian distributed with mean zero, one does not attempt to interpret its coefficients. We should expect the same from LDA and related models.
+
+For LDA, corpus statistics should focus on three tasks: detect pathological model misspecification[^notruemodel] (e.g., choice of $K$, $\boldsymbol\alpha$, and $\boldsymbol\eta$), develop metrics to aid researchers in justifying a model's specification, and quantifying uncertainty around claims a researcher might want to make using a model. Relating empirical laws of language to the LDA-DGP is a first step for the former two tasks. The latter task relates closely to interpretation and depends on a model being statistically valid.
+
+[^notruemodel]: One might argue that humans do not write using the LDA-DGP and thus no "correct" specification exists. They would be right! Yet, "this model is not right" is a much narrower statement than "this model is right". To use linear regression as an example again, having Gaussian distributed residuals does not mean that one specified the "right" model. But having non-Gaussian residuals means the model is wrong. 

@@ -1,0 +1,49 @@
+
+
+# Appendix 1: Projection Matrix for Probabilistic Embedding Models
+
+We can use Bayes's rule to derive a projection matrix, $\boldsymbol\Lambda$, for any model that embeds text into a probability space such as pLSI, LDA, and similar. 
+
+Given a model developed on a matrix $\boldsymbol{X}$ with $D$ contexts, indexed by $d \in \{1, 2, ..., D\}$; $V$ unique words in the vocabulary, indexed by $v \in \{1, 2, ..., V\}$; $N$ total word instances in the vocabulary and $N_d$ word instances in the $d$-th document such that $N = \sum_{d=1}^D N_d$ and $N_d = \sum_{v=1}^V x_{d,v}$. The model itelf has; $K$ topics, indexed by $k \in \{1, 2, ..., K\}$. 
+
+In the resulting model, $P(z_k|d) = \theta_{d,k}$ is the probability that a token in document $d$ was sampled from topic $k$ and $P(w_v|z_k) = \beta_{k,v}$ is the probability of sampling token $v$ from topic $k$. 
+
+We need to derive $P(z_k|w_v) = \lambda_{v,k}$ using Bayes's rule.
+
+\begin{align}
+  \lambda_{v,k}
+    &= P(z_k|w_v)\\
+    &= \frac{P(w_v|z_k) \cdot P(z_k)}{P(w_v)}\\
+    &= \frac{\beta_{k,v} \cdot P(z_k)}{P(w_v)}
+\end{align}
+
+We can use the law of total probability to find $P(z_k)$.
+
+\begin{align}
+  P(z_k) 
+    &= \sum_{d=1}^D P(z_k|d) \cdot P(d)\\
+    &= \sum_{d=1}^D \theta_{d,k} \cdot P(d)
+\end{align}
+
+We can take $P(w_v)$ and $P(d)$ from $\boldsymbol{X}$ with
+
+\begin{align}
+  P(w_v) &= \frac{1}{N} \sum_{d = 1}^D x_{d,v}\\
+  P(d) &= \frac{1}{N} \sum_{v=1}^V x_{d,v}
+\end{align}
+
+This gives us our final form
+
+\begin{align}
+  \lambda_{v,k}
+    &= \frac{\beta_{k,v} \cdot 
+      (\sum_{d=1}^D \theta_{d,k}) \cdot (\frac{1}{N} \sum_{v=1}^V x_{d,v})}
+      {\frac{1}{N}\sum_{d = 1}^D x_{d,v}}
+\end{align}
+
+Each of the above values represents the $v, k$ entry of $\boldsymbol\Lambda$. We can then project a new data set, $\boldsymbol{X}'$ into the embedding space in two steps:
+
+1. Normalize the rows of $\boldsymbol{X}'$ so that each row sums to $1$; call this $\boldsymbol{X}'_n$ 
+2. Right multiply $\boldsymbol{X}'_n$ by $\boldsymbol\Lambda^T$ such that $\boldsymbol\Theta' = \boldsymbol{X}'_n \cdot \boldsymbol\Lambda^T$
+
+The above is valid for any probabilistic topic model, though it is a purely frequentist approach. My experience has been that this leads to noisier projections than, for example, "folding in" new data with a Gibbs sampler when using LDA.

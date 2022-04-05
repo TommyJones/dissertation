@@ -1,0 +1,39 @@
+# Appendix [X]: Collapsed Gibbs Sampling for LDA
+
+\begin{algorithm}[H]
+\SetAlgoLined
+
+//Initialize $\boldsymbol{Cd}$, $\boldsymbol{Cv}$ as zero-valued matrices\;
+
+\For{each document, $d$ }{
+  \For{each word in the $d$-th context, $n$}{
+    sample $z$ such that $P(z = k) \sim \text{Uniform}(1, K)$\;
+    $Cd_{d,z}$ += 1\;
+    $Cv_{z,n}$ += 1;
+  }
+}
+
+//Begin Gibbs sampling \;
+
+\For{each iteration, $i$}{
+  \For{each document, $d$ }{
+    \For{each word in the $d$-th context, $n$}{
+      $Cd_{d, z^{(i-1)}}$ -= 1, $Cv_{z^{(i-1)}, n}$ -= 1\;
+      sample $z$ such that 
+      $P(z^{(i)} = k) = \frac{Cv_{k, n} + \eta_n}{\sum_{v=1}^V Cv_{k, v} + \eta_v} \cdot \frac{Cd_{d, k} + \alpha_k}{\left(\sum_{k=1}^K Cd_{d, k} + \alpha_k\right) - 1}$\;
+      $Cd_{d,z^{(i)}}$ += 1, $Cv_{z^{(i)},n}$ += 1\;
+    }
+  }
+}
+\caption{Allocate $\boldsymbol{Cd}$ and $\boldsymbol{Cv}$ by sampling}
+\end{algorithm}
+
+Once sampling is complete, one can derive posterior estimates with
+
+\begin{align}
+  \hat{\theta}_{d,k} &= 
+    \frac{Cd_{d,k} + \alpha_k}{\sum_{k = 1}^K Cd_{d,k} + \alpha_k} \\
+  \hat{\beta}_{k,v} &= 
+    \frac{Cv_{k,v} + \eta_v}{\sum_{v = 1}^V Cv_{k,v} + \eta_v}
+\end{align}
+

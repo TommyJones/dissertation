@@ -1,0 +1,70 @@
+@article{gpt3, 
+title = {{Language Models are Few-Shot Learners}}, 
+author = {Brown, Tom B and Mann, Benjamin and Ryder, Nick and Subbiah, Melanie and Kaplan, Jared and Dhariwal, Prafulla and Neelakantan, Arvind and Shyam, Pranav and Sastry, Girish and Askell, Amanda and Agarwal, Sandhini and Herbert-Voss, Ariel and Krueger, Gretchen and Henighan, Tom and Child, Rewon and Ramesh, Aditya and Ziegler, Daniel M and Wu, Jeffrey and Winter, Clemens and Hesse, Christopher and Chen, Mark and Sigler, Eric and Litwin, Mateusz and Gray, Scott and Chess, Benjamin and Clark, Jack and Berner, Christopher and McCandlish, Sam and Radford, Alec and Sutskever, Ilya and Amodei, Dario}, 
+journal = {arXiv}, 
+eprint = {2005.14165}, 
+abstract = {{Recent work has demonstrated substantial gains on many NLP tasks and benchmarks by pre-training on a large corpus of text followed by fine-tuning on a specific task. While typically task-agnostic in architecture, this method still requires task-specific fine-tuning datasets of thousands or tens of thousands of examples. By contrast, humans can generally perform a new language task from only a few examples or from simple instructions - something which current NLP systems still largely struggle to do. Here we show that scaling up language models greatly improves task-agnostic, few-shot performance, sometimes even reaching competitiveness with prior state-of-the-art fine-tuning approaches. Specifically, we train GPT-3, an autoregressive language model with 175 billion parameters, 10x more than any previous non-sparse language model, and test its performance in the few-shot setting. For all tasks, GPT-3 is applied without any gradient updates or fine-tuning, with tasks and few-shot demonstrations specified purely via text interaction with the model. GPT-3 achieves strong performance on many NLP datasets, including translation, question-answering, and cloze tasks, as well as several tasks that require on-the-fly reasoning or domain adaptation, such as unscrambling words, using a novel word in a sentence, or performing 3-digit arithmetic. At the same time, we also identify some datasets where GPT-3's few-shot learning still struggles, as well as some datasets where GPT-3 faces methodological issues related to training on large web corpora. Finally, we find that GPT-3 can generate samples of news articles which human evaluators have difficulty distinguishing from articles written by humans. We discuss broader societal impacts of this finding and of GPT-3 in general.}}, 
+local-url = {file://localhost/Users/tommy/Google%20Drive/gmu/_dissertation/references/2020-11-22/2005.14165.pdf}, 
+year = {2020}
+}
+@inproceedings{xlnet, 
+author = {Yang, Zhilin and Dai, Zihang and Yang, Yiming and Carbonell, Jaime and Salakhutdinov, Ruslan and Le, Quoc V.}, 
+title = {{XLNet: Generalized Autoregressive Pretraining for Language Understanding}}, 
+booktitle = {33rd Conference on Neural Information Processing Systems}, 
+local-url = {file://localhost/Users/tommy/Google%20Drive/gmu/_dissertation/references/2020-11-22/NeurIPS-2019-xlnet-generalized-autoregressive-pretraining-for-language-understanding-Paper.pdf}, 
+year = {2019}
+}
+@article{xlm-r, 
+title = {{Unsupervised Cross-lingual Representation Learning at Scale}}, 
+author = {Conneau, Alexis and Khandelwal, Kartikay and Goyal, Naman and Chaudhary, Vishrav and Wenzek, Guillaume and Guzmán, Francisco and Grave, Edouard and Ott, Myle and Zettlemoyer, Luke and Stoyanov, Veselin}, 
+journal = {arXiv}, 
+eprint = {1911.02116}, 
+abstract = {{This paper shows that pretraining multilingual language models at scale leads to significant performance gains for a wide range of cross-lingual transfer tasks. We train a Transformer-based masked language model on one hundred languages, using more than two terabytes of filtered CommonCrawl data. Our model, dubbed XLM-R, significantly outperforms multilingual BERT (mBERT) on a variety of cross-lingual benchmarks, including +14.6\% average accuracy on XNLI, +13\% average F1 score on MLQA, and +2.4\% F1 score on NER. XLM-R performs particularly well on low-resource languages, improving 15.7\% in XNLI accuracy for Swahili and 11.4\% for Urdu over previous XLM models. We also present a detailed empirical analysis of the key factors that are required to achieve these gains, including the trade-offs between (1) positive transfer and capacity dilution and (2) the performance of high and low resource languages at scale. Finally, we show, for the first time, the possibility of multilingual modeling without sacrificing per-language performance; XLM-R is very competitive with strong monolingual models on the GLUE and XNLI benchmarks. We will make our code, data and models publicly available.}}, 
+local-url = {file://localhost/Users/tommy/Google%20Drive/gmu/_dissertation/references/2020-12-25/1911.02116.pdf}, 
+year = {2019}
+}
+@article{gpt2, 
+title = {{Language Models are Unsupervised Multitask Learners}}, 
+author = {Radford, Alec and Wu, Jeffrey and Child, Rewon and Luan, David and Amodei, Dario and Sutskever, Ilya}, 
+journal = {OpenAI blog}, 
+pages = {9}, 
+number = {8}, 
+volume = {1}, 
+local-url = {file://localhost/Users/tommy/Google%20Drive/gmu/_dissertation/references/2020-11-22/language_models_are_unsupervised_multitask_learners.pdf}, 
+year = {2019}
+}
+@article{ernie2019, 
+title = {{ERNIE: Enhanced Representation through Knowledge Integration}}, 
+author = {Sun, Yu and Wang, Shuohuan and Li, Yukun and Feng, Shikun and Chen, Xuyi and Zhang, Han and Tian, Xin and Zhu, Danxiang and Tian, Hao and Wu, Hua}, 
+journal = {arXiv}, 
+eprint = {1904.09223}, 
+abstract = {{We present a novel language representation model enhanced by knowledge called ERNIE (Enhanced Representation through kNowledge IntEgration). Inspired by the masking strategy of BERT, ERNIE is designed to learn language representation enhanced by knowledge masking strategies, which includes entity-level masking and phrase-level masking. Entity-level strategy masks entities which are usually composed of multiple words.Phrase-level strategy masks the whole phrase which is composed of several words standing together as a conceptual unit.Experimental results show that ERNIE outperforms other baseline methods, achieving new state-of-the-art results on five Chinese natural language processing tasks including natural language inference, semantic similarity, named entity recognition, sentiment analysis and question answering. We also demonstrate that ERNIE has more powerful knowledge inference capacity on a cloze test.}}, 
+local-url = {file://localhost/Users/tommy/Google%20Drive/gmu/_dissertation/references/2020-11-22/1904.09223.pdf}, 
+year = {2019}
+}
+@article{bert2018, 
+title = {{BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding}}, 
+author = {Devlin, Jacob and Chang, Ming-Wei and Lee, Kenton and Toutanova, Kristina}, 
+journal = {arXiv}, 
+eprint = {1810.04805}, 
+abstract = {{We introduce a new language representation model called BERT, which stands for Bidirectional Encoder Representations from Transformers. Unlike recent language representation models, BERT is designed to pre-train deep bidirectional representations from unlabeled text by jointly conditioning on both left and right context in all layers. As a result, the pre-trained BERT model can be fine-tuned with just one additional output layer to create state-of-the-art models for a wide range of tasks, such as question answering and language inference, without substantial task-specific architecture modifications. BERT is conceptually simple and empirically powerful. It obtains new state-of-the-art results on eleven natural language processing tasks, including pushing the GLUE score to 80.5\% (7.7\% point absolute improvement), MultiNLI accuracy to 86.7\% (4.6\% absolute improvement), SQuAD v1.1 question answering Test F1 to 93.2 (1.5 point absolute improvement) and SQuAD v2.0 Test F1 to 83.1 (5.1 point absolute improvement).}}, 
+local-url = {file://localhost/Users/tommy/Google%20Drive/gmu/_dissertation/references/2020-11-22/1810.04805.pdf}, 
+year = {2018}
+}
+@article{attention2017, 
+title = {{Attention Is All You Need}}, 
+author = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, Lukasz and Polosukhin, Illia}, 
+journal = {arXiv}, 
+eprint = {1706.03762}, 
+abstract = {{The dominant sequence transduction models are based on complex recurrent or convolutional neural networks in an encoder-decoder configuration. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task, improving over the existing best results, including ensembles by over 2 BLEU. On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction of the training costs of the best models from the literature. We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing both with large and limited training data.}}, 
+local-url = {file://localhost/Users/tommy/Google%20Drive/gmu/_dissertation/references/2020-11-22/1706.03762.pdf}, 
+year = {2017}
+}
+@inproceedings{wolf2020transformer, 
+author = {Wolf, Thomas and Debut, Lysandre and Sanh, Victor and Chaumond, Julien and Delangue, Clement and Moi, Anthony and Cistac, Pierric and Rault, Tim and Louf, R ́emi and Funtowicz, Morgan and Davison, Joe and Shleifer, Sam and Platen, Patrick von and Ma, Clara and Jernite, Yacine and Plu, Julien and Xu, Canwen and Scao, Teven Le and Gugger, Sylvain and Drame, Mariama and Lhoest, Quentin and Rush, Alexander M.}, 
+title = {{Transformers: State-of-the-Art Natural Language Processing}}, 
+booktitle = {Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations}, 
+pages = {38---45}, 
+local-url = {file://localhost/Users/tommy/Google%20Drive/gmu/_dissertation/references/2020-12-26/2020.emnlp-demos.6.pdf}, 
+year = {2020}
+}

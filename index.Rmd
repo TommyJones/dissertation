@@ -1,0 +1,84 @@
+---
+title: "Corpus Statistics and Fine Tuning Latent Dirichlet Allocation for Transfer Learning"
+
+author:
+  - Tommy Jones^[PhD Student, George Mason University Dept. of Computational and Data Sciences, tjones42@gmu.edu]
+  
+date: "`r format(Sys.time(), '%d %B %Y')`"
+  
+abstract: |
+  Language is one of the most information rich and abundant data sources available. Rigorous statistical study of linguistic phenomena can elevate the digital humanities, linguistic applications to computational social science, and statistics itself. As yet, statistical applications to language, whether in linguistics, computation, or otherwise, are largely ad-hoc. Performance gains in modeling have largely been due to two factors: fine tuning transfer learning and increasing the size and complexity of models. Due to the statistical nature of human language---governed by several power law phenomena---fine tuning transfer learning may be advantageous for corpus analyses, not just artificial intelligence applications. Yet state of the art "transformer" models are expensive and opaque. I propose we revisit Latent Dirichlet Allocation (LDA) for corpus statistics. As a parametric statistical model of a data generating process, it has the potential to be used in statistically rigorous ways to study language. I have also implemented an algorithm for fine tuning transfer learning using LDA. In this dissertation proposal, I state my case for what I refer to as "corpus statistics", a more statistically rigorous take on analyzing text data. To accomplish this, I conduct a review of the literature around LDA, propose three studies, and one software package.
+  
+bibliography: [topicmodels.bib,simulation.bib,zipf.bib,manual_entry.bib,transformers.bib,software.bib]
+csl: ieee.csl
+link-citations: yes
+
+header-includes:
+    - \usepackage{setspace}\doublespacing
+    - \usepackage[utf8]{inputenc}
+    - \usepackage[T1]{fontenc}
+    - \usepackage[ruled,vlined]{algorithm2e}
+    
+output:
+  pdf_document:
+    number_sections: true
+    toc: true
+    toc_depth: 2
+  html_document:
+    toc: true
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+```
+
+```{r, child='01-intro.Rmd'}
+```
+
+```{r, child='02-lda-history.Rmd'}
+```
+
+```{r, child='03-lda-dgp.Rmd'}
+```
+
+```{r, child='04-r2.Rmd'}
+```
+
+```{r, child='05-transfer.Rmd'}
+```
+
+```{r, child='06-tidylda.Rmd'}
+```
+
+\newpage{}
+
+```{r, child='appendices/derive_lambda.Rmd'}
+```
+
+\newpage{}
+
+```{r, child='appendices/collapsed-gibbs.Rmd'}
+```
+
+
+\newpage{}
+
+```{r, child='appendices/expected_frequency.Rmd'}
+```
+
+\newpage{}
+
+```{r, child='appendices/transfer-algorithm.Rmd'}
+```
+
+\newpage{}
+
+```{r, child='appendices/posterior-partition.Rmd'}
+```
+
+\newpage{}
+
+# References

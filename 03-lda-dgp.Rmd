@@ -1,0 +1,99 @@
+# Studying the LDA-DGP {#ldadgp}
+
+LDA is a latent variable model, as a result it can be challenging to study. We do not observe "ground" truth topics in real data, against which to compare the correctness of a topic model. Extrinsic evaluation method compare a topic model's results against a different ground truth---one that we do observe, such as a document's class. If a researcher's concern is document classification, then it is better to build a supervised classifier. LDA's strength is in its unsupervised nature, enabling us to discover that which we don't already know. It appears we have a "catch 22": we want to use LDA as a tool of discovery, but without ground truth, how do we know if our discovery is true or a statistical fluke? 
+
+Fortunately, LDA models a data generating process, the LDA-DGP. Researchers can, and do, generate data sets by sampling from the LDA-DGP where they have chosen $K$, $\boldsymbol\alpha$, and $\boldsymbol\eta$ themselves. They then may use these simulated data sets to compare a model against a synthetic ground truth. Such "simulation studies" have a lengthy history in the statistical literature, going back to 1975 or further [@Hoaglin1975].
+
+One cannot choose arbitrary parameters in the LDA-DGP and expect the results to reflect the statistical properties of language. In 2014, when conducting my own simulation study, I discovered that commonly used values for $\boldsymbol\eta$ cannot produce corpora consistent with Zipf's law [@zipf1949]. I include a proof of this in Appendix 2.[^phd] Figure 1 plots data simulated from the LDA-DGP against an actual corpus of NSF grant abstracts [@jones2014zipf]. The same holds for an asymmetric $\boldsymbol\eta$ if it is not proportional to a power law. The simulation corresponding to symmetric $\boldsymbol\eta$---by far the most common specification since Wallach et al. in 2009 [@wallach2009rethinking]---does not conform to a power law, which is linear in log-log space. Yet setting $\boldsymbol\eta$ proportional to a power law does produce power law distributed data, similar to the actual NSF abstracts data.[^pardon] Language has such stark statistical properties---i.e. power law distributions---that the validity of a simulation that cannot produce such properties is suspect.
+
+[^phd]: Small as it was, this is the discovery that prompted me to seek a PhD. I wanted to complete this research, but knew that I could not do it without the structure and support of a formal program.
+
+[^pardon]: Pardon the use of $\beta$ rather than $\eta$ in the figure. The figure is old and does not conform to my current notation scheme. I made the switch so that _tidylda_ would be more consistent with popular text analysis packages in the R ecosystem.
+
+```{r nsf-corpus, fig.align = 'center', out.width = "100%", fig.cap = "Comparing two simulated data with different Dirichlet priors. The leftmost figure uses an asymmetric, but not proportional to a power law, parameter. The center figure uses a symmetric parameter. The rightmost figure compares simulations to word frequencies in an actual corpus of NSF grant abstracts. The simulation generated with a symmetric prior for words over topics---as is commonly used---is not consistent with Zipf's law. It represents an impossible prior. Only the simulation made with a prior proportional to a power law produces word frequencies similar to the actual corpus. From Jones and St. Thomas, 2014."}
+knitr::include_graphics(here::here("figures", "nsf-sim2.png"))
+```
+
+Still, producing data with statistical properties of human language from the LDA-DGP means more than the low bar of one's simulation study not being invalid. If the LDA-DGP can produce data that shares the statistical properties of human language, then LDA is a valid model for analyzing corpora of human language. Put another way: when conducting a simulation study, Shi et al. state "our analysis is grounded on the assumption that a hidden topic structure exists in the texts" [@shi2019eval]. I go further: if the LDA-DGP can produce data consistent with statistical laws of language, then _this is the correct assumption to make_. 
+
+Techniques---whether analytical of empirical---that discover the "right" model on simulated data can guide the researcher on real data sets. Yet it is unlikely that there is a "right" model for any real corpus. This is why I refer to "detecting pathologically misspecified models", rather than "finding the right model". It may also be that the LDA-DGP cannot perfectly reproduce relevant statistical laws of language. If that is the case, researchers must decide whether LDA is "good enough" or if a different topic model---for example CTMs [@blei2007ctm] or STMs [@roberts2013stm]---is a better choice. 
+
+My objectives with this research are as follows: I wish to analytically link the LDA-DGP to relevant statistical laws of language[^beguninone], discover rules and heuristics from statistics on $\boldsymbol{X}$ to guide LDA model specification, and discover diagnostic statistics to discover whether an LDA model is pathologically misspecified. The remainder of this section is organized as follows: Section 4.1 summarizes related work from complex systems theory, stochastic simulation, and topic modeling. Section 4.2 outlines the approach I propose for this study.
+
+[^beguninone]: I have begun this work with Appendix 2.
+
+## Related Work
+
+Work related to studying the LDA-DGP pulls from two seemingly disparate fields: complex systems theory and of course topic modeling. Complex systems theory deals in part with the emergence of power law distributions---as exemplified by some empirical laws of language---from complex systems [@cioffi2008power]. Topic modeling concerns itself with the study of LDA and LDA-like models.
+
+### Simulation Studies for LDA
+
+Synthetic corpora appear commonly in topic modeling research. The table in Appendix 3---a copy of Shi et al.'s supplementary materials, Table S3 [@shi2019eval]---lists 14 works using synthetic corpora to study topic models. Most use some flavor of the LDA-DGP and focus on only one or two aspects of comparison between model and "ground truth" in the synthetic data set. I am unaware of any simulation study for LDA that explicitly links the data generating process to any of the empirical laws of language except for [@shi2019eval; @shi2019thesis]. Even so, they do not use the LDA-DGP and compare only to Zipf's law (described below).  Boyd-Graber, Hu, and Mimno suggest the use of semi-synthetic data---i.e., drawing simulations from the posterior---to capture properties of natural language [@boydgraber2017applications].[^toyproblems]  
+
+[^toyproblems]: They also refer to stochastic simulation studies for LDA as "toy problems". As you may have guessed, I strongly disagree. But their position is understandable insomuch as it is based on the assumption that LDA cannot reproduce properties of natural language. I have already demonstrated that it can reproduce at least one such property [@jones2014zipf].
+
+Shi et al. go further than others and argue that use of synthetic corpora is a "principled approach" to evaluating topic models [@shi2019eval; @shi2019thesis]. Their approach does reproduce Zipf's law of language. Yet it does not use the LDA-DGP. It may represent a principled approach to studying probabilistic topic models with simulated data, but it is a parallel path to the one I propose. Using the LDA-DGP specifically allows for stronger statements related to pathological misspecification of LDA models. e.g., "Under the true model, then I would expect to see outcome A. Instead I see outcome B. Therefore, my model must be misspecified." An analogue from linear regression might be, "under the true model, residuals are independent and identically distributed (_i.i.d._) Gaussian with mean zero. The residuals of my model are not _i.i.d._ Gaussian with mean zero. Therefore, my model must be misspecified."
+
+### Empirical Language Laws
+
+Altmann and Gerlach describe 9 universal laws purported to describe statistical regularities in human language [@altmann2015laws]. These laws are Zipf's [@zipf1949], Heaps's [@egghe2007untangling], Taylor's [@gerlach2014], Menzerath-Altmann [@altmann1980prolegomena], Recurrence [@zipf1949], Long-range correlation [@damerau1973tests], Entropy scaling [@altmann2015laws], Information content [@zipf1949], and various network topology laws [@altmann2015laws]. 
+
+Of these laws, three are most relevant: Zipf's, Heaps's, and Taylor's laws. The laws of Menzerath-Altmann, Recurrence, Long-range correlation, and Information content refer to properties of sub-words (e.g. length to information content), order of words, or proximity between words. LDA-DGP does not purport to model any of these. The law of Entropy scaling links entropy---in the information theoretic sense [@shannon2001mathematical]---to the number of words in a block of text. The LDA-DGP may or may not be able to reproduce this law. Similarly, some network views of a corpus may or may not apply to the LDA-DGP. Both may warrant future exploration but are less directly macroscopic properties of a corpus than Zipf's, Heaps's, and Taylor's laws.  
+
+#### Zipf's law
+Zipf's law states that the frequency of a word is inversely proportional to the power of its frequency-rank. Zipf's law is not unique to any language as it appears to apply to all of them [@cancho2003]. Zipf's law has also been applied to the sizes of cities [@arshad2018zipf], casualties in armed conflict [@gillespie2015], and more. Zipf's law is a statement of a word's frequency and its rank. Yet if word frequencies in a corpus are plotted as a histogram, the power law relationship holds [@sole2008].
+
+Empirical distributions of Zipf's law for large corpora demonstrate a relationship somewhat inconsistent with that predicted by Zipf's law. Some have proposed that the frequency-to-rank relationship is actually a set of broken power laws with one parametarization for the head of the distribution, another for the body, and a third parametarization for the tail. Yet, Ha et al. find that this is a trick of tokenization. "Language is not made of individual words but also consists of phrases of 2, 3 and more words, usually called n-grams for n=2, 3, etc." When including n-grams in both English and Chinese corpora, Ha et al. find that Zipf's law holds through the tail [@ha2002zipf]. Mandelbrot developed a generalization of Zipf's law that accounts for behavior at the head of the distribution [@mandelbrot1965information].
+
+Formally, Zipf's law is
+
+\begin{align}
+  F(r) \propto r^{-\gamma} \text{ for } \gamma \geq 1, r > 1
+\end{align}
+
+where $r$ is a word's rank, $F(r)$ is the frequency of a word's rank, and $\gamma$ is a parameter to be estimated. For human language $\gamma \approx 1$ [@cancho2003] and can be found through maximum likelihood estimation [@gillespie2015]. Altmann and Gerlach find $1.03 \leq \gamma \leq 1.58$ depending on the corpus and estimation method [@altmann2015laws]
+
+Goldwater et al. explore the relationship between Zipf's law and then standard statistical models of language [@goldwater2011zipf]. They develop a framework for producing power law word frequencies in two stages. Critically, they link this framework to several models closely related to LDA but do not extend it to the LDA-DGP itself.
+
+#### Heaps's law
+Heaps's law states that the number of unique words in a corpus, $V$, scales sub-linearly with the total number of words in a corpus, $N$ [@heaps1978information]. Heaps's law is another power law. Unlike Zipf's law, it is an increasing power law.
+
+\begin{align}
+  V \propto N^\delta \text{ for } N > 1, 0 < \delta < 1
+\end{align}
+
+There are several ways to compute Heaps's law for a single corpus. Altmann and Gerlach use two methods: compute $V$ and $N$ for each document in the corpus and progress over each word in a corpus calculating new values of $V$ and $N$ as each word is added. The latter approach works for single documents of sufficient length as well, such as a book [@altmann2015laws].
+
+#### Taylor's law
+Taylor's law is a third power law relationship, originally posed in the context of ecology by Lionel Roy Taylor [@taylor1961aggregation]. In linguistics, Taylor's law states that the standard deviation of the total number of words is proportional to the power of the mean of the total number of words. Formally,
+
+
+\begin{align}
+  \sigma(N) \propto \mu(N)^\epsilon \text{ for } \mu(N) > 1
+\end{align}
+
+where $\sigma(N) = \sqrt{\mathbb{V}(N)}$, $\mu(N) = \mathbb{E}(N)$, and $\epsilon$ is to be fit from data.
+
+#### Relationship between laws
+Gerlach and Altmann explore the relationships between Zipf's, Heaps's laws [@gerlach2014]. They model word frequencies as resulting from a Poisson process. The "null" Poisson model links Zipf's and Heaps's laws. Yet it fits the data under Taylor's law poorly. They do find that incorporating a topic model---where relative frequencies of words differ by topic---fits data for all three laws reasonably well. 
+
+Gerlach and Altmann use LDA as the topic model, but they do not use the LDA-DGP directly. Instead, they use the Poisson process model. Asymptotically, the Poisson process model and the LDA-DGP should be equivalent; the Poisson process is the limiting distribution of repeated Bernoulli trials (as the LDA-DGP is). Yet in the face of power laws and pre-asymptotics of finite samples (i.e., corpora), this choice warrants more exploration. Moreover, they used a "quenched average"---a concept from physics---rather than true expected value for this analysis. Under some conditions the two concepts may be equivalent; in other conditions not. 
+
+Even so, Gerlach and Altmann's exploration is a crucial link between Zip's law, Heaps's law, Taylor's law, and LDA, albeit asymptotically. 
+
+## Proposed Contributions
+
+I propose making the following contributions:
+
+1. Produce formal mathematical statements linking the LDA-DGP to Zipf's, Heaps's, and Taylor's laws of language as well as other corpus statistics such as correlation between words in two contexts,
+2. Use principles of statistical design to plan and produce many synthetic corpora using the LDA-DGP that conform to statistical laws of human language and comprise a representative sample of the population of corpora that researchers may study with LDA,
+3. Using (1) and (2) above, attempt to find rules or heuristics for specifying $K$, $\boldsymbol\alpha$, and $\boldsymbol\eta$ based on properties of the corpus, and
+4. Using (1) and (2) above, diagnose the effects of model misspecification and attempt to develop diagnostic statistics or tests one may apply to an LDA model to detect pathological misspecification.
+
+For (2), I intend to use principles from statistical design, recommended for such studies [@morrissimulationstudies]. Considerations for producing a collection of simulated data sets include varying observable corpus variables---the number of documents, document lengths, vocabulary sizes, correlations between documents, and possibly more---and varying latent LDA-DGP parameters---$K$, $\boldsymbol\alpha$ and $\boldsymbol\eta$. Another relationship that I may need to derive is the expected correlation between the words in any two documents produced by the LDA-DGP.[^covariance]
+
+[^covariance]: The covariance between words in any two documents is a function of the interaction between the covariance given by independent draws from the Dirichlet distribution that produced the documents---$\boldsymbol\theta_d \sim \text{Dirichlet}(\boldsymbol\alpha)$---and the covariance given by independent draws from the Dirichlet distributions that produce the words---$\boldsymbol\beta_k \sim \text{Dirichlet}(\boldsymbol\eta)$.
+
+For (3), I intend to consider the same variables. The goal is to use the observable corpus variables to predict the latent LDA-DGP parameters.
+
+Diagnostic statistics that I am considering for (4) are: coherence metrics, likelihood metrics, $R^2$ (see below), and parameters from Zipf's, Heaps's, and Taylor's laws observed in the data compared to those predicted by drawing from the posterior of a fit LDA model. Pathological misspecifications I am considering are: too many or too few topics and misspecifications in shape or magnitude of $\boldsymbol\alpha$ or $\boldsymbol\eta$. I am also interested in exploring the effects of the procedure for optimizing $\boldsymbol\alpha$ [@minka2000estimating] employed in MALLET [@mallet].
