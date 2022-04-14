@@ -2,7 +2,7 @@
 title: "Corpus Statistics and Fine Tuning Latent Dirichlet Allocation for Transfer Learning"
 
 author:
-  - Tommy Jones^[PhD Student, George Mason University Dept. of Computational and Data Sciences, tjones42@gmu.edu]
+  - Tommy Jones^[PhD Candidate, George Mason University Dept. of Computational and Data Sciences, tjones42@gmu.edu]
   
 date: "`r format(Sys.time(), '%d %B %Y')`"
   
@@ -57,6 +57,10 @@ library(tidyverse)
 ```{r, child='06-tidylda.Rmd'}
 ```
 
+```{r, child='07-conclusion.Rmd'}
+```
+
+
 \newpage{}
 
 ```{r, child='appendices/derive_lambda.Rmd'}
@@ -82,6 +86,17 @@ library(tidyverse)
 
 ```{r, child='appendices/posterior-partition.Rmd'}
 ```
+
+\newpage{}
+
+```{r, child='appendices/prob-coherence.Rmd'}
+```
+
+\newpage{}
+
+```{r, child='appendices/tidylda-examples.Rmd'}
+```
+
 
 \newpage{}
 
