@@ -1,0 +1,275 @@
+# Appendix [X]: _tidylda_ Code Examples
+
+This section performs an example analysis on a toy data set to demonstrate _tidylda_'s functionality. The data is a randomly selected subset of 100 grant abstracts funded by NIH in 2014 [@nih].
+
+First, we load _tidylda_ and several helpful libraries. We then create a document term matrix and split the documents into two groups to demonstrate tLDA.
+
+```{r tidylda-setup, echo=TRUE}
+library(tidytext)
+library(tidyverse)
+library(tidylda)
+library(Matrix)
+
+### Initial set up ---
+# load some documents
+docs <- nih_sample 
+
+# tokenize using tidytext's unnest_tokens
+tidy_docs <- docs %>% 
+  select(APPLICATION_ID, ABSTRACT_TEXT) %>% 
+  unnest_tokens(output = word, 
+                input = ABSTRACT_TEXT,
+                stopwords = stop_words$word,
+                token = "ngrams",
+                n_min = 1, n = 2) %>% 
+  count(APPLICATION_ID, word) %>% 
+  filter(n>1) #Filtering for words/bigrams per document, rather than per corpus
+
+tidy_docs <- tidy_docs %>% # filter words that are just numbers
+  filter(! stringr::str_detect(tidy_docs$word, "^[0-9]+$"))
+
+# append observation level data 
+colnames(tidy_docs)[1:2] <- c("document", "term")
+
+
+# turn a tidy tbl into a sparse dgCMatrix 
+# note tidylda has support for several document term matrix formats
+d <- tidy_docs %>% 
+  cast_sparse(document, term, n)
+
+# let's split the documents into two groups to demonstrate predictions and updates
+d1 <- d[1:50, ]
+
+d2 <- d[51:nrow(d), ]
+
+# make sure we have different vocabulary for each data set to simulate the "real world"
+# where you get new tokens coming in over time
+d1 <- d1[, colSums(d1) > 0]
+
+d2 <- d2[, colSums(d2) > 0]
+```
+
+Next, we fit an initial LDA model of 10 topics. Choices for `alpha`, `eta`, and number of Gibbs iterations are common choices. We set `calc_likelihood` and `calc_r2` to `TRUE` so that we get some goodness of fit metrics. Probabilistic coherence is calculated by default.
+
+```{r tidylda-fit1, echo=TRUE}
+### fit an initial model and inspect it ----
+set.seed(123)
+
+lda <- tidylda(
+  data = d1,
+  k = 10,
+  iterations = 200, 
+  burnin = 175,
+  alpha = 0.1, # also accepts vector inputs
+  eta = 0.05, # also accepts vector or matrix inputs
+  calc_likelihood = TRUE,
+  calc_r2 = TRUE
+)
+
+```
+
+We can plot the log likelihood to visually inspect for convergence. It's also possible to perform tests of convergence over the post-burn in iterations. That is an exercise left to the reader.
+
+```{r tidylda-likelihood1, echo=TRUE, fig.width = 6, fig.height = 4}
+# did the model converge?
+# there are actual test stats for this, but should look like "yes"
+qplot(x = iteration, y = log_likelihood, data = lda$log_likelihood, geom = "line") + 
+  ggtitle("Checking model convergence")
+```
+
+The methods `summary`, `glance`, and `print` produce various model summaries. `tidylda` objects contain a summary Tibble with the top 5 words in each topic, the prevalence of each topic in the training corpus, and probabilistic coherence of the top 5 words in each topic.
+
+```{r tidylda-summary, echo=TRUE}
+# look at the model overall
+summary(lda)
+
+glance(lda)
+
+print(lda)
+
+# it comes with its own summary matrix that's printed out with print(), above
+lda$summary
+
+```
+
+The `tidy` function reformats the `theta`, `beta`, and `lambda` matrices into tidy Tibbles. This can make plotting and summarization easier when using tools from the "tidyverse".
+
+```{r tidylda-tidy, echo=TRUE}
+# inspect the individual matrices
+tidy_theta <- tidy(lda, matrix = "theta")
+
+tidy_theta
+
+tidy_beta <- tidy(lda, matrix = "beta")
+
+tidy_beta
+
+tidy_lambda <- tidy(lda, matrix = "lambda")
+
+tidy_lambda
+```
+
+`augment` appends observation-level data, either $P(\text{topic}|\text{word}, \text{document})$ for each topic or the most probable topic for each word/document combination.
+
+```{r tidylda-augment, echo=TRUE}
+# append observation-level data
+augmented_docs <- augment(lda, data = tidy_docs)
+
+augmented_docs
+
+```
+
+`tidylda` allows users to get predictions for new documents, using either Gibbs sampling (the default) or using a dot product with the $\boldsymbol\Lambda$ matrix. Below gets predictions using both techniques for a single document and plots them for comparison. However, users can get predictions for batches of documents by passing a sparse matrix, dense matrix, or numeric vector to `predict.tidylda` through the `new_data` argument. 
+
+```{r tidylda-predict, echo=TRUE, fig.width = 6, fig.height = 4}
+### predictions on held out data ---
+# two methods: gibbs is cleaner and more technically correct in the bayesian sense
+p_gibbs <- predict(lda, new_data = d2[1, ], iterations = 100, burnin = 75)
+
+# dot is faster, less prone to error (e.g. underflow), noisier, and frequentist
+p_dot <- predict(lda, new_data = d2[1, ], method = "dot")
+
+# pull both together into a plot to compare
+tibble(topic = 1:ncol(p_gibbs), gibbs = p_gibbs[1,], dot = p_dot[1, ]) %>%
+  pivot_longer(cols = gibbs:dot, names_to = "type") %>%
+  ggplot() + 
+  geom_bar(mapping = aes(x = topic, y = value, group = type, fill = type), 
+           stat = "identity", position="dodge") +
+  scale_x_continuous(breaks = 1:10, labels = 1:10) + 
+  ggtitle("Gibbs predictions vs. dot product predictions")
+
+
+```
+
+Aggregating over terms on augmented data (as appended with `augment`) results in implicit prediction using the dot product for data used in training.
+
+
+```{r tidylda-implicit-predict, echo=TRUE, fig.width = 6, fig.height = 4}
+### Augment as an implicit prediction using the 'dot' method ----
+# Aggregating over terms results in a distribution of topics over documents
+# roughly equivalent to using the "dot" method of predictions.
+augment_predict <- 
+  augment(lda, tidy_docs, "prob") %>%
+  group_by(document) %>% 
+  select(-c(document, term)) %>% 
+  summarise_all(function(x) sum(x, na.rm = T))
+
+# reformat for easy plotting
+augment_predict <- 
+  as_tibble(t(augment_predict[, -c(1,2)]), .name_repair = "minimal")
+
+colnames(augment_predict) <- unique(tidy_docs$document)
+
+augment_predict$topic <- 1:nrow(augment_predict) %>% as.factor()
+
+compare_mat <- 
+  augment_predict %>%
+  select(
+    topic,
+    augment = matches(rownames(d2)[1])
+  ) %>%
+  mutate(
+    augment = augment / sum(augment), # normalize to sum to 1
+    dot = p_dot[1, ]
+  ) %>%
+  pivot_longer(cols = c(augment, dot))
+
+ggplot(compare_mat) + 
+  geom_bar(aes(y = value, x = topic, group = name, fill = name), 
+           stat = "identity", position = "dodge") +
+  labs(title = "Prediction using 'augment' vs 'predict(..., method = \"dot\")'")
+
+```
+
+`tidylda` enables fine tuning pre-trained LDA models by adding new data using tLDA. (See Chapter 5.) Below, we add the second half of our corpus and update the topic distributions.
+
+```{r tidylda-transfer1, echo = TRUE, fig.width = 6, fig.height = 4}
+### updating the model ----
+# now that you have new documents, maybe you want to fold them into the model?
+lda2 <- refit(
+  object = lda, 
+  new_data = d2, 
+  iterations = 200, 
+  burnin = 175,
+  calc_likelihood = TRUE,
+  calc_r2 = TRUE
+)
+
+# we can do similar analyses
+# did the model converge?
+qplot(x = iteration, y = log_likelihood, data = lda2$log_likelihood, geom = "line") +
+  ggtitle("Checking model convergence")
+
+# look at the model overall
+glance(lda2)
+
+print(lda2)
+
+
+# how does that compare to the old model?
+print(lda)
+
+```
+
+
+If we believe that there are additional topics in the new corpus, we can add them while using tLDA.
+
+```{r tidylda-transfer2, echo = TRUE, fig.width = 6, fig.height = 4}
+### updating the model and adding topics ----
+# now that you have new documents, maybe you want to fold them into the model?
+lda3 <- refit(
+  object = lda, 
+  new_data = d2, 
+  additional_k = 2,
+  iterations = 200, 
+  burnin = 175,
+  calc_likelihood = TRUE,
+  calc_r2 = TRUE
+)
+
+# look at the model summary object
+print(lda3$summary, n = 12)
+
+
+# how does that compare to the old model?
+print(lda$summary, n = 10)
+
+```
+
+Finally, _tidylda_ enables sampling from the posterior of a model to enable uncertainty quantification and other emperical posterior analyses. The below ridgeline plots show distributions for the topics in a single document and for the top 10 words in a single topic.
+
+```{r tidylda-ridgeline, echo = TRUE, fig.width = 6, fig.height = 4}
+library(ggridges)
+
+### Construct posterior samples of theta for document 1 ----
+posterior_theta_1 <- posterior(lda2, matrix = "theta", which = 1, times = 100)
+
+# make ridgeline plot
+posterior_theta_1 %>% 
+  ggplot(aes(x = theta, y = factor(topic), fill = factor(topic))) +
+  geom_density_ridges() + 
+  theme_ridges() + 
+  theme(legend.position = "none") +
+  ylab("Topic") +
+  xlab("P(Topic | Document 1)")
+
+### Construct posterior samples of beta for topic 1 ----
+posterior_beta_1 <- posterior(lda2, matrix = "beta", which = 1, times = 100)
+
+# get top 10 words
+token_list <- colnames(lda2$beta)[order(lda2$beta[1,], decreasing = TRUE)[1:10]]
+
+# make ridgeline plot
+posterior_beta_1 %>% 
+  filter(token %in% token_list) %>%
+  mutate(token = factor(token, levels = token_list)) %>%
+  ggplot(aes(x = beta, y = token, fill = token)) +
+  geom_density_ridges() + 
+  theme_ridges() + 
+  theme(legend.position = "none") +
+  ylab("Word") +
+  xlab("P(Word | Topic 1)")
+
+```
+
+
