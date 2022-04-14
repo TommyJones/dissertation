@@ -1,10 +1,8 @@
 # _tidylda_, an R Package {#tidylda}
 
-Off the shelf implementations of LDA are plentiful. However, my research will be far more impactful if it is easy for researchers to use it. Existing LDA implementations do not integrate well with the research I propose. Moreover, putting the implications of my research in a package and hosting it on a well used package repository like CRAN [@cran] makes it more accessible. I also strongly desire to support the philosophies of the _tidyverse_ [@tidyverse] movement in the R ecosystem, which focuses on making data analysis and computing tools work for humans. Having topic modeling software compatible with the _tidyverse_ ecosystem is in line with Boyd-Graber et al.'s cry for "automatic text analysis for the people" [@boydgraber2017applications, ch. 10.3].
+Off the shelf implementations of LDA are plentiful, yet existing LDA implementations do not integrate well with the research in this dissertation. Moreover, putting the methods proposed in this dissertation in a package and hosting it on a well used package repository like CRAN [@cran] makes those methods accessible to a wider audience. And creating a topic modeling implementation supporting philosophies of the _tidyverse_ [@tidyverse] movement in the R ecosystem, which focus on making data analysis and computing tools work for humans, increases the accessiblity of these topic modeling methods. Having topic modeling software compatible with the _tidyverse_ ecosystem is in line with Boyd-Graber et al.'s cry for "automatic text analysis for the people" [@boydgraber2017applications, ch. 10.3].
 
-_tidylda_ [@tidylda] is a natural extension of my own work in developing _textmineR_ [@textminer]. In 2014, I grew frustrated with the state of software for natural language processing in general, and topic modeling specifically. NLP software was esoteric in both syntax and data structures, concealing the fact that NLP workflows were not so different from others in statistics and machine learning. I developed _textmineR_ with a mind to bring text analyses in R into the mainstream with respect to syntax, workflows, and data structures. In parallel---and unbeknownst to me at the time---Julia Silge and David Robinson were developing _tidytext_ [@tidytextjoss] with the same goals in mind (and frankly better execution), but tied into a popular framework and philosophy, the _tidyverse_. The syntactic differences between _textmineR_ and _tidytext_ are large. Though the user base is smaller than many other text mining packages for R, _textmineR_ has enough users that it would be unkind to radically alter its user interface. _tidylda_ is built from the ground up to conform to these tidy principles, houses a unique Gibbs sampler for LDA, and is narrower in scope than _textmineR_. When _tidylda_ is ready to be hosted on CRAN, I will replace _textmineR_'s native LDA functionality with calls to _tidylda_. 
-
-The remainder of this section is organized as follows: Section 6.1 summarizes existing implementations of LDA that are commonly used and the "tidyverse" framework used by _tidylda_. Section 6.2 outlines the novel contributions of _tidylda_ and the work remaining that I propose to include in my dissertation.
+_tidylda_ is a package for topic modeling that is compatible with the _tidyverse_ and includes methods contained in the previous chapters of this dissertation. _tidylda_'s Gibbs sampler is written in C++ for performance and offers several novel features. It also has methods for sampling from the posterior of a trained model, for more traditional Bayesian analyses..
 
 ## Related Work
 
@@ -13,24 +11,20 @@ _tidylda_ takes its syntactic cues from an ecosystem of R packages known as _the
 
 Recently, Silge et al. articulated a "tidy data" framework for text analyses---the _tidytext_ package [@tidytextjoss]. Their approach has "one row per document per token". The _tidytext_ package provides functionality to tokenize a corpus, transform it into this "tidy" format, and manipulate it in various ways, including preparing data for input into some of R's many topic modeling packages. The _tidytext_ package also provides tidying functions in the style of _broom_ to harmonize outputs from some of R's topic modeling packages. _tidylda_ manages inputs and outputs in the flavor of _tidytext_ but in one self contained package.
 
-Most topic modeling packages I have seen---with the exceptions of _textmineR_ and _tidylda_, my own packages---eschew R's conventional methods like _predict_ for working with statistical models. Some provide that functionality, but approach it from unconventional directions. Others do not provide the ability to predict topic distributions for contexts not in the training sample at all.[^iftheydo] 
-
-[^iftheydo]: If they do, I can't figure out how to get it to work. 
-
 ### Topic modeling software in R
-R has many packages for topic modeling. As far as I am aware, none are natively "tidy" though some have wrapper functions available in _tidytext_ for interoperability. In all cases---at least for R packages---these models support only symmetric $\boldsymbol\eta$ priors, though some support asymmetric $\boldsymbol\alpha$. 
+R has many packages for topic modeling. As far as I am aware, none are natively "tidy" though some have wrapper functions available in _tidytext_ for interoperability. In almost all cases---at least for R packages---these models support only symmetric $\boldsymbol\eta$ priors, though some support asymmetric $\boldsymbol\alpha$. 
+
+The _textmineR_ package [@textminer] supports fitting models for LDA, correlated topic models [@blei2007ctm], and LSA. It also contains a suite of analysis functions that are (mostly) interoperable with other topic modeling packages in the R ecosystem. In many ways, _textmeineR_ is the predecessor of _tidylda_, supporting asymmetric priors for both $\boldsymbol\alpha$ and $\boldsymbol\eta$. But _textmineR_ does not support transfer learning nor is it fully consistent with the _tidyverse_ principles.
 
 The _topicmodels_ package [@topicmodelspackage] supports fitting models for LDA and correlated topic models [@blei2007ctm] with both a collapsed Gibbs sampler and VEM. When using VEM, $\boldsymbol\alpha$ may be treated as a free parameter and estimated during fitting. It is designed to be interoperable with the _tm_ package [@tmjss], the oldest framework for text analysis in R.[^killitwithfire] _tidytext_ provides "tidier" functions to make the _topicmodels_ package interoperable with other frameworks, such as _quanteda_ [@quanteda], _text2vec_ [@text2vec], and more. 
 
-[^killitwithfire]: From private conversation, I can tell you that both _textmineR_ and _tidytext_ grew out of an immense frustration with working with _tm_.
+[^killitwithfire]: From private conversations, there is an immense frustration with working with _tm_ within the R user community.
 
-The _lda_ package [@chang2015lda] provides a collapsed Gibbs sampler for LDA, supervised LDA [@nguyen2015supervisedtm], and other less well-known models. It allows users to specify only symmetric $\boldsymbol\alpha$ and $\boldsymbol\eta$. Its syntax is esoteric and it requires text documents as input, but does not offer much flexibility in the way of pre-processing. It is generally not interoperable with other packages without significant programming on the part of its users. However, its sequential Gibbs sampler is one of the fastest. _textmineR_ wrapped _lda_ for its topic modeling capabilities until I implemented my own Gibbs sampler in 2018.[^thanksbill]
+The _lda_ package [@chang2015lda] provides a collapsed Gibbs sampler for LDA, supervised LDA [@nguyen2015supervisedtm], and other less well-known models. It allows users to specify only symmetric $\boldsymbol\alpha$ and $\boldsymbol\eta$. Its syntax is esoteric and it requires text documents as input, but does not offer much flexibility in the way of pre-processing. It is generally not interoperable with other packages without significant programming on the part of its users. However, its sequential Gibbs sampler is one of the fastest. 
 
-[^thanksbill]: This was the result of an independent study with Bill Kennedy. If not for that course, neither _tidylda_ nor any of my work on transfer learning would be where they are now. Thanks, Bill!
+The _text2vec_ package [@text2vec] is a framework for very fast text pre-processing and modeling. _textmineR_ wraps _text2vec_ for its pre-processing functions. _text2vec_ implements LDA using the WarpLDA algorithm [@chen2015warplda], but it only allows symmetric priors. _text2vec_ also offers other models related to distributional semantics. Its syntax is also esoteric using R's _R6_ objects that reach back to actively running C++ code for performance reasons. One of _text2vec_'s novel features is that it implements many different coherence calculations; most packages implement one or none.
 
-The _text2vec_ package [@text2vec] is a framework for very fast text pre-processing and modeling. _textmineR_ wraps _text2vec_ for its pre-processing functions. _text2vec_ implements LDA using the WarpLDA algorithm [@chen2015warplda], but it only allows symmetric priors. _text2vec_ also offers other models related to distributional semantics. Its syntax is also esoteric using objects that reach back to actively running C++ code for performance reasons. One of _text2vec_'s novel features is that it implements many different coherence calculations; most packages implement one or none.
-
-The _STM_ package [@roberts2019stm] implements VEM algorithms for structural topic models [@roberts2013stm] and correlated topic models [@blei2007ctm]. _STM_ receives much of its interoperability through interfaces provided in _tidytext_. It offers unique capabilities for model initialization somewhat analogous to transfer learning. Models may be initialized at random or from an LDA model that has run for a few iterations. _STM_ does not offer this as a fully-fledged "transfer learning" paradigm. Instead it is a flag the user sets at run time. _STM_ then produces the LDA model to hand off to the STM model internally. STM has several unique methods for setting priors but inspecting the documentation makes me believe that they are still symmetric, where applicable.
+The _STM_ package [@roberts2019stm] implements VEM algorithms for structural topic models [@roberts2013stm] and correlated topic models [@blei2007ctm]. _STM_ is well-supported with interfaces in _tidytext_. It offers unique capabilities for model initialization somewhat analogous to transfer learning. Models may be initialized at random or from an LDA model that has run for a few iterations. _STM_ does not offer this as a fully-fledged "transfer learning" paradigm. Instead it is a flag the user sets at run time. _STM_ then produces the LDA model to hand off to the STM model internally. STM has several unique methods for setting priors but inspecting the documentation makes me believe that they are still symmetric, where applicable.
 
 ### Topic modeling software in other languages
 There are many (many) programs to implement topic models in many languages. Anecdotally, the two most common are also two of the oldest: _MALLET_ and _Gensim_.
@@ -39,33 +33,42 @@ _MALLET_ [@mallet] stands for "MAchine Learning for LanguagE Toolkit." It is a J
 
 _Gensim_ [@gensim] is a Python package that implements many models for working with text data, including LDA, LSI, and HDP [@teh2006hdp]. Its LDA implementation is based on VEM and can be distributed across many compute nodes. Users can set flags for both $\boldsymbol\alpha$ and $\boldsymbol\eta$ to be estimated during fitting. $\boldsymbol\eta$ can be a scalar, vector, or matrix. To my knowledge, Gensim is the only other program that offers this option---other than _tidylda_. Gensim uses other Python packages for pre-processing. 
 
-## Preliminary Results and Proposed Contributions
-My goal for _tidylda_ is to publish it in a peer-reviewed journal. The two I am considering are the _Journal of Open Source Software_ or the _Journal of Statistical Software_.
+## _tidylda_'s Novel Features
 
-The current version of _tidylda_ has the following features and capabilities.
+### Model Initialization and Gibbs Sampling
 
-1. It has a novel Gibbs sampler for fitting LDA models
-    - Sequential "true" Gibbs or parallel "approximate" Gibbs as in [@newman2009distributed]
-    - Implements transfer learning as described above
-    - Burn-in aggregates posterior samples over final iterations. Consistent with common practice in Bayesian stats and demonstrated improvements for LDA by as in [@nguyen2014sometimes]
-    - Asymmetric prior hyper parameters $\boldsymbol\alpha$ and $\boldsymbol\eta$. Per transfer learning: $\boldsymbol\eta$ can be a matrix as well.
-    - Predict methods for easy topic distributions on new documents ($\hat{\boldsymbol\Theta}$) 
-2. Implements "tidy" methods
-    - augment: calculates $P(\text{topic}|\text{word},\text{document})$ and appends the value to each "document-token" observation, as in _tidytext_.
-    - tidy: cleans up the output of posteriors----$\boldsymbol\Theta$ and $\boldsymbol{B}$---to make them compatible with _tidyverse_ syntax
-    - print and summarize: banal, but expected methods for any model in the tidy ecosystem
-3. Implements posterior derivations useful for analysis and---so far as I can tell---unique to packages I have developed
-    - $\boldsymbol\Lambda = P(\text{topics}|\text{words})$ as described in Appendix 1.
-    - $P(\text{topic}|\text{document}, \text{word})$---in the augment method---aggregates to $\boldsymbol\Lambda$ or $\hat{\boldsymbol\Theta}$ as projected by $\boldsymbol\Lambda$
-4. Incorporates diagnostic statistics derived elsewhere: probabilistic coherence and $R^2$ for topic models. 
+_tidylda_'s Gibbs sampler has several unique features, described below.
 
-However, _tidylda_ needs more work before publication. The following is what I would like to achieve.
+**Non-uniform initialization:** Most LDA Gibbs samplers initialize by assigning words to topics and topics to documents (i.e., construct the $\boldsymbol{Cd}$ and $\boldsymbol{Cv}$ matrices) by sampling from a uniform distribution. This ensures initialization without incorporating any prior information. _tidylda_ incorporates the priors in its initialization. It begins by drawing $P(\text{topic}|\text{document})$ and $P(\text{word}|\text{topic})$ from Dirichlet distributions with parameters $\boldsymbol\alpha$ and $\boldsymbol\eta$, respectively. Then _tidylda_ uses the above probabilities to construct $P(\text{topic}|\text{word}, \text{document})$ and makes a single run of the Gibbs sampler to initialize $\boldsymbol{Cd}$ and $\boldsymbol{Cv}$. This non-uniform initialization powers tLDA, described in Chapter 5, by starting a Gibbs run near where the previous run left off. For initial models, it uses the user's prior information to tune where sampling starts.
 
-1. Substitute Gibbs for WarpLDA Metropolis Hastings sampler [@chen2015warplda]
-    - WarpLDA is embarrassingly parallel at the token instance level while retaining MCMC theoretical guarantees of convergence
-    - I will definitely implement a CPU version of this for the dissertation. I want to extend this to a GPU for scalability that parallels what is available for deep neural nets. This scalability is necessary to achieve the future I see for fine tuned models in corpus statistics.
-2. Implement the method to optimize $\boldsymbol\alpha$ as MALLET does, based on [@minka2000estimating] 
-4. Write a series of vignettes demonstrating use of the package for various tasks including and perhaps extending the detail of what I have for _textmineR_.[^vignettes]
-5. Formal write up of the package for publication in the Journal of Open Source Software (JOSS) or Journal of Statistical Software
+**Flexible priors:** _tidylda_ has multiple options for setting LDA priors. Users may set scalar values for $\boldsymbol\alpha$ and $\boldsymbol\eta$ to construct symmetric priors. Users may also choose to construct vector priors for both $\boldsymbol\alpha$ and $\boldsymbol\eta$ for a full specification of LDA. Additionally, _tidylda_ allows users to set a matrix prior for $\boldsymbol\eta$, enabled by its implementation of tLDA. This enables users to set priors over word-topic relationships informed by expert input. The best practices for encoding expert input in this manner are not yet well studied. Nevertheless, this capability makes _tidylda_ unique among LDA implementations. 
 
-[^vignettes]: See the 6 vignettes I have here https://CRAN.R-project.org/package=textmineR
+**Burn in iterations and posterior averaging:** Most LDA Gibbs samplers construct posterior estimates of $\boldsymbol\Theta$ and $\boldsymbol{B}$ from $\boldsymbol{Cd}$ and $\boldsymbol{Cv}$'s values of the final iteration of sampling, effectively using a single sample. This is inconsistent with best practices from Bayesian statistics, which is to average over many samples from a stable posterior. _tidylda_ enables averaging across multiple samples of the posterior with the `burnin` argument. When `burnin` is set to a positive integer, _tidylda_ averages the posterior across all iterations larger than `burnin`. For example, if `iterations` is 200 and `burnin` is 150, _tidylda_ will return a posterior estimate that is an average of the last 50 sampling iterations. This ensures that posterior estimates are more likely to be representative than any single sample.
+
+**Transfer learning with tLDA:** Finally, and as discussed previously, _tidylda_'s Gibbs sampler enables transfer learning with tLDA. The full specification of tLDA and details on its implementation in _tidylda_ are in Chapter 5.
+
+### Tidy Methods
+
+_tidylda_'s construction follows _Conventions of R Modeling Packages_ [@tidymodelsbook]. In particular, it contains methods for `print`, `summary`, `glance`, `tidy`, and `augment`, consistent with other "tidy" packages. These methods are briefly described below and are demonstrated in Appendix [X].
+
+* `print`, `summary`, and `glance` return various summaries of the contents of a `tidylda` object, into which an LDA model trained with _tidylda_ is stored.
+* `tidy` returns the contents of $\boldsymbol\Theta$, $\boldsymbol{B}$, or $\boldsymbol\Lambda$ (stored as `theta`, `beta`, and `lambda` respectively), as specified by the user, formatted as a tidy `tibble`, instead of a numeric matrix.
+* `augment` appends model outputs to observational-level data. Taking the cue from _tidytext_ [@tidytextjss], "observational-level" data is one row per word per document. Therefore, the key statistic used by `augment` is $P(\text{topic}|\text{word}, \text{document})$. _tidylda_ calculates this as $\boldsymbol\Lambda \times P(\text{word}|\text{document})$, where $P(\text{word}|\text{document}_d) = \frac{\boldsymbol{x}_d}{\sum_{v=1}^V x_{d,v}}$. 
+
+### Other Noteable Features
+
+_tidylda_ has three evaluation metrics for topic models, two goodness-of-fit measures---$R^2$ as described in Chapter 4 and the log likelihood of the model given the data---and one coherence measure---probabilistic coherence. R-squared is calculated via the _mvrsquared_ package [@mvrsquared] and is a flag set during model fitting with `calc_r2 = TRUE`[^calcr2]. Similarly, the log likelihood of the model, given the data, is calculated at each Gibbs iteration if the user selects `calc_likelihood = TRUE` during model fitting. 
+
+The coherence measure is called probabilistic coherence. The algorithm is outlined in Appendix [X]. Probabilistic coherence is bound between -1 and 1. Values near zero indicate that the top words in a topic are statistically independent from each other. Positive values indicate that the top words in a topic are positively correlated in a statistically-dependent manner. Negative values indicate that the words in a topic are negatively correlated with each other in a statistically-dependent manner. (In practice, negative values tend to be very near zero.)
+
+[^calcr2]: Users can calculate $R^2$ after a model is fit by using the _mvrsquared_ package or calling `tidylda:::calc_lda_rsquared`. `calc_lda_rsquared` is an internal function to _tidylda_, requiring the package name followed by three colons, as is R's standard.
+
+_tidylda_ enables traditional Bayesian uncertainty quantification by sampling from the posterior. The posterior distribution for $\boldsymbol\theta_d$ is $\text{Dirichlet}(\boldsymbol{Cd}_d + \boldsymbol\alpha)$ and the posterior distribution for $\boldsymbol\beta_k$ is $\text{Dirichlet}(\boldsymbol{Cv}_k + \boldsymbol\eta)$ (or $\text{Dirichlet}(\boldsymbol{Cv}_k + \boldsymbol\eta_k)$ for tLDA). _tidylda_ enables a `posterior` method for `tidylda` objects, allowing users to sample from the posterior to quantify uncertainty for estimates of estimated parameters.
+
+_tidylda_ uses one of two calculations for predicting topic distributions (i.e., $\hat{\boldsymbol\theta}_d$) for new documents. The first, and default, is to run the Gibbs sampler, constructing a new $\boldsymbol{Cd}$ for the new documents but without updating topic-word distributions in $\boldsymbol{B}$. The second uses a dot product as described in Appendix [1]. _tidylda_ acually uses the dot product prediction combined with the _non-uniform initialization_---described above---to initialize $\boldsymbol{Cd}$ when predicting using the Gibbs sampler.
+
+## Conclusion
+
+While many other topic modeling packages exist, _tidylda_ is very user friendly and brings novel features. Its user friendliness comes from compatibility with the tidyverse. And _tidylda_ includes tLDA and other methods contained in the previous chapters of this dissertation. It also has methods for sampling from the posterior of a trained model, for more traditional Bayesian analyses. _tidylda_'s Gibbs sampler is written in C++ for performance.
+
+
