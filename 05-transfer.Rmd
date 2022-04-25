@@ -21,14 +21,14 @@ tLDA is a model for updating topics in an existing model with new data, enabling
 Formally, tLDA can be stated as
 
 \begin{align}
-  z_{d_{n}}|\boldsymbol\theta_d &\sim 
-    \text{Categorical}(\boldsymbol\theta_d)\\
-  w_{d_{n}}|z_{k},\boldsymbol\beta_k^{(t)} &\sim
-    \text{Categorical}(\boldsymbol\beta_k^{(t)}) \\
-  \boldsymbol\theta_d &\sim
-    \text{Dirichlet}(\boldsymbol\alpha_d)\\
-  \boldsymbol\beta_k^{(t)} &\sim
-    \text{Dirichlet}(\omega_k^{(t)} \cdot \mathbb{E}\left[\boldsymbol\beta_k^{(t-1)}\right])
+z_{d_{n}}|\boldsymbol\theta_d &\sim 
+\text{Categorical}(\boldsymbol\theta_d)\\
+w_{d_{n}}|z_{k},\boldsymbol\beta_k^{(t)} &\sim
+\text{Categorical}(\boldsymbol\beta_k^{(t)}) \\
+\boldsymbol\theta_d &\sim
+\text{Dirichlet}(\boldsymbol\alpha_d)\\
+\boldsymbol\beta_k^{(t)} &\sim
+\text{Dirichlet}(\omega_k^{(t)} \cdot \mathbb{E}\left[\boldsymbol\beta_k^{(t-1)}\right])
 \end{align}
 
 The above indicates that tLDA places a matrix prior for words over topics where $\eta_{k, v}^{(t)} = \omega_{k}^{(t)} \cdot \mathbb{E}\left[\beta_{k,v}^{(t-1)}\right] = \omega_{k}^{(t)} \cdot \frac{Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)}}{\sum_{v=1}^V Cv_{k,v}^{(t-1)}}$. Because the posterior at time $t$ depends only on data at time $t$ and the state of the model at time $t-1$, tLDA models retain the Markov property.
@@ -37,8 +37,8 @@ The above indicates that tLDA places a matrix prior for words over topics where 
 Each $\omega_k^{(t)}$ tunes the relative weight between the base model (as prior) and new data in the posterior for each topic. This specification introduces $K$ new tuning parameters and setting $\omega_k^{(t)}$ directly is possible but not intuitive. Yet introducing a new parameter and performing some algebra collapses these $K$ tuning parameters into a single parameter with several intutive critical values. This tuning parameter, $a^{(t)}$, is related to each $\omega_k^{(t)}$ as follows:
 
 \begin{align}
-  \omega_k^{(t)} &=
-    a^{(t)} \cdot \sum_{v = 1}^V Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)}
+\omega_k^{(t)} &=
+a^{(t)} \cdot \sum_{v = 1}^V Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)}
 \end{align}
 
 Appendix 1 shows the full derivation of the relationship between $a^{(t)}$ and $\omega_k^{(t)}$.
@@ -75,7 +75,7 @@ New entries to $\boldsymbol\alpha$ are initialized to be the median value of the
 Like most other LDA implementations, tLDA initializes tokens for $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ with a single Gibbs iteration. However, instead of sampling from a uniform random for this initial step, tLDA draws a topic for the $n$-th word of the $d$-th document from the following:
 
 \begin{align}
-  P(z_{d_{n}} = k) &= \hat{\boldsymbol\beta}_{k,n}^{(t)} \cdot \hat{\boldsymbol\theta}_{d,k}^{(t)}
+P(z_{d_{n}} = k) &= \hat{\boldsymbol\beta}_{k,n}^{(t)} \cdot \hat{\boldsymbol\theta}_{d,k}^{(t)}
 \end{align}
 
 After a single iteration, the number of times each topic was sampled at each document and word occurrence is counted to produce $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$. After initialization where topic-word distributions are fixed, tLDA continues in a standard fashion, recalculating $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ (and therefore $P(z_{d_{n}} = k)$) at each step.
@@ -84,15 +84,15 @@ After a single iteration, the number of times each topic was sampled at each doc
 To evaluate tLDA, we conduct two simulation experiments and an analysis on a real-world data set. The simulation experiments evaluate the degree to which tLDA converges towards a ground truth data generating distribution. The real-world analysis constructs time series of topics from a data set of Small Business Innovation Research (SBIR) grant abstracts from 1983 to 2021.
 
 ### Simulation Analysis
-Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall i,j \geq 0, i \neq j$, and (2) if $a = 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyperparameters for any LDA model remains an open problem. Yet we hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
+Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall i,j \geq 0, i \neq j$, and (2) if $a \geq 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyperparameters for any LDA model remains an open problem. Yet we hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
 
 To test the above, we conduct two simulation experiments. We generate topics by drawing from 128 data generating distributions. Then for each data generating distribution, we sample 100 corpora of 100 documents each. We fit a model on the first 100 documents of the data and iteratively add the remaining 100 documents at a time, fine tuning at each stage, with values of $a$ ranging from $0.2$ to $2$. The experiments are described in more detail in the below sections.
 
-We find that on average, models to converge towards the true topics of the data generating process when values of $a$ are within [x to y]. Yet, properties of the data generating process heavily influence whether or not the models converge at all within this range. This points towards a need for more study of LDA as a data generating process of language, rather than an inherent limitation of tLDA. When $a$ is smaller than [x], variance between models is high and there is little evidence of convergence. When $a$ is larger than [y], the model converges too quickly and adding more data does not improve the fit.
+On average, models converge towards the true topics of the data generating process when values of $a$ are greater than 0.8. When values of $a$ are less than 0.8, the models tend not to converge as there is high variance between estimates. There is very high variance as to whether or not models converge when $a$ is around 0.8. Properties of the data generating process, particularly the magnitude of $\boldsymbol\alpha$, also influence whether or not the models converge. This points towards a need for more study of LDA as a data generating process of language, rather than an inherent limitation of tLDA. 
 
 #### Synthetic Data Generation
-We assume that the total vocabulary size, $V$, and number of topics, $K$, are fixed with value of $5,000$ and $25$ respectively. We further assume that $\boldsymbol\alpha$ is flat (symmetric) and that $\boldsymbol\eta$ is proportional to a power law (asymmetric) to account for Zipf's law (cite). We vary the magnitudes of $\boldsymbol\alpha$ and $\boldsymbol\eta$ and vary the number of words sampled in each context.
 
+We assume that the total vocabulary size, $V$, and number of topics, $K$, are fixed with value of $5,000$ and $25$ respectively. We further assume that $\boldsymbol\alpha$ is flat (symmetric) and that $\boldsymbol\eta$ is proportional to a power law (asymmetric) to account for Zipf's law (cite). We vary the magnitudes of $\boldsymbol\alpha$ and $\boldsymbol\eta$ and vary the number of words sampled in each context.
 
 Specifically, we chose the following:
 
@@ -107,48 +107,216 @@ The magnitudes of the Dirichlet hyperparameters, $\boldsymbol\eta$ and $\boldsym
 
 #### Modeling Choices
 
-We fit a total of 128,000 LDA models to the simulated data. For each of the 128 unique sets of population parameters, we sequentially fit models on 100 batches of data, using TLDA to update the parameters. We do this for 10 different settings for $a$ from $a = 0.2$ to $a = 2$ with a step size of $0.2$.
+We fit a total of 128,000 LDA models to the simulated data. For each of the 128 unique sets of population parameters, we sequentially fit models on 100 batches of data, using TLDA to update the parameters. We do this for 10 different settings for $a$ from $a = 0.2$ to $a = 2$ with a step size of $0.2$. This leads to 1,280 separate model chains.
 
 In each case, the base model was fit with $K = 30$ topics, and commonly-used flat priors with $\alpha_k = 0.05$ and $\eta_v = 0.01$. The Gibbs sampler runs for 200 iterations. Posterior estimates are taken averaging over the last 50 iterations. Subsequent models are fine tuned with an additional 200 iterations with posterior estimates averaged over the last 50 and $a$ set as described above.
 
 We fit more topics than in the population data for two reasons. First, it's unrealistic that a researcher will know the right number of topics a-priori. (In real data a true number does not even exist.) Second, fitting a fewer number of topics than is in the population would lead to a pathologically-mispecified model regardless of other choices. 
 
-#### Evaluation Metrics
+#### Evaluation Method
 
 We base our analysis on calculations from the pairwise Hellinger distance [@hellinger1909] from the estimated topics to each of the ground truth simulated topics. For estimated topic $\hat{\boldsymbol\beta}_k^{(t)}$ and ground-truth topic $\boldsymbol\beta_{\mathfrak{k}}$, the Hellinger distance is calculated as
 
 \begin{align}
-  H(\hat{\boldsymbol\beta}_k^{(t)},\boldsymbol\beta_{\mathfrak{k}}) &=
-    \sqrt{\frac{1}{2} 
-    \sum_{v=1}^V (\sqrt{\hat{\beta}_{k,v}^{(t)}} - \sqrt{\beta_{\mathfrak{k},v}}) ^ 2}
+H(\hat{\boldsymbol\beta}_k^{(t)},\boldsymbol\beta_{\mathfrak{k}}) &=
+\sqrt{\frac{1}{2} 
+\sum_{v=1}^V (\sqrt{\hat{\beta}_{k,v}^{(t)}} - \sqrt{\beta_{\mathfrak{k},v}}) ^ 2}
 \end{align}
 
 Note that it is not necessarily true that $k = \mathfrak{k}$ for any pair of topics. For simplicity, we denote the above $H_{k,\mathfrak{k}}^{(t)}$ and its derivative with respect to $t$ as $H_{k,\mathfrak{k}}^{'(t)}$.
 
 From a theoretical perspective, the following should be true:
 \begin{align}
-  & \text{If } \hat{\boldsymbol\beta}_k^{(t)} 
-    \text{ converges towards a stable posterior, then }
-    \underset{t \to \infty}{\lim} 
-    H_{k,\mathfrak{k}}^{'(t)} = 0 \\
-  & \text{If } \hat{\boldsymbol\beta}_k^{(t)} \text{ converges to }
-    \boldsymbol\beta_{\mathfrak{k}} \text{, then (11) holds and }
-    \underset{t \to \infty}{\lim}
-    H_{k,\mathfrak{k}}^{(t)} = 0\\
-  & \text{We can compare convergence rates by finding } t \text{ such that }
-    H_{k,\mathfrak{k}}^{'(t)} \approx 0
+& \text{If } \hat{\boldsymbol\beta}_k^{(t)} 
+\text{ converges towards a stable posterior, then }
+\underset{t \to \infty}{\lim} 
+H_{k,\mathfrak{k}}^{'(t)} = 0 \label{eq:1} \\
+& \text{If } \hat{\boldsymbol\beta}_k^{(t)} \text{ converges to }
+\boldsymbol\beta_{\mathfrak{k}} \text{, then (11) holds and }
+\underset{t \to \infty}{\lim}
+H_{k,\mathfrak{k}}^{(t)} = 0 \label{eq:2} \\
+& \text{We can compare convergence rates by finding } t \text{ such that }
+H_{k,\mathfrak{k}}^{'(t)} \approx 0 \label{eq:3}
 \end{align}
 
-By extension of (11), if a whole model converges to a stable posterior, then $\underset{t \to \infty}{\lim} \sum_{k=1}^K H_{k,\mathfrak{k}}^{'(t)} = 0$. Note that converging to a stable posterior does not mean that the model converged towards the true topics of the data generating distribution. If (12) holds, then that also implies that $\hat{\boldsymbol\beta}_k^{(t)}$ is a consistent estimator of $\boldsymbol\beta_{\mathfrak{k}}$. This is unlikely to be true as an imperfect specification of $\boldsymbol\alpha$ and $\boldsymbol\eta$ mean that $H_{k,\mathfrak{k}}^{(t)}$ will always be positive. However, if $\hat{\boldsymbol\beta}_k^{(t)}$ is heading *towards* $\boldsymbol\beta_{\mathfrak{k}}$, then $H_{k,\mathfrak{k}}^{'(t)} < 0$ as it approaches its limit.
+By extension of (\ref{eq:1}), if a whole model converges to a stable posterior, then $\underset{t \to \infty}{\lim} \sum_{k=1}^K H_{k,\mathfrak{k}}^{'(t)} = 0$. Note that converging to a stable posterior does not mean that the model converged towards the true topics of the data generating distribution. If (\ref{eq:2}) holds, then that also implies that $\hat{\boldsymbol\beta}_k^{(t)}$ is a consistent estimator of $\boldsymbol\beta_{\mathfrak{k}}$. This is unlikely to be true as an imperfect specification of $\boldsymbol\alpha$ and $\boldsymbol\eta$ mean that $H_{k,\mathfrak{k}}^{(t)}$ will always be positive. However, if $\hat{\boldsymbol\beta}_k^{(t)}$ is heading *towards* $\boldsymbol\beta_{\mathfrak{k}}$, then $H_{k,\mathfrak{k}}^{'(t)} < 0$ as it approaches its limit.
 
 We estimate $H_{k,\mathfrak{k}}^{'(t)}$ by $H_{k,\mathfrak{k}}^{(t)} - H_{k,\mathfrak{k}}^{(t - 1)}$, normalized by $H_{k,\mathfrak{k}}^{(0)}$. Normalization allows each topic in every model to be on the same scale and allows us to chose a single threshold as being sufficiently close to zero to assess convergence or lack thereof.
 
-We use the hyperparameters that define the data generating process (described in 3.1.1.1) and the value of $a$ used in fine tuning that model as predictors for whether or not a model converged---using logistic regression---and the rate of convergence for those models which did converge---using linear regression. In the former case, the outcome variable is a binary for having converged or not. In the latter case, the outcome variable is $\left|0 - \frac{H_{k,\mathfrak{k}}^{(t)} - H_{k,\mathfrak{k}}^{(t - 1)}}{H_{k,\mathfrak{k}}^{(0)}}\right|$. For linear regression, we omit models that did not converge.
+Convergence is assessed in a two step process, first assessing the convergence of each estimated topic and then assessing the convergence of the model as a whole. To assess the convergence of a topic, we perform a t-test on the last 20 periods of $H_{k,\mathfrak{k}}^{'(t)}$, with a null hypothesis of the mean being unequal to zero at the 0.05 significance level. If we reject the null, we consider a topic's estimate to have converged. 
 
+The second step corrects for multiple tests and assesses the convergence of the model as a whole. Under a hull hypothesis that we'd consider 5% of topics to have converged by random chance, we perform a binomial test. A model has converged if we reject the null that the rejection rate above is less than or equal to 5%.
+
+Logistic regression is used to analyze which factors lead to model convergence or divergence. We use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is a binary for the model having converged or not.
+
+Whether or not the model converges towards the data generating distribution is assessed in a similar two step process. A topic converges towards the true generating distribution if the average slope of $H_{k,\mathfrak{k}}^{(t)}$ is negative, $\mathfrak{k}$ indexes the topic closest to $k$, averaging over the last. After discarding the first two periods, a t-test with a null hypothesis that the average of $H_{k,\mathfrak{k}}^{'(t)}$ from periods 3 to 100 is greater than zero. The whole model is considered to have converged towards the true data generating distribution using a binomial test, as above. Only models considered to have converged, above, are considered.
+
+Linear regression is used to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. We use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
 
 #### Findings
 
+```{r tlda-load-libraries}
+# load libraries, just in case
+library(tidyverse)
+# library(memisc)
+
+# load analysis data
+load("data-derived/tlda-analysis/2022-01-02-50-56/convergence-analysis.RData")
+load("data-derived/tlda-analysis/2022-01-02-50-56/topic-matches.RData")
+load("data-derived/tlda-analysis/2022-01-02-50-56/convergence-direction-analysis.RData")
+
+
+```
+
+
+Models where $a < 0.8$ almost never converge; 384 out of 385 such models diverged. Models where $a > 0.8$ tend to converge; 94% of such models converged. There is high variability in convergence where $a = 0.8$. Roughly 1/3 of the models converged when $a = 0.8$, the other 2/3 diverged. Figure [x], below, shows a box plot of p-values in the binomial test for each value of $a$. There is a clear structural break at $a = 0.8$, reflecting the clear patterns of convergence/divergence on either side of 0.8 and a high variance of convergence at 0.8.
+
+```{r tlda-boxplot, fig.width = 6, fig.height = 4}
+
+bin_table %>%
+  ggplot(aes(x = a, y = bin_test_p)) + 
+  geom_boxplot(aes(color = factor(a))) + 
+  theme(legend.position = "none") + 
+  ylab("P-value of Binomial test") + 
+  ggtitle("Figure [x]: Structural break in convergence for a = 0.8")
+
+```
+
+
+Table 1, below, contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratics. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $*** \equiv p \leq 0.01$, $** \equiv  p \leq 0.05$, and $* \equiv  p \leq 0.1$.
+
+In all cases, $a$ has the most substantial impact on the outcome. The largest determinant of whether or not a model converges is the value of $a$. As $a$ increases, the probability of a model converging also increases, albeit with decreasing returns as indicated by the decreasing quadratic. Intuitively, larger values of $a$ decrease the variance between models in a chain leading to faster convergence. Yet of the models that converge, $a$ increases the distance of the fitted topics to their matches in the data generating distribution, again with decreasing returns. In sum, if $a$ is too small, a chain of models is unlikely to converge and if $a$ is too large the chain will converge far from the true data generating topics.
+
+
+```{r bin-reg-table}
+# regtable <- mtable(
+#   "Binomial Convergence" = bin_regression,
+#   "Linear Hellinger Distance" = convergence_direction_regression,
+#   summary.stats = c("N", "AIC", "R-squared")
+# ) %>%
+#   relabel(
+#     "(Intercept)" = "Constant",
+#     "a" = "a",
+#     "I(a^2)" = "a Squared",
+#     "doc_length" = "Avg. Doc. Length",
+#     "I(doc_length^2)" = "Avg. Doc. Length Squared",
+#     "beta_sum" = "Magnitude of eta",
+#     "I(beta_sum^2)" = "Magnitude of eta Squared",
+#     "alpha_sum" = "Magnitude of alpha",
+#     "I(alpha_sum^2)" = "Magnitude of alpha Squared"
+#   )
+
+# mtable_format_latex(regtable)
+
+# Get two more regressions
+bin_regression2 <- 
+  glm(
+    bin_test_p <= 0.05 ~ a + I(a^2) + doc_length + I(doc_length^2) +
+      beta_sum + I(beta_sum^2) + alpha_sum + I(alpha_sum^2),
+    family = binomial("logit"), data = bin_table
+  )
+
+convergence_direction_regression2 <- 
+  lm(
+    hdist * 100 ~ a + doc_length +  
+      beta_sum + alpha_sum, 
+    data = match_by_avg_periods
+  )
+
+# Construct table of regression results
+reg_table <- 
+  broom::tidy(bin_regression) %>%
+  mutate(sig = case_when(
+    p.value < 0.001 ~ "***",
+    p.value < 0.05 ~ "**",
+    p.value < 0.1 ~ "*",
+    TRUE ~ ""
+  )) %>%
+  select(
+    Variable = term,
+    Convergence = estimate,
+    `Sig.` = sig
+  ) %>%
+  full_join(
+    broom::tidy(bin_regression2) %>%
+      mutate(sig = case_when(
+        p.value < 0.001 ~ "***",
+        p.value < 0.05 ~ "**",
+        p.value < 0.1 ~ "*",
+        TRUE ~ ""
+      )) %>%
+      select(
+        Variable = term,
+        Convergence = estimate,
+        `Sig.` = sig
+      ),
+    by = c("Variable" = "Variable")
+  ) %>%
+  full_join(
+    broom::tidy(convergence_direction_regression2) %>%
+      mutate(sig = case_when(
+        p.value < 0.001 ~ "***",
+        p.value < 0.05 ~ "**",
+        p.value < 0.1 ~ "*",
+        TRUE ~ ""
+      ))%>%
+      select(
+        Variable = term,
+        Direction = estimate,
+        `Sig.` = sig
+      ),
+    by = c("Variable" = "Variable")
+  ) %>%
+  full_join(
+    broom::tidy(convergence_direction_regression) %>%
+      mutate(sig = case_when(
+        p.value < 0.001 ~ "***",
+        p.value < 0.05 ~ "**",
+        p.value < 0.1 ~ "*",
+        TRUE ~ ""
+      )) %>%
+      select(
+        Variable = term,
+        Direction = estimate,
+        `Sig.` = sig
+      ),
+    by = c("Variable" = "Variable")
+  ) %>%
+  mutate(
+    Variable = case_when(
+      Variable == "(Intercept)" ~ "Intercept",
+      Variable == "a" ~ "$a$",
+      Variable == "doc_length" ~ "Avg. Doc. Length",
+      Variable == "beta_sum" ~ "$\\sum(\\boldsymbol\\eta)$",
+      Variable == "alpha_sum" ~ "$\\sum(\\boldsymbol\\alpha)$",
+      Variable == "I(a^2)" ~ "$a^2$",
+      Variable == "I(doc_length^2)" ~ "$(\\text{Avg. Doc. Length})^2$",
+      Variable == "I(beta_sum^2)" ~ "$\\sum(\\boldsymbol\\eta)^2$",
+      Variable == "I(alpha_sum^2)" ~ "$\\sum(\\boldsymbol\\alpha)^2$",
+    )
+  ) 
+
+options(knitr.kable.NA = '')
+
+names(reg_table)[c(3, 5, 7, 9)] <- c("", "")
+
+names(reg_table) <-
+  names(reg_table) %>%
+  str_replace_all(
+    pattern = "(\\.x)|(\\.y)",
+    replacement = ""
+  )
+
+knitr::kable(
+  reg_table,
+  digits = 2,
+  caption = "Effects of $a$ and data-generating hyperparameters on convergence"
+)
+
+```
+
 ### Emperical Analysis
+The simulations above examines the properties of tLDA when fine tuning is performed by adding data from the same generating distribution. While helpful for isolating effects, the real world is far messier. This section demonstrates tLDA for topic discovery on real data in a time series context.
 
 #### Data Description
 
