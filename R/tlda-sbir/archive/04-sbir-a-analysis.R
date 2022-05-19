@@ -1,9 +1,12 @@
 # This script builds topic models over time for the SBIR corpus
 # It varries a over {0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6}
 # smaller range than on the simulations because we know that 0.8 is kind of the
-# critical area based on the simulation analyses
+# critical area
+
+# This script builds topic models over time for the SBIR corpus
 
 set.seed(42)
+
 
 # load libraries
 library(tidyverse)
@@ -12,53 +15,7 @@ library(tidylda)
 library(tidytext)
 
 # load cleaned data
-load("data-derived/tlda-sbir/sbir-clean.RData")
-
-# divide by time
-# build a model annually
-# we can still get monthly (or daily) assignments, the models just don't update
-# that frequently
-
-sbir_text <- by(
-  data = sbir_text,
-  INDICES = sbir$award_year,
-  FUN = function(x) {
-    x
-  },
-  simplify = FALSE
-)
-
-# DTM it all
-sbir_dtms <- 
-  sbir_text %>%
-  parallel::mclapply(function(x){
-    
-    # tokenize using tidytext's unnest_tokens
-    tidy_docs <- x %>% 
-      mutate(text = paste(award_title, abstract)) %>%
-      select(sbir_id, text) %>%
-      unnest_tokens(output = word, 
-                    input = text,
-                    stopwords = stop_words$word,
-                    token = "words") %>% 
-      filter(! is.na(word)) %>%
-      count(sbir_id, word) %>% 
-      filter(n>1) #Filtering for words/bigrams per document, rather than per corpus
-    
-    dtm <- 
-      tidy_docs %>%
-      cast_sparse(sbir_id, word, n)
-    
-    dtm
-    
-  },
-  mc.cores = 4)
-
-save(
-  sbir_dtms, 
-  file = "data-derived/tlda-sbir/sbir-dtm-by-year.RData"
-)
-
+load("data-derived/sbir-dtm-by-year.RData")
 
 # fit initial 1983 model
 
@@ -204,3 +161,4 @@ write_rds(
   model_metrics,
   "data-derived/tlda-sbir/model-metrics.rds"
 )
+

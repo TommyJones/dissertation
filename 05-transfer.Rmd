@@ -18,7 +18,7 @@ tLDA is a model for updating topics in an existing model with new data, enabling
 
 ### The Model
 
-Formally, tLDA can be stated as
+Formally, tLDA is
 
 \begin{align}
 z_{d_{n}}|\boldsymbol\theta_d &\sim 
@@ -41,16 +41,16 @@ Each $\omega_k^{(t)}$ tunes the relative weight between the base model (as prior
 a^{(t)} \cdot \sum_{v = 1}^V Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)}
 \end{align}
 
-Appendix 1 shows the full derivation of the relationship between $a^{(t)}$ and $\omega_k^{(t)}$.
+Appendix [X] shows the full derivation of the relationship between $a^{(t)}$ and $\omega_k^{(t)}$.
 
-When $a^{(t)} = 1$, fine tuning is equivalent to adding the data in $\boldsymbol{X}^{(t)}$ to $\boldsymbol{X}^{(t-1)}$. In other words, each word occurrence in $\boldsymbol{X}^{(t)}$ carries the same weight in the posterior as each word occurrence in $\boldsymbol{X}^{(t-1)}$. If $\boldsymbol{X}^{(t)}$ has more data than $\boldsymbol{X}^{(t-1)}$, then it will carry more weight. If it has less, it will carry less.
+When $a^{(t)} = 1$, fine tuning is equivalent to adding the data in $\boldsymbol{X}^{(t)}$ to $\boldsymbol{X}^{(t-1)}$. In other words, each word occurrence in $\boldsymbol{X}^{(t)}$ carries the same weight in the posterior as each word occurrence in $\boldsymbol{X}^{(t-1)}$. If $\boldsymbol{X}^{(t)}$ has more data than $\boldsymbol{X}^{(t-1)}$, then it will carry more weight overall. If it has less, it will carry less.
 
 When $a^{(t)} < 1$, then the posterior has recency bias. Each word occurrence in $\boldsymbol{X}^{(t)}$ carries more weight than each word occurrence in $\boldsymbol{X}^{(t-1)}$. When When $a^{(t)} > 1$, then the posterior has precedent bias. Each word occurrence in $\boldsymbol{X}^{(t)}$ carries less weight than each word occurrence in $\boldsymbol{X}^{(t-1)}$.
 
 Another pair of critical values are $a^{(t)} = \frac{N^{(t)}}{N^{(t-1)}}$ and $a^{(t)} = \frac{N^{(t)}}{N^{(t-1)} +\sum_{d,v} \eta_{d,v}}$, where $N^{(\cdot)} = \sum_{d,v} X^{(\cdot)}_{d,v}$. These put the total number of word occurrences in $\boldsymbol{X}^{(t)}$ and $\boldsymbol{X}^{(t-1)}$ on equal footing excluding and including $\boldsymbol\eta^{(t-1)}$, respectively. These values may be useful when comparing topical differences between a baseline group in $\boldsymbol{X}^{(t-1)}$ and "treatment" group in $\boldsymbol{X}^{(t)}$, though this use case is left to future work.
 
-### The Algorithm
-The overall tLDA algorithm proceeds in 6 steps.
+### The _tidylda_ Implementation of tLDA
+_tidylda_---described in Chapter 6---implements an algorithm for tLDA in 6 steps.
 
 1. Construct $\boldsymbol\eta^{(t)}$
 2. Predict $\hat{\boldsymbol\Theta}^{(t)}$ using topics from $\hat{\boldsymbol{B}}^{(t-1)}$
@@ -59,63 +59,65 @@ The overall tLDA algorithm proceeds in 6 steps.
 5. Initialize $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$
 6. Begin Gibbs sampling with $P(z = k) = \frac{Cv_{k, n} + \eta_{k,n}}{\sum_{v=1}^V Cv_{k, v} + \eta_{k,v}} \cdot \frac{Cd_{d, k} + \alpha_k}{\left(\sum_{k=1}^K Cd_{d, k} + \alpha_k\right) - 1}$
 
+Step 1 uses the relationship in (27), above. Step 2 uses a standard prediction method for LDA models. _tidylda_ uses a dot-product prediction described in Appendix [1?] for speed. MCMC prediction would work as well.
+
 Any real-world application of tLDA presents several practical issues which are addressed in steps 3 - 5, described in more detail below. These issues include: the vocabularies in $\boldsymbol{X}^{(t-1)}$ and $\boldsymbol{X}^{(t)}$ will not be identical; users may wish to add topics, expecting $\boldsymbol{X}^{(t)}$ to contain topics not in $\boldsymbol{X}^{(t-1)}$; and $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ should be initialized proportional to $\boldsymbol{Cd}^{(t-1)}$ and $\boldsymbol{Cv}^{(t-1)}$, respectively.
 
 #### Aligning Vocabulary
-tLDA implements an algorithm to fold in new words. This method slightly modifies the posterior probabilities in $\boldsymbol{B}^{(t-1)}$ and adds a non-zero prior by modifying $\boldsymbol\eta^{(t)}$. It involves three steps. First, append columns to $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$ that correspond to out-of-vocabulary words. Next, set the new entries for these new words to some small value, $\epsilon > 0$ in both $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$. Finally, re-normalize the rows of $\boldsymbol{B}^{(t-1)}$ so that they sum to one. For computational reasons, $\epsilon$ must be greater than zero. The _tidylda_ implementation chooses $\epsilon$ to the lowest decile of all values in $\boldsymbol{B}^{(t-1)}$ or $\boldsymbol\eta^{(t)}$, respectively. 
+_tidylda_ implements an algorithm to fold in new words. This method slightly modifies the posterior probabilities in $\boldsymbol{B}^{(t-1)}$ and adds a non-zero prior by modifying $\boldsymbol\eta^{(t)}$. It involves three steps. First, append columns to $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$ that correspond to out-of-vocabulary words. Next, set the new entries for these new words to some small value, $\epsilon > 0$ in both $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$. Finally, re-normalize the rows of $\boldsymbol{B}^{(t-1)}$ so that they sum to one. For computational reasons, $\epsilon$ must be greater than zero. Specifically, the _tidylda_ implementation chooses $\epsilon$ to the lowest decile of all values in $\boldsymbol{B}^{(t-1)}$ or $\boldsymbol\eta^{(t)}$, respectively. 
 
 #### Adding New Topics
 tLDA employs a similar method to add new, randomly initialized, topics if desired. This is achieved by appending rows to both $\boldsymbol\eta^{(t)}$ and $\boldsymbol{B}^{(t)}$, adding entries to $\boldsymbol\alpha$, and adding columns to $\boldsymbol\Theta^{(t)}$, obtained in step two above. The tLDA implementation in _tidylda_ sets the rows of $\boldsymbol\eta^{(t)}$ equal to the column means across previous topics. Then new rows of $\boldsymbol{B}^{(t)}$ are the new rows of $\boldsymbol\eta^{(t)}$ but normalized to sum to one. This effectively sets the prior for new topics equal to the average of the weighted posteriors of pre-existing topics.
 
-The choice of setting the prior to new topics as the average of pre-existing topics is admittedly subjective. A uniform prior over words is unrealistic, being inconsistent with Zipf's law [@zipf1949]. (See also the appendix in [@jones2019coefficient].) The average over existing topics is only one viable choice. Another choice might be to choose the shape of new $\boldsymbol\eta_k$ from an estimated Zipf's coefficient of $\boldsymbol{X}^{(t)}$ and choose the magnitude by another means.
+The choice of setting the prior to new topics as the average of pre-existing topics is admittedly subjective. A uniform prior over words is unrealistic, being inconsistent with Zipf's law [@zipf1949]. (See also the appendix in [@jones2019coefficient].) The average over existing topics is only one viable choice. Another choice might be to choose the shape of new $\boldsymbol\eta_k$ from an estimated Zipf's coefficient of $\boldsymbol{X}^{(t)}$ and choose the magnitude by another means. I leave this exploration for future research.
 
-New entries to $\boldsymbol\alpha$ are initialized to be the median value of the pre-existing topics in $\boldsymbol\alpha$. Similarly, columns are appended to $\boldsymbol\Theta^{(t)}$. Entries for new topics are taken to be the median value for pre-existing topics on a per-document basis. This effectively places a uniform prior for new topics. This choice is also subjective. Other heuristic choices may be made, but it is not obvious that they would be any better or worse choices. 
+New entries to $\boldsymbol\alpha$ are initialized to be the median value of the pre-existing topics in $\boldsymbol\alpha$. Similarly, columns are appended to $\boldsymbol\Theta^{(t)}$. Entries for new topics are taken to be the median value for pre-existing topics on a per-document basis. This effectively places a uniform prior for new topics. This choice is also subjective. Other heuristic choices may be made, but it is not obvious that they would be any better or worse choices. I also leave this to be explored in future research.
 
 #### Initializing $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$
-Like most other LDA implementations, tLDA initializes tokens for $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ with a single Gibbs iteration. However, instead of sampling from a uniform random for this initial step, tLDA draws a topic for the $n$-th word of the $d$-th document from the following:
+Like most other LDA implementations, _tidylda_'s tLDA initializes tokens for $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ with a single Gibbs iteration. However, instead of sampling from a uniform random for this initial step, a topic for the $n$-th word of the $d$-th document is drawn from the following:
 
 \begin{align}
 P(z_{d_{n}} = k) &= \hat{\boldsymbol\beta}_{k,n}^{(t)} \cdot \hat{\boldsymbol\theta}_{d,k}^{(t)}
 \end{align}
 
-After a single iteration, the number of times each topic was sampled at each document and word occurrence is counted to produce $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$. After initialization where topic-word distributions are fixed, tLDA continues in a standard fashion, recalculating $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ (and therefore $P(z_{d_{n}} = k)$) at each step.
+After a single iteration, the number of times each topic was sampled at each document and word occurrence is counted to produce $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$. After initialization where topic-word distributions are fixed, MCMC sampling then continues in a standard fashion, recalculating $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ (and therefore $P(z_{d_{n}} = k)$) at each step.
 
 ## Experiments
-To evaluate tLDA, we conduct two simulation experiments and an analysis on a real-world data set. The simulation experiments evaluate the degree to which tLDA converges towards a ground truth data generating distribution. The real-world analysis constructs time series of topics from a data set of Small Business Innovation Research (SBIR) grant abstracts from 1983 to 2021.
+To evaluate tLDA, I conduct two simulation experiments and an analysis on a real-world data set. The simulation experiments evaluate the degree to which tLDA converges towards a ground truth data generating distribution. The real-world data analysis constructs time series of topics from a data set of Small Business Innovation Research (SBIR) grant abstracts from 1983 to 2021.
 
 ### Simulation Analysis
-Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall i,j \geq 0, i \neq j$, and (2) if $a \geq 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyperparameters for any LDA model remains an open problem. Yet we hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
+Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall i,j \geq 0, i \neq j$, and (2) if $a \geq 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyperparameters for any LDA model remains an open problem. Yet I hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
 
-To test the above, we conduct two simulation experiments. We generate topics by drawing from 128 data generating distributions. Then for each data generating distribution, we sample 100 corpora of 100 documents each. We fit a model on the first 100 documents of the data and iteratively add the remaining 100 documents at a time, fine tuning at each stage, with values of $a$ ranging from $0.2$ to $2$. The experiments are described in more detail in the below sections.
+To test the above, I conduct two simulation experiments. I generate topics by drawing from 128 data generating distributions. Then for each data generating distribution, I sample 100 corpora of 100 documents each. I fit a model on the first 100 documents of the data and iteratively add the remaining 100 documents at a time, fine tuning at each stage, with values of $a$ ranging from $0.2$ to $2$. The experiments are described in more detail in the below sections.
 
 On average, models converge towards the true topics of the data generating process when values of $a$ are greater than 0.8. When values of $a$ are less than 0.8, the models tend not to converge as there is high variance between estimates. There is very high variance as to whether or not models converge when $a$ is around 0.8. Properties of the data generating process, particularly the magnitude of $\boldsymbol\alpha$, also influence whether or not the models converge. This points towards a need for more study of LDA as a data generating process of language, rather than an inherent limitation of tLDA. 
 
 #### Synthetic Data Generation
 
-We assume that the total vocabulary size, $V$, and number of topics, $K$, are fixed with value of $5,000$ and $25$ respectively. We further assume that $\boldsymbol\alpha$ is flat (symmetric) and that $\boldsymbol\eta$ is proportional to a power law (asymmetric) to account for Zipf's law (cite). We vary the magnitudes of $\boldsymbol\alpha$ and $\boldsymbol\eta$ and vary the number of words sampled in each context.
+I assume that the total vocabulary size, $V$, and number of topics, $K$, are fixed with value of $5,000$ and $25$ respectively. I further assume that $\boldsymbol\alpha$ is flat (symmetric) and that $\boldsymbol\eta$ is proportional to a power law (asymmetric) to account for Zipf's law (cite). I vary the magnitudes of $\boldsymbol\alpha$ and $\boldsymbol\eta$ and vary the number of words sampled in each context.
 
-Specifically, we chose the following:
+Specifically, I chose the following:
 
 1. $\left(\sum_{v=1}^V \eta_v \right) \in \{50, 100, 200, 400\}$
 2. $\left(\sum_{k=1}^K \alpha_k \right) \in \{0.5, 1, 3, 5\}$
 3. $N_d \sim \text{Poi}(\lambda)$ where $\lambda \in \{50, 100, 200, 400\}$
 4. $V = 5,000$ and $K = 25$
 
-The above creates 64 unique sets of hyper parameters. From each, we generate two sets of population statistics, $\left\{ \boldsymbol\Theta, \boldsymbol{B} \right\}$, leaving 128 unique sets of population parameters to parametarize the generation process described in Section 1.1. From each of these sets of population parameters, $i$, we sample 100 word count matrices, $\boldsymbol{X}_i^{(t)}$, with 100 documents each.
+The above creates 64 unique sets of hyper parameters. From each, I generate two sets of population statistics, $\left\{ \boldsymbol\Theta, \boldsymbol{B} \right\}$, leaving 128 unique sets of population parameters to parametarize the generation process described in Section 1.1. From each of these sets of population parameters, $i$, 100 word count matrices, $\boldsymbol{X}_i^{(t)}$, with 100 documents each are sampled.
 
 The magnitudes of the Dirichlet hyperparameters, $\boldsymbol\eta$ and $\boldsymbol\alpha$ vary while keeping their shapes fixed. The magnitude of the parameter of a Dirichlet distribution plays a strong role in tuning the covariance between draws from that distribution. A smaller magnitude means larger variability between draws. In other words, if $\left(\sum_{v=1}^V \eta_v \right)$ is smaller, topics are less linguistically similar. If $\left(\sum_{v=1}^V \eta_v \right)$ is larger, topics are more linguistically similar. Similarly, $\left(\sum_{k=1}^K \alpha_k \right)$ tunes the topical similarity of documents.
 
 #### Modeling Choices
 
-We fit a total of 128,000 LDA models to the simulated data. For each of the 128 unique sets of population parameters, we sequentially fit models on 100 batches of data, using TLDA to update the parameters. We do this for 10 different settings for $a$ from $a = 0.2$ to $a = 2$ with a step size of $0.2$. This leads to 1,280 separate model chains.
+I fit a total of 128,000 LDA models to the simulated data. For each of the 128 unique sets of population parameters, I sequentially fit models on 100 batches of data, using tLDA to update the parameters. I do this for 10 different settings for $a$ from $a = 0.2$ to $a = 2$ with a step size of $0.2$. This leads to 1,280 separate model chains.
 
 In each case, the base model was fit with $K = 30$ topics, and commonly-used flat priors with $\alpha_k = 0.05$ and $\eta_v = 0.01$. The Gibbs sampler runs for 200 iterations. Posterior estimates are taken averaging over the last 50 iterations. Subsequent models are fine tuned with an additional 200 iterations with posterior estimates averaged over the last 50 and $a$ set as described above.
 
-We fit more topics than in the population data for two reasons. First, it's unrealistic that a researcher will know the right number of topics a-priori. (In real data a true number does not even exist.) Second, fitting a fewer number of topics than is in the population would lead to a pathologically-mispecified model regardless of other choices. 
+I fit more topics than in the population data for two reasons. First, it's unrealistic that a researcher will know the right number of topics a-priori. (In real data a true number does not even exist.) Second, fitting a fewer number of topics than is in the population would lead to a pathologically-mispecified model regardless of other choices. 
 
 #### Evaluation Method
 
-We base our analysis on calculations from the pairwise Hellinger distance [@hellinger1909] from the estimated topics to each of the ground truth simulated topics. For estimated topic $\hat{\boldsymbol\beta}_k^{(t)}$ and ground-truth topic $\boldsymbol\beta_{\mathfrak{k}}$, the Hellinger distance is calculated as
+I base the analysis on calculations from the pairwise Hellinger distance [@hellinger1909] from the estimated topics to each of the ground truth simulated topics. For estimated topic $\hat{\boldsymbol\beta}_k^{(t)}$ and ground-truth topic $\boldsymbol\beta_{\mathfrak{k}}$, the Hellinger distance is calculated as
 
 \begin{align}
 H(\hat{\boldsymbol\beta}_k^{(t)},\boldsymbol\beta_{\mathfrak{k}}) &=
@@ -123,35 +125,31 @@ H(\hat{\boldsymbol\beta}_k^{(t)},\boldsymbol\beta_{\mathfrak{k}}) &=
 \sum_{v=1}^V (\sqrt{\hat{\beta}_{k,v}^{(t)}} - \sqrt{\beta_{\mathfrak{k},v}}) ^ 2}
 \end{align}
 
-Note that it is not necessarily true that $k = \mathfrak{k}$ for any pair of topics. For simplicity, we denote the above $H_{k,\mathfrak{k}}^{(t)}$ and its derivative with respect to $t$ as $H_{k,\mathfrak{k}}^{'(t)}$.
+Note that it is not necessarily true that $k = \mathfrak{k}$ for any pair of topics. For simplicity, I denote the above $H_{k,\mathfrak{k}}^{(t)}$ and its derivative with respect to $t$ as $H_{k,\mathfrak{k}}^{'(t)}$.
 
 From a theoretical perspective, the following should be true:
 \begin{align}
-& \text{If } \hat{\boldsymbol\beta}_k^{(t)} 
-\text{ converges towards a stable posterior, then }
-\underset{t \to \infty}{\lim} 
-H_{k,\mathfrak{k}}^{'(t)} = 0 \label{eq:1} \\
-& \text{If } \hat{\boldsymbol\beta}_k^{(t)} \text{ converges to }
-\boldsymbol\beta_{\mathfrak{k}} \text{, then (11) holds and }
-\underset{t \to \infty}{\lim}
-H_{k,\mathfrak{k}}^{(t)} = 0 \label{eq:2} \\
-& \text{We can compare convergence rates by finding } t \text{ such that }
-H_{k,\mathfrak{k}}^{'(t)} \approx 0 \label{eq:3}
+    & \text{If } \hat{\boldsymbol\beta}_k^{(t)} 
+      \text{ converges towards a stable posterior, then }
+      \underset{t \to \infty}{\lim} 
+      H_{k,\mathfrak{k}}^{'(t)} = 0 \label{eq:1} \\
+    & \text{If } \hat{\boldsymbol\beta}_k^{(t)} \text{ converges to }
+      \boldsymbol\beta_{\mathfrak{k}} \text{, then (11) holds and }
+      \underset{t \to \infty}{\lim}
+      H_{k,\mathfrak{k}}^{(t)} = 0 \label{eq:2}
 \end{align}
 
-By extension of (\ref{eq:1}), if a whole model converges to a stable posterior, then $\underset{t \to \infty}{\lim} \sum_{k=1}^K H_{k,\mathfrak{k}}^{'(t)} = 0$. Note that converging to a stable posterior does not mean that the model converged towards the true topics of the data generating distribution. If (\ref{eq:2}) holds, then that also implies that $\hat{\boldsymbol\beta}_k^{(t)}$ is a consistent estimator of $\boldsymbol\beta_{\mathfrak{k}}$. This is unlikely to be true as an imperfect specification of $\boldsymbol\alpha$ and $\boldsymbol\eta$ mean that $H_{k,\mathfrak{k}}^{(t)}$ will always be positive. However, if $\hat{\boldsymbol\beta}_k^{(t)}$ is heading *towards* $\boldsymbol\beta_{\mathfrak{k}}$, then $H_{k,\mathfrak{k}}^{'(t)} < 0$ as it approaches its limit.
+By extension of (\ref{eq:1}), if a whole model converges to a stable posterior, then $\underset{t \to \infty}{\lim} \sum_{k=1}^K H_{k,\mathfrak{k}}^{'(t)} = 0$. Note that converging to a stable posterior does not mean that the model converged towards the true topics of the data generating distribution. If (\ref{eq:2}) holds, then that also implies that $\hat{\boldsymbol\beta}_k^{(t)}$ is a consistent estimator of $\boldsymbol\beta_{\mathfrak{k}}$. This is unlikely to be true as an imperfect specification of $\boldsymbol\alpha$ and $\boldsymbol\eta$ mean that $H_{k,\mathfrak{k}}^{(t)}$ will always be positive. However, if $\hat{\boldsymbol\beta}_k^{(t)}$ is heading *towards* $\boldsymbol\beta_{\mathfrak{k}}$, then $H_{k,\mathfrak{k}}^{'(t)} < 0$ as it approaches its limit. I approximate $H_{k,\mathfrak{k}}^{'(t)}$ by $H_{k,\mathfrak{k}}^{(t)} - H_{k,\mathfrak{k}}^{(t - 1)}$, normalized by $H_{k,\mathfrak{k}}^{(0)}$. 
 
-We estimate $H_{k,\mathfrak{k}}^{'(t)}$ by $H_{k,\mathfrak{k}}^{(t)} - H_{k,\mathfrak{k}}^{(t - 1)}$, normalized by $H_{k,\mathfrak{k}}^{(0)}$. Normalization allows each topic in every model to be on the same scale and allows us to chose a single threshold as being sufficiently close to zero to assess convergence or lack thereof.
+Convergence is assessed in a two step process, first assessing the convergence of each estimated topic and then assessing the convergence of the model as a whole. To assess the convergence of a topic, I perform a t-test on the last 20 periods of $H_{k,\mathfrak{k}}^{'(t)}$, with a null hypothesis of the mean being unequal to zero at the 0.05 significance level. If I reject the null, I consider a topic's estimate to have converged. 
 
-Convergence is assessed in a two step process, first assessing the convergence of each estimated topic and then assessing the convergence of the model as a whole. To assess the convergence of a topic, we perform a t-test on the last 20 periods of $H_{k,\mathfrak{k}}^{'(t)}$, with a null hypothesis of the mean being unequal to zero at the 0.05 significance level. If we reject the null, we consider a topic's estimate to have converged. 
+The second step corrects for multiple tests and assesses the convergence of the model as a whole. Under a hull hypothesis that we'd consider 5% of topics to have converged by random chance, I perform a binomial test. A model has converged if I reject the null that the rejection rate above is less than or equal to 5%.
 
-The second step corrects for multiple tests and assesses the convergence of the model as a whole. Under a hull hypothesis that we'd consider 5% of topics to have converged by random chance, we perform a binomial test. A model has converged if we reject the null that the rejection rate above is less than or equal to 5%.
-
-Logistic regression is used to analyze which factors lead to model convergence or divergence. We use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is a binary for the model having converged or not.
+Logistic regression is used to analyze which factors lead to model convergence or divergence. I use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is a binary for the model having converged or not.
 
 Whether or not the model converges towards the data generating distribution is assessed in a similar two step process. A topic converges towards the true generating distribution if the average slope of $H_{k,\mathfrak{k}}^{(t)}$ is negative, $\mathfrak{k}$ indexes the topic closest to $k$, averaging over the last. After discarding the first two periods, a t-test with a null hypothesis that the average of $H_{k,\mathfrak{k}}^{'(t)}$ from periods 3 to 100 is greater than zero. The whole model is considered to have converged towards the true data generating distribution using a binomial test, as above. Only models considered to have converged, above, are considered.
 
-Linear regression is used to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. We use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
+Linear regression is used to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. I use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
 
 #### Findings
 
@@ -171,11 +169,11 @@ load("data-derived/tlda-analysis/2022-01-02-50-56/convergence-direction-analysis
 
 Models where $a < 0.8$ almost never converge; 384 out of 385 such models diverged. Models where $a > 0.8$ tend to converge; 94% of such models converged. There is high variability in convergence where $a = 0.8$. Roughly 1/3 of the models converged when $a = 0.8$, the other 2/3 diverged. Figure [x], below, shows a box plot of p-values in the binomial test for each value of $a$. There is a clear structural break at $a = 0.8$, reflecting the clear patterns of convergence/divergence on either side of 0.8 and a high variance of convergence at 0.8.
 
-```{r tlda-boxplot, fig.width = 6, fig.height = 4}
+```{r tlda-boxplot, fig.width = 5, fig.height = 3, fig.cap = "Boxplot of the p-values assessing convergence for each value of $a$. Below $a = 0.8$ almost all p-values are near one. Above $a = 0.8$ almost all p-values are near zero, with a few exceptions. But at $a = 0.8$ there is high variance in the p-values assessing model convergence."}
 
 bin_table %>%
   ggplot(aes(x = a, y = bin_test_p)) + 
-  geom_boxplot(aes(color = factor(a))) + 
+  geom_boxplot(aes(fill = factor(a)), position = position_dodge()) + 
   theme(legend.position = "none") + 
   ylab("P-value of Binomial test") + 
   ggtitle("Figure [x]: Structural break in convergence for a = 0.8")
@@ -185,7 +183,7 @@ bin_table %>%
 
 Table 1, below, contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratics. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $*** \equiv p \leq 0.01$, $** \equiv  p \leq 0.05$, and $* \equiv  p \leq 0.1$.
 
-In all cases, $a$ has the most substantial impact on the outcome. The largest determinant of whether or not a model converges is the value of $a$. As $a$ increases, the probability of a model converging also increases, albeit with decreasing returns as indicated by the decreasing quadratic. Intuitively, larger values of $a$ decrease the variance between models in a chain leading to faster convergence. Yet of the models that converge, $a$ increases the distance of the fitted topics to their matches in the data generating distribution, again with decreasing returns. In sum, if $a$ is too small, a chain of models is unlikely to converge and if $a$ is too large the chain will converge far from the true data generating topics.
+In all cases, $a$ has the most substantial impact on the outcome. If $a$ is too small, a chain of models is unlikely to converge and if $a$ is too large the chain will converge far from the true data generating topics. As $a$ increases, the probability of a model converging also increases, albeit with decreasing returns as indicated by the decreasing quadratic. Intuitively, larger values of $a$ decrease the variance between models in a chain leading to faster convergence. Yet of the models that converge, $a$ increases the distance of the fitted topics to their matches in the data generating distribution, again with decreasing returns.
 
 
 ```{r bin-reg-table}
@@ -310,20 +308,402 @@ names(reg_table) <-
 knitr::kable(
   reg_table,
   digits = 2,
-  caption = "Effects of $a$ and data-generating hyperparameters on convergence"
+  caption = "Effects of $a$ on convergence"
 )
 
 ```
 
 ### Emperical Analysis
-The simulations above examines the properties of tLDA when fine tuning is performed by adding data from the same generating distribution. While helpful for isolating effects, the real world is far messier. This section demonstrates tLDA for topic discovery on real data in a time series context.
+The simulations above examines the properties of tLDA when fine tuning is performed by adding data from the same generating distribution. While helpful for isolating effects, the real world is far messier. This section demonstrates tLDA for topic discovery on real data in a time series context. The analysis consists of two parts: exploring the aggregate effect of varying values of $a$ on the model chains and a more detailed exploration of the model chain when $a = 0.8$.
 
 #### Data Description
+The dataset consists of 188,554 titles and abstracts of Small Business Innovation Research (SBIR) and Small Business Technology Transfer (STTR) research grants awarded from 1983 to 2021. The SBIR and STTR programs provide grants to small businesses to encourage them to participate in US federal government research programs. The dataset grows from 785 grants in 1983 to an average of 6,377 per year from 2001 to 2020. Only 815 grants had been published for 2021 at the time the dataset was downloaded. After applying common preprocessing steps (described below) the dataset contained 92,196 unique words across all years. 
 
 #### Modeling Choices
+The data are modeled successively by award year using tLDA. For each year, a document term matrix is constructed using _tidytext_ [@tidytextjss]. All text is converted to lowercase, common stop words are removed, and punctuation is stripped. The vocabulary is pruned on a per-document level, rather than for the whole corpus. This prevents unintentional information leakage from period to period. Words that appear only once in a document are removed from that document's vocabulary. 
 
-#### Findings
+An initial LDA model is constructed for 1983 with $K = 100$ topics and symmetric priors such that $\alpha_k = 0.1$ and $\eta_v = 0.05$. This corresponds to $\sum_k \alpha_k = 10$ and $\sum_v \eta_v = 148.9$, respectively, as 1983 has 2,978 unique words. The Gibbs sampler is run for 200 iterations and posteriors are averaged over the last 50 iterations. 
+
+For each year from 1984 to 2021, tLDA models are constructed with $a \in \{0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6\}$. As above, the Gibbs sampler is run for 200 iterations and posteriors averaged over the last 50. For each year, one randomly-initialized topic is added to the model in an attempt to detect emergent topics. 
+
+#### Results
+
+```{r sbir-load-data}
+library(tidyverse)
+library(patchwork)
+library(ggrepel)
+
+load("data-derived/tlda-sbir/plot-objs.RData")
+load("data-derived/tlda-sbir/sbir-clean.RData")
+model_metrics <- read_rds("data-derived/tlda-sbir/model-metrics.rds")
+```
+
+##### Analysis for varying values of $a$
+
+For each value of $a$, a chain of 39 models is produced. The first model in the chain has 100 topics and the last has 138. The analysis focuses on four key statistics: $R^2$, log likelihood, probabilistic coherence (see Appendix [x])---or just "coherence---averaged over all topics, and the Hellinger distance of each topic at time $t$ to itself at time $t-1$ averaged across all topics. $R^2$ and the log likelihood are model-wide goodness-of-fit metrics. Coherence is a proxy for human interpretability. And mean Hellinger distance measures how much the estimated topics change from year to year. 
+
+Figure [x] plots these four statistics for each value of $a$ over time. A clear pattern appears for mean Hellinger distance but not for other statisti s. Mean Hellinger distance is highest when $a$ is smallest and decrease as $a$ grows. This is consistent with expectation. When $a$ is small, the prior has less weight in the posterior and the data has more. This will lead to a posterior that changes significantly period to period as it is more-strongly shaped by the data. 
+
+```{r sbir-vary-a-1, fig.width = 7, fig.height = 4, fig.cap = "Plotted over time, mean Hellinger distance has a clear pattern consistent with expectation. Higher values of $a$ put more mass on the prior, leading to less change year-to-year. The pattern is harder to see for $R^2$, coherence, and log likelihood."}
+
+p1 <- 
+  model_metrics |>
+  ggplot(aes(x = year, y = r2, color = factor(a))) +
+  geom_line() +
+  xlab("") + ylab("")  + ggtitle("R-squared") + 
+  theme(
+    # legend.position = "none", 
+    axis.text.y = element_blank(), 
+    axis.ticks.y = element_blank()
+  ) +
+  guides(color = guide_legend(title="a"))
+
+p2 <- 
+  model_metrics |>
+  ggplot(aes(x = year, y = likelihood, color = factor(a))) +
+  geom_line() +
+  xlab("") + ylab("")  + ggtitle("Log likelihood") + 
+  theme(
+    # legend.position = "none", 
+    axis.text.y = element_blank(), 
+    axis.ticks.y = element_blank()
+  ) +
+  guides(color = guide_legend(title="a"))
+
+p3 <- 
+  model_metrics |>
+  ggplot(aes(x = year, y = mean_coh, color = factor(a))) +
+  geom_line() +
+  xlab("") + ylab("") + ggtitle("Mean coherence") + 
+  theme(
+    # legend.position = "none", 
+    axis.text.y = element_blank(), 
+    axis.ticks.y = element_blank()
+  ) +
+  guides(color = guide_legend(title="a"))
+
+p4 <- 
+  model_metrics |>
+  ggplot(aes(x = year, y = mean_hellinger, color = factor(a))) +
+  geom_line() +
+  xlab("") + ylab("")  + ggtitle("Mean Hellinger distance") + 
+  theme(
+    # legend.position = "none", 
+    axis.text.y = element_blank(), 
+    axis.ticks.y = element_blank()
+  ) +
+  guides(color = guide_legend(title="a"))
+
+plot(p1 + p2 + p3 + p4 + plot_layout(guides = "collect"))
+```
+
+
+Figure [y] plots the average of each statistic over all years. The pattern for mean Hellinger distance is the same and the patterns for other statistics are now clearer. Log likelihood and $R^2$ are also highest for low values of $a$ and decrease as $a$ increases. Yet over $a = 0.4$ to $a = 0.8$ the difference is extremely subtle. The pattern for coherence is curious. Coherence is maximized when $a = 0.8$. Referring back to Figure [x], the lines cross each other repeatedly year over year. Based on the peak of coherence and the fact that $R^2$ and log likelihood are still near their peaks, the model where $a = 0.8$ is chosen for deeper analysis.
+
+```{r sbir-vary-a-2, fig.width = 7, fig.height = 4, fig.cap = "Averaging over all years, the patterns for each statistic are clearer. $R^2$ and log likelihood are decreasing functions of $a$, but for values less than $a = 1$, differences are very small. Coherence reaches a small peak at $a = 0.8$. Mean Hellinger distance is also a decreasing function of $a$ as expected."}
+
+p1 <- 
+  model_metrics |>
+  group_by(a) |>
+  summarize(stat = mean(r2)) |>
+  ggplot(aes(x = factor(a), y = stat, fill = factor(a))) +
+  geom_bar(stat = "identity") +
+  xlab("") + ylab("")  + ggtitle("R-squared") + 
+  theme(
+    # legend.position = "none", 
+    axis.text.y = element_blank(), 
+    axis.ticks.y = element_blank()
+  ) +
+  guides(fill = guide_legend(title="a"))
+
+p2 <- 
+  model_metrics |>
+  group_by(a) |>
+  summarize(stat = mean(likelihood)) |>
+  # max(stat) / stat helps scale to see idfferences in lower values of a
+  ggplot(aes(x = factor(a), y = max(stat) / stat, fill = factor(a))) +
+  geom_bar(stat = "identity") +
+  xlab("") + ylab("")  + ggtitle("Log likelihood") + 
+  theme(
+    # legend.position = "none", 
+    axis.text.y = element_blank(), 
+    axis.ticks.y = element_blank()
+  ) +
+  guides(fill = guide_legend(title="a"))
+
+p3 <- 
+  model_metrics |>
+  group_by(a) |>
+  summarize(stat = mean(mean_coh)) |>
+  ggplot(aes(x = factor(a), y = stat, fill = factor(a))) +
+  geom_bar(stat = "identity") +
+  xlab("") + ylab("") + ggtitle("Mean coherence") + 
+  theme(
+    # legend.position = "none", 
+    axis.text.y = element_blank(), 
+    axis.ticks.y = element_blank()
+  ) +
+  guides(fill = guide_legend(title="a"))
+
+p4 <- 
+  model_metrics |>
+  group_by(a) |>
+  summarize(stat = mean(mean_hellinger, na.rm = TRUE)) |>
+  ggplot(aes(x = factor(a), y = stat, fill = factor(a))) +
+  geom_bar(stat = "identity") +
+  xlab("") + ylab("")  + ggtitle("Mean Hellinger distance") + 
+  theme(
+    # legend.position = "none", 
+    axis.text.y = element_blank(), 
+    axis.ticks.y = element_blank()
+  ) +
+  guides(fill = guide_legend(title="a"))
+
+plot(p1 + p2 + p3 + p4 + plot_layout(guides = "collect"))
+```
+
+##### Analysis for $a = 0.8$
+
+Figure [x] contains three charts derived from model chains where $a = 1$. The top plots the $R^2$ statistic. The bottom plots probabilistic coherence (Appendix [x]) averaged across topics. The black line is the actual value of each statistic. The blue line and associated shaded interval is the result of a loess model using default parameters when calling `geom_smooth` from the R package ggplot2 [@ggplot].
+
+
+```{r sbir-deep-1, fig.width = 7, fig.height = 4, fig.cap = "Both $R^2$ and probabilistic coherence are highest in 1983, drop off quickly, and remain flat for remaining time periods. This is likely due to $R^2$ and coherence being calculated using only data in the current period.", warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
+
+p1 <-
+  model_metrics |>
+  filter(a == 1) |>
+  ggplot(aes(x = year, y = r2)) +
+  geom_line() +
+  geom_smooth(lty = 2) +
+  xlab("") + ylab("") +
+  xlim(c(1983, 2021)) +
+  ggtitle("R-squared") +
+  theme(
+    # legend.position = "none", 
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank()
+  )
+
+
+p2 <- 
+  year_prev |>
+  group_by(year) |>
+  summarize(
+    mean_coh = mean(coherence, na.rm = TRUE)
+  ) |>
+  ggplot(aes(x = year, y = mean_coh)) +
+  geom_line() +
+  geom_smooth(lty = 2) +
+  xlab("") + ylab("") +
+  ggtitle("Coherence") 
+
+plot(p1 + p2 + plot_layout(ncol = 1))
+
+```
+
+
+Both show a similar patter. The initial value of the statistic in 1983 is the largest. The statistic then quickly drops off and remains more or less flat over the remainder of the series. I hypothesize that this is due to two factors: the relative effects of the prior and data on the posterior and the fact that $R2$ and probabilistic coherence are comparisons of the posterior to the data, disregarding the prior. The initial model has a flat and small prior, its relative weight in the posterior is small compared to the words.[^notactuallysmalltho] But because $a = 0.8$, there is more weight on the prior, relative to the data, as time goes by. The end result is that posterior contains a significant amount of information not in the data at any time period.
+
+[^notactuallysmalltho]: This isn't to say that the prior is non-informative! The non-informative Dirichlet prior would have $\eta_k = 1$ or $\eta_k = \frac{1}{2}, \forall k$.
+
+I also examine changes in individual topics over time. To showcase one example, [Figure P] contains two charts for topic 24. The top chart plots changes in the top 5 words. As the mix of words in the top 5 changes, some lines drop off and new lines emerge. The top 5 words are labeled at the first period where a topic emerges (1983 for topic 24) and in the final period, 2021. The bottom chart plots a topic's prevalence over time using the actual statistic in black and blue loess line with a corresponding shaded interval. The calculation for prevalence is in (x), below.
+
+\begin{align}
+\text{Prevalence} &\equiv 
+\sum_{d = 1}^D n_d \cdot \theta_{d,k} \cdot \boldsymbol\beta_k
+\end{align}
+
+
+Most topics show signs of convergence in their top words, as depicted in the top of [Figure X]. The top word grows to be much more probable than the second and subsequent words, consistent with Zipf's law.
+
+```{r sbir-deep-2, fig.width = 7, fig.height = 4, fig.cap = "Each topic is a time series of its prevalence and distribution of its words. The top depicts changes in the top 5 words for topic 24. The bottom shows changes in prevalence for topic 24 with actual data in black and a blue loess curve with corresponding shaded confidence region.", warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
+
+min_year <- 
+  year_prev %>%
+  filter(topic == 24) %>%
+  select(year) %>%
+  .[[1]] %>%
+  min()
+
+dat1 <- year_words %>%
+  filter(topic == 24) %>%
+  group_by(year) %>%
+  slice_max(order_by = beta, n = 5)
+
+p1 <- dat1 %>%
+  ggplot() +
+  geom_line(aes(x = year, y = beta, color = token)) + 
+  xlim(1983, 2021) + 
+  labs(title = paste("topic:", 24)) + 
+  geom_label_repel(
+    data = dat1 %>% filter(year %in% c(min_year, 2021)),
+    aes(x = year, y = beta, label = token)
+  ) +
+  theme(legend.position = "none")
+
+p2 <- year_prev %>% 
+  filter(topic == 24) %>% 
+  ggplot() + 
+  geom_line(aes(x = year, y = prevalence)) +
+  geom_smooth(aes(x = year, y = prevalence), lty = 2) +
+  xlim(1983, 2021) 
+
+plot(p1 / p2)
+
+```
+
+
+In most cases, topic prevalence decreases over time. In fact, only 15 of 138 topics show sign of increasing over time on average. These results are obtained by averaging over the slope of the loess curves for prevalence (the blue line in [Figure A]) for each topic. Of those, only one topic (126) was not in the initial 100 topics covering all years. The top five words for the five topics showing most increase are in [Table 2]. 
+
+```{r sbir-deep-delta, warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
+
+# get average change (using loess) over time
+delta <- map(sort(unique(year_prev$topic)), function(x){
+  try({
+    loess(prevalence ~ year, data = year_prev %>% filter(topic == x))
+  })
+})%>%
+  map(function(x){
+    out <- try({
+      d1 <- mean(diff(x$fitted), na.rm = TRUE)
+      d2 <- sum(diff(x$fitted), na.rm = TRUE)
+      tibble(avg = d1, tot = d2)
+    }, silent = TRUE)
+    
+    if (inherits(out, "try-error")) {
+      tibble(avg = NA, tot = NA)
+    } else {
+      out
+    }
+  }) %>%
+  bind_rows() %>%
+  mutate(topic = 1:n()) %>%
+  select(topic, avg, tot) %>%
+  mutate(
+    tot_prev = year_prev %>% 
+      group_by(topic) %>% 
+      summarize(tot_prev = sum(prevalence)) %>% 
+      select(tot_prev) %>% 
+      .[[1]]
+  )
+
+# commenting out and hard coding b/c knitting causes an error in the next chunk
+
+# increasing_topics <- 
+#   delta %>% 
+#   arrange(desc(avg)) %>% 
+#   select(topic) %>% 
+#   .[[1]] %>% 
+#   .[1:3]
+
+# increasing_topics <- c(171, 169, 164)
+
+increasing_topics <-
+  delta$topic[order(delta$avg, decreasing = TRUE)][1:5]
+
+
+```
+
+```{r sbir-word-table}
+word_table2 <- 
+  year_words %>%
+  filter(topic %in% increasing_topics) %>%
+  group_by(topic) %>%
+  arrange(desc(beta), .by_group = TRUE) %>%
+  summarize(
+    `All Years Combined` = paste(unique(token)[1:5], collapse = ", "),
+    `Only 2021` = paste(token[year == 2021][1:5], collapse = ", ")
+  ) |>
+  select(
+    Topic = topic,
+    `All Years Combined`,
+    `Only 2021`
+  )
+
+
+knitr::kable(
+  word_table2,
+  caption = "Top 5 Words of Topics that Increased Over Time"
+)
+```
+
+
+I hypothesize that most topics decreased over time because of the addition of one randomly initialized topic in each year. This is due to two related effects. Having more topics, all else constant, diffuses the probability mass of the posterior over more categories. In the years where a new topic is introduced, more posterior probability mass comes from the data than the prior for these topics, again shifting mass away from established topics. 
+
+Yet there is some evidence that adding randomized topics is successful for topic discovery. For example, a topic related to Covid-19 emerges (topic 137, top terms in 2021 {19, covid, opiod, oud, sars}) from a randomly-initialized topic in 2020. Topic 126, which emerged in 2019 and whose words relate to the US Air Force (air, force, uas, solution, benefit) , correspond to a major increase in the number of SBIR grants from the US Air Force. Presumably the granting institution is mentioned in the title or abstract. (See Figure [B])
+
+
+```{r sbir-emerge-win, warning = FALSE, message = FALSE,results='hide',fig.keep='all', fig.width = 6, fig.height = 3, fig.cap="SBIR/STTR grants issued by the US Air Force, 1983 to 2020. There is a significant increase in 2019, corresponding to the emergence of topic 171, whose most probable words relate to the Air Force."}
+
+# get my USAF Topic
+
+p1 <- year_prev %>%
+  filter(topic == 126) %>%
+  ggplot() +
+  geom_line(aes(x = year, y = prevalence)) +
+  geom_smooth(aes(x = year, y = prevalence),
+              method = "loess", formula = y ~ x,
+              lty = 2) +
+  xlim(1983, 2021) +
+  xlab("") + ylab("Prevalence") + 
+  ggtitle(
+    paste0("Topic 126: ", 
+           year_words %>%
+             filter(topic == 126) %>%
+             arrange(desc(beta)) %>%
+             summarize(top_terms = paste(token[year == 2021][1:5], collapse = ", ")) %>%
+             select(top_terms) %>%
+             .[[1]],
+           ", ...")
+  )
+
+
+
+# get my USAF grants
+
+count_grants <- 
+  sbir %>% 
+  group_by(award_year, agency, branch) %>%
+  summarize(num_grants = n()) %>%
+  select(
+    year = award_year,
+    agency,
+    branch,
+    num_grants
+  )
+
+p2 <- 
+  count_grants %>%
+  filter(branch == "Air Force") %>%
+  ggplot(aes(x = year, y = num_grants)) +
+  geom_line() +
+  xlim(c(1983, 2020)) + 
+  xlab("") + ylab("Grants") # +
+# ggtitle("Air Force Issued Grants Increase in 2019") +
+#geom_vline(xintercept = 2019, lty = 2)
+
+plot(p1 / p2)
+
+```
 
 ## Discussion
 
-Note that you haven't explored adding expert input, but this could theoretically be encoded into the prior
+tLDA supports several transfer learning use cases. Using simulated and real-world data, I show some properties of the tuning parameter $a$ on models using tLDA. I leave exploration of using tLDA to encode expert input for future work. In principle this would require encoding expert judgement into a matrix prior $\boldsymbol\eta$. 
+
+One other area I leave for future study is using tLDA to build large pre-trained language models, as is common with deep learning transformers like BERT and the GPT family. This is similarly possible in principle. Ideally, an implementation of tLDA based on a more scaleable algorithm than Gibbs would be used to maximize data throughput over time. 
+
+Empirical studies here show that tLDA should converge if $a \geq 1$. The simulations showed this when fine tuning on more data drawn from the same distribution. The real-world data analysis still showed signs of convergence for large $a$ even though the generating distributions are presumed to be different over time. 
+
+Values of $a$ around 0.8 emerge as a critical zone in all analyses. $a = 1$ has the most intuitive interpretation---that each word in the previous data set(s) has the same weight as each word in the current data set. Yet it appears there is more fruitful work to be done in determining when it's best to have slight recency bias versus equal footing between base model and training set.
+
+tLDA is implemented in _tidylda_ for the R language, described in more detail in Chapter 6, next.
+
+
+```{r clean-sbir, results='hide'}
+
+rm(list = ls())
+
+gc()
+
+```
+

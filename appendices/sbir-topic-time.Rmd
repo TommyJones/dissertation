@@ -1,0 +1,56 @@
+# Appendix X: SBIR Topics Over Time
+
+
+```{r setup2, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width = 3, fig.height = 1.5, cache = TRUE)
+
+library(tidyverse)
+```
+
+
+```{r sbir-plots, results='hide',fig.keep='all'}
+load("../data-derived/tlda-sbir/plot-objs.RData")
+
+
+# plot topics
+topics_to_plot <- sort(unique(year_prev$topic))
+
+for (j in topics_to_plot) {
+  
+  min_year <- 
+    year_prev %>%
+    filter(topic == j) %>%
+    select(year) %>%
+    .[[1]] %>%
+    min()
+  
+  dat1 <- year_words %>%
+    filter(topic == j) %>%
+    group_by(year) %>%
+    slice_max(order_by = beta, n = 5)
+  
+  p1 <- dat1 %>%
+    ggplot() +
+    geom_line(aes(x = year, y = beta, color = token)) + 
+    xlim(1983, 2021) + 
+    labs(title = paste("topic:", j)) + 
+    geom_label_repel(
+      data = dat1 %>% filter(year %in% c(min_year, 2021)),
+      aes(x = year, y = beta, label = token)
+    ) +
+    theme(legend.position = "none") + 
+    xlab("") + ylab("")
+  
+  p2 <- year_prev %>% 
+    filter(topic == j) %>% 
+    ggplot() + 
+    geom_line(aes(x = year, y = prevalence)) +
+    geom_smooth(aes(x = year, y = prevalence), 
+                method = "loess", formula = y ~ x) +
+    xlim(1983, 2021) 
+  
+  plot(p1/p2)
+  
+}
+
+```

@@ -42,20 +42,32 @@ library(tidyverse)
 ```{r, child='01-intro.Rmd'}
 ```
 
+\newpage{}
+
 ```{r, child='02-lda-history.Rmd'}
 ```
+
+\newpage{}
 
 ```{r, child='03-lda-dgp.Rmd'}
 ```
 
+\newpage{}
+
 ```{r, child='04-r2.Rmd'}
 ```
+
+\newpage{}
 
 ```{r, child='05-transfer.Rmd'}
 ```
 
+\newpage{}
+
 ```{r, child='06-tidylda.Rmd'}
 ```
+
+\newpage{}
 
 ```{r, child='07-conclusion.Rmd'}
 ```
@@ -91,6 +103,7 @@ library(tidyverse)
 
 ```{r, child='appendices/prob-coherence.Rmd'}
 ```
+
 
 \newpage{}
 
