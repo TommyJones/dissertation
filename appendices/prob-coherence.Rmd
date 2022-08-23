@@ -25,6 +25,7 @@ Then probablistic coherence for the top $M$ terms in topic $k$ is calculated as 
 Where $P(x_{j,k} = 1 | x_{i,k} = 1)$ is the fraction of documents containing word $i$ that contain word $j$ and $P(x_{j,k} = 1)$ is the fraction of all documents containing word $j$. 
 
 This brings us to interpretation:
+
 1. If $P(x_{j,k} = 1 | x_{i,k} = 1) - P(x_{j,k} = 1)$ is zero, then $P(x_{j,k} = 1 | x_{i,k} = 1) = P(x_{j,k} = 1)$, the definition of statistical independence.
 2. If $P(x_{j,k} = 1 | x_{i,k} = 1) > P(x_{j,k} = 1)$, then word $j$ is more present than average in documents also containing word $i$.
 3. If $P(x_{j,k} = 1 | x_{i,k} = 1) < P(x_{j,k} = 1)$, then word $j$ is less present than average in documents that contain word $i$. LDA is unlikely to find strong negative co-occurrences. In practice, negative values tend to be near zero.

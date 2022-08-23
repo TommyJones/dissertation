@@ -67,7 +67,7 @@ _tidylda_ enables traditional Bayesian uncertainty quantification by sampling fr
 
 _tidylda_ uses one of two calculations for predicting topic distributions (i.e., $\hat{\boldsymbol\theta}_d$) for new documents. The first, and default, is to run the Gibbs sampler, constructing a new $\boldsymbol{Cd}$ for the new documents but without updating topic-word distributions in $\boldsymbol{B}$. The second uses a dot product as described in Appendix [1]. _tidylda_ acually uses the dot product prediction combined with the _non-uniform initialization_---described above---to initialize $\boldsymbol{Cd}$ when predicting using the Gibbs sampler.
 
-## Conclusion
+## Discussion
 
 While many other topic modeling packages exist, _tidylda_ is very user friendly and brings novel features. Its user friendliness comes from compatibility with the tidyverse. And _tidylda_ includes tLDA and other methods contained in the previous chapters of this dissertation. It also has methods for sampling from the posterior of a trained model, for more traditional Bayesian analyses. _tidylda_'s Gibbs sampler is written in C++ for performance.
 

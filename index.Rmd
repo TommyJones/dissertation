@@ -24,11 +24,11 @@ header-includes:
     - \usepackage[ruled,vlined]{algorithm2e}
     
 output:
-  pdf_document:
+  bookdown::pdf_document2:
     number_sections: true
     toc: true
     toc_depth: 2
-  html_document:
+  bookdown::html_document2:
     toc: true
     keep_md: yes
 ---
@@ -75,6 +75,12 @@ library(tidyverse)
 
 \newpage{}
 
+# References
+
+<div id="refs"></div>
+
+\newpage{}
+
 ```{r, child='appendices/derive_lambda.Rmd'}
 ```
 
@@ -111,6 +117,3 @@ library(tidyverse)
 ```
 
 
-\newpage{}
-
-# References

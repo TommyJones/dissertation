@@ -134,7 +134,7 @@ From a theoretical perspective, the following should be true:
       \underset{t \to \infty}{\lim} 
       H_{k,\mathfrak{k}}^{'(t)} = 0 \label{eq:1} \\
     & \text{If } \hat{\boldsymbol\beta}_k^{(t)} \text{ converges to }
-      \boldsymbol\beta_{\mathfrak{k}} \text{, then (11) holds and }
+      \boldsymbol\beta_{\mathfrak{k}} \text{, then (\ref{eq:1}) holds and }
       \underset{t \to \infty}{\lim}
       H_{k,\mathfrak{k}}^{(t)} = 0 \label{eq:2}
 \end{align}
@@ -151,7 +151,7 @@ Whether or not the model converges towards the data generating distribution is a
 
 Linear regression is used to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. I use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
 
-#### Findings
+#### Results
 
 ```{r tlda-load-libraries}
 # load libraries, just in case
@@ -167,7 +167,7 @@ load("data-derived/tlda-analysis/2022-01-02-50-56/convergence-direction-analysis
 ```
 
 
-Models where $a < 0.8$ almost never converge; 384 out of 385 such models diverged. Models where $a > 0.8$ tend to converge; 94% of such models converged. There is high variability in convergence where $a = 0.8$. Roughly 1/3 of the models converged when $a = 0.8$, the other 2/3 diverged. Figure [x], below, shows a box plot of p-values in the binomial test for each value of $a$. There is a clear structural break at $a = 0.8$, reflecting the clear patterns of convergence/divergence on either side of 0.8 and a high variance of convergence at 0.8.
+Models where $a < 0.8$ almost never converge; 384 out of 385 such models diverged. Models where $a > 0.8$ tend to converge; 94% of such models converged. There is high variability in convergence where $a = 0.8$. Roughly 1/3 of the models converged when $a = 0.8$, the other 2/3 diverged. Figure \@ref(fig:tlda-boxplot), below, shows a box plot of p-values in the binomial test for each value of $a$. There is a clear structural break at $a = 0.8$, reflecting the clear patterns of convergence/divergence on either side of 0.8 and a high variance of convergence at 0.8.
 
 ```{r tlda-boxplot, fig.width = 5, fig.height = 3, fig.cap = "Boxplot of the p-values assessing convergence for each value of $a$. Below $a = 0.8$ almost all p-values are near one. Above $a = 0.8$ almost all p-values are near zero, with a few exceptions. But at $a = 0.8$ there is high variance in the p-values assessing model convergence."}
 
@@ -176,12 +176,12 @@ bin_table %>%
   geom_boxplot(aes(fill = factor(a)), position = position_dodge()) + 
   theme(legend.position = "none") + 
   ylab("P-value of Binomial test") + 
-  ggtitle("Figure [x]: Structural break in convergence for a = 0.8")
+  ggtitle("") # "Figure [x]: Structural break in convergence for a = 0.8"
 
 ```
 
 
-Table 1, below, contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratics. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $*** \equiv p \leq 0.01$, $** \equiv  p \leq 0.05$, and $* \equiv  p \leq 0.1$.
+Table \@ref(tab:bin-reg-table), below, contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratics. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $*** \equiv p \leq 0.01$, $** \equiv  p \leq 0.05$, and $* \equiv  p \leq 0.1$.
 
 In all cases, $a$ has the most substantial impact on the outcome. If $a$ is too small, a chain of models is unlikely to converge and if $a$ is too large the chain will converge far from the true data generating topics. As $a$ increases, the probability of a model converging also increases, albeit with decreasing returns as indicated by the decreasing quadratic. Intuitively, larger values of $a$ decrease the variance between models in a chain leading to faster convergence. Yet of the models that converge, $a$ increases the distance of the fitted topics to their matches in the data generating distribution, again with decreasing returns.
 
@@ -340,9 +340,9 @@ model_metrics <- read_rds("data-derived/tlda-sbir/model-metrics.rds")
 
 ##### Analysis for varying values of $a$
 
-For each value of $a$, a chain of 39 models is produced. The first model in the chain has 100 topics and the last has 138. The analysis focuses on four key statistics: $R^2$, log likelihood, probabilistic coherence (see Appendix [x])---or just "coherence---averaged over all topics, and the Hellinger distance of each topic at time $t$ to itself at time $t-1$ averaged across all topics. $R^2$ and the log likelihood are model-wide goodness-of-fit metrics. Coherence is a proxy for human interpretability. And mean Hellinger distance measures how much the estimated topics change from year to year. 
+For each value of $a$, a chain of 39 models is produced. The first model in the chain has 100 topics and the last has 138. The analysis focuses on four key statistics: $R^2$, log likelihood, probabilistic coherence (see Appendix [x])---or just "coherence"---averaged over all topics, and the Hellinger distance of each topic at time $t$ to itself at time $t-1$ averaged across all topics. $R^2$ and the log likelihood are model-wide goodness-of-fit metrics. Coherence is a proxy for human interpretability. And mean Hellinger distance measures how much the estimated topics change from year to year. 
 
-Figure [x] plots these four statistics for each value of $a$ over time. A clear pattern appears for mean Hellinger distance but not for other statisti s. Mean Hellinger distance is highest when $a$ is smallest and decrease as $a$ grows. This is consistent with expectation. When $a$ is small, the prior has less weight in the posterior and the data has more. This will lead to a posterior that changes significantly period to period as it is more-strongly shaped by the data. 
+Figure \@ref(fig:sbir-vary-a-1) plots these four statistics for each value of $a$ over time. A clear pattern appears for mean Hellinger distance but not for other statistics. Mean Hellinger distance is highest when $a$ is smallest and decrease as $a$ grows. This is consistent with expectation. When $a$ is small, the prior has less weight in the posterior and the data has more. This will lead to a posterior that changes significantly period to period as it is more-strongly shaped by the data. 
 
 ```{r sbir-vary-a-1, fig.width = 7, fig.height = 4, fig.cap = "Plotted over time, mean Hellinger distance has a clear pattern consistent with expectation. Higher values of $a$ put more mass on the prior, leading to less change year-to-year. The pattern is harder to see for $R^2$, coherence, and log likelihood."}
 
@@ -398,7 +398,7 @@ plot(p1 + p2 + p3 + p4 + plot_layout(guides = "collect"))
 ```
 
 
-Figure [y] plots the average of each statistic over all years. The pattern for mean Hellinger distance is the same and the patterns for other statistics are now clearer. Log likelihood and $R^2$ are also highest for low values of $a$ and decrease as $a$ increases. Yet over $a = 0.4$ to $a = 0.8$ the difference is extremely subtle. The pattern for coherence is curious. Coherence is maximized when $a = 0.8$. Referring back to Figure [x], the lines cross each other repeatedly year over year. Based on the peak of coherence and the fact that $R^2$ and log likelihood are still near their peaks, the model where $a = 0.8$ is chosen for deeper analysis.
+Figure \@ref(fig:sbir-vary-a-2) plots the average of each statistic over all years. The pattern for mean Hellinger distance is the same and the patterns for other statistics are now clearer. Log likelihood and $R^2$ are also highest for low values of $a$ and decrease as $a$ increases. Yet over $a = 0.4$ to $a = 0.8$ the difference is extremely subtle. The pattern for coherence is curious. Coherence is maximized when $a = 0.8$. Referring back to Figure \@ref(fig:sbir-vary-a-1), the lines cross each other repeatedly year over year. Based on the peak of coherence and the fact that $R^2$ and log likelihood are still near their peaks, the model where $a = 0.8$ is chosen for deeper analysis.
 
 ```{r sbir-vary-a-2, fig.width = 7, fig.height = 4, fig.cap = "Averaging over all years, the patterns for each statistic are clearer. $R^2$ and log likelihood are decreasing functions of $a$, but for values less than $a = 1$, differences are very small. Coherence reaches a small peak at $a = 0.8$. Mean Hellinger distance is also a decreasing function of $a$ as expected."}
 
@@ -464,7 +464,7 @@ plot(p1 + p2 + p3 + p4 + plot_layout(guides = "collect"))
 
 ##### Analysis for $a = 0.8$
 
-Figure [x] contains three charts derived from model chains where $a = 1$. The top plots the $R^2$ statistic. The bottom plots probabilistic coherence (Appendix [x]) averaged across topics. The black line is the actual value of each statistic. The blue line and associated shaded interval is the result of a loess model using default parameters when calling `geom_smooth` from the R package ggplot2 [@ggplot].
+Figure \@ref(fig:sbir-deep-1) contains two charts derived from model chains where $a = 0.8$. The top plots the $R^2$ statistic. The bottom plots probabilistic coherence (Appendix [x]) averaged across topics. The black line is the actual value of each statistic. The blue line and associated shaded interval is the result of a loess model using default parameters when calling `geom_smooth` from the R package ggplot2 [@ggplot].
 
 
 ```{r sbir-deep-1, fig.width = 7, fig.height = 4, fig.cap = "Both $R^2$ and probabilistic coherence are highest in 1983, drop off quickly, and remain flat for remaining time periods. This is likely due to $R^2$ and coherence being calculated using only data in the current period.", warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
@@ -506,15 +506,15 @@ Both show a similar patter. The initial value of the statistic in 1983 is the la
 
 [^notactuallysmalltho]: This isn't to say that the prior is non-informative! The non-informative Dirichlet prior would have $\eta_k = 1$ or $\eta_k = \frac{1}{2}, \forall k$.
 
-I also examine changes in individual topics over time. To showcase one example, [Figure P] contains two charts for topic 24. The top chart plots changes in the top 5 words. As the mix of words in the top 5 changes, some lines drop off and new lines emerge. The top 5 words are labeled at the first period where a topic emerges (1983 for topic 24) and in the final period, 2021. The bottom chart plots a topic's prevalence over time using the actual statistic in black and blue loess line with a corresponding shaded interval. The calculation for prevalence is in (x), below.
+I also examine changes in individual topics over time. To showcase one example, Figure \@ref(fig:sbir-deep-2) contains two charts for topic 24. The top chart plots changes in the top 5 words. As the mix of words in the top 5 changes, some lines drop off and new lines emerge. The top 5 words are labeled at the first period where a topic emerges (1983 for topic 24) and in the final period, 2021. The bottom chart plots a topic's prevalence over time using the actual statistic in black and blue loess line with a corresponding shaded interval. The calculation for prevalence is in \@ref(eq:prevalence), below.
 
 \begin{align}
 \text{Prevalence} &\equiv 
-\sum_{d = 1}^D n_d \cdot \theta_{d,k} \cdot \boldsymbol\beta_k
+\sum_{d = 1}^D n_d \cdot \theta_{d,k} \cdot \boldsymbol\beta_k (\#eq:prevalence)
 \end{align}
 
 
-Most topics show signs of convergence in their top words, as depicted in the top of [Figure X]. The top word grows to be much more probable than the second and subsequent words, consistent with Zipf's law.
+Most topics show signs of convergence in their top words, as depicted in the top of Figure \@ref(fig:sbir-deep-2). The top word grows to be much more probable than the second and subsequent words, consistent with Zipf's law.
 
 ```{r sbir-deep-2, fig.width = 7, fig.height = 4, fig.cap = "Each topic is a time series of its prevalence and distribution of its words. The top depicts changes in the top 5 words for topic 24. The bottom shows changes in prevalence for topic 24 with actual data in black and a blue loess curve with corresponding shaded confidence region.", warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
 
@@ -553,7 +553,7 @@ plot(p1 / p2)
 ```
 
 
-In most cases, topic prevalence decreases over time. In fact, only 15 of 138 topics show sign of increasing over time on average. These results are obtained by averaging over the slope of the loess curves for prevalence (the blue line in [Figure A]) for each topic. Of those, only one topic (126) was not in the initial 100 topics covering all years. The top five words for the five topics showing most increase are in [Table 2]. 
+In most cases, topic prevalence decreases over time. In fact, only 15 of 138 topics show sign of increasing over time on average. These results are obtained by averaging over the slope of the loess curves for prevalence (the dashed blue line in Figure \@ref(fig:sbir-deep-2)) for each topic. Of those, only one topic (126) was not in the initial 100 topics covering all years. The top five words for the five topics showing most increase are in Table \@ref(tab:sbir-word-table). 
 
 ```{r sbir-deep-delta, warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
 
@@ -630,7 +630,7 @@ knitr::kable(
 
 I hypothesize that most topics decreased over time because of the addition of one randomly initialized topic in each year. This is due to two related effects. Having more topics, all else constant, diffuses the probability mass of the posterior over more categories. In the years where a new topic is introduced, more posterior probability mass comes from the data than the prior for these topics, again shifting mass away from established topics. 
 
-Yet there is some evidence that adding randomized topics is successful for topic discovery. For example, a topic related to Covid-19 emerges (topic 137, top terms in 2021 {19, covid, opiod, oud, sars}) from a randomly-initialized topic in 2020. Topic 126, which emerged in 2019 and whose words relate to the US Air Force (air, force, uas, solution, benefit) , correspond to a major increase in the number of SBIR grants from the US Air Force. Presumably the granting institution is mentioned in the title or abstract. (See Figure [B])
+Yet there is some evidence that adding randomized topics is successful for topic discovery. For example, a topic related to Covid-19 emerges (topic 137, top terms in 2021 {19, covid, opiod, oud, sars}) from a randomly-initialized topic in 2020. Topic 126, which emerged in 2019 and whose words relate to the US Air Force (air, force, uas, solution, benefit) , correspond to a major increase in the number of SBIR grants from the US Air Force. Presumably the granting institution is mentioned in the title or abstract. (See Figure \@ref(fig:sbir-emerge-win))
 
 
 ```{r sbir-emerge-win, warning = FALSE, message = FALSE,results='hide',fig.keep='all', fig.width = 6, fig.height = 3, fig.cap="SBIR/STTR grants issued by the US Air Force, 1983 to 2020. There is a significant increase in 2019, corresponding to the emergence of topic 171, whose most probable words relate to the Air Force."}
