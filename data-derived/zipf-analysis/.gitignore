@@ -1,0 +1,4 @@
+*.RData
+*.rds
+*.zip
+rstudio-export
