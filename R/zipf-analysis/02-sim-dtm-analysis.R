@@ -67,7 +67,9 @@ estimate_zipf2 <- function(dtm, xmin = 0) {
 
 calc_dtm_metrics <- function(dtm) {
   
-  vocab <- sum(Matrix::colSums(dtm) > 0)
+  non_zero_index <- Matrix::colSums(dtm) > 0
+  
+  vocab <- sum(non_zero_index)
   
   word_vol <- sum(dtm)
   
@@ -86,11 +88,11 @@ calc_dtm_metrics <- function(dtm) {
     estimate_heaps()
   
   zipf <- 
-    dtm |> 
+    dtm[, non_zero_index] |> 
     estimate_zipf()
   
   zipf2 <- 
-    dtm |> 
+    dtm[, non_zero_index] |> 
     estimate_zipf2(xmin = zipf$xmin)
   
   
