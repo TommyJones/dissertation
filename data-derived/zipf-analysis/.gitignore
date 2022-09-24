@@ -2,3 +2,4 @@
 *.rds
 *.zip
 rstudio-export
+.Rapp.history
