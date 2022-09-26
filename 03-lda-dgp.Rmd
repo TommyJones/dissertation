@@ -28,7 +28,9 @@ Shi et al. go further than others and argue that use of synthetic corpora is "a 
 
 Altmann and Gerlach describe 9 universal laws purported to describe statistical regularities in human language [@altmann2015laws]. These laws are Zipf's [@zipf1949], Heaps's [@egghe2007untangling], Taylor's [@gerlach2014], Menzerath-Altmann [@altmann1980prolegomena], Recurrence [@zipf1949], Long-range correlation [@damerau1973tests], Entropy scaling [@altmann2015laws], Information content [@zipf1949], and various network topology laws [@altmann2015laws]. 
 
-Of these laws, three are most relevant: Zipf's, Heaps's, and Taylor's laws. The laws of Menzerath-Altmann, Recurrence, Long-range correlation, and Information content refer to properties of sub-words (e.g. length to information content), order of words, or proximity between words. LDA-DGP does not purport to model any of these. The law of Entropy scaling links entropy---in the information theoretic sense [@shannon2001mathematical]---to the number of words in a block of text. The LDA-DGP may or may not be able to reproduce this law. Similarly, some network views of a corpus may or may not apply to the LDA-DGP. Both may warrant future exploration but are less directly macroscopic properties of a corpus than Zipf's, Heaps's, and Taylor's laws.  
+Of these laws, Zipf's and Heaps's laws are the most well known and relevant to LDA. The laws of Menzerath-Altmann, Recurrence, Long-range correlation, and Information content refer to properties of sub-words (e.g. length to information content), order of words, or proximity between words. LDA-DGP does not purport to model any of these. The law of Entropy scaling links entropy---in the information theoretic sense [@shannon2001mathematical]---to the number of words in a block of text. The LDA-DGP may or may not be able to reproduce this law. Similarly, some network views of a corpus may or may not apply to the LDA-DGP. Both may warrant future exploration but are less directly macroscopic properties of a corpus. 
+
+Taylor's law may be relevant to the LDA-DGP but I leave its examination to future work as Zipf's and Heaps's laws are most commonly known as linguistic laws. Taylor's law was originally posed in the context of ecology [@taylor1961aggregation]. Its linguistic interpretation is that the standard deviation of the total number of words is proportional to the power of the mean of the total number of words in a corpus. Gerlach and Altmann explore the relationships between Zipf's, Heaps's, and Taylor's laws in the context of topic modeling [@gerlach2014]. Instead of using the LDA-DGP directly, they examine its asymptotic form, which is a Poisson process. 
 
 #### Zipf's law
 Zipf's law states that the frequency of a word is inversely proportional to the power of its frequency-rank. Zipf's law is not unique to any language as it appears to apply to all of them [@cancho2003]. Zipf's law has also been applied to the sizes of cities [@arshad2018zipf], casualties in armed conflict [@gillespie2015], and more. Zipf's law is a statement of a word's frequency and its rank. Yet if word frequencies in a corpus are plotted as a histogram, the power law relationship holds [@sole2008].
@@ -52,24 +54,26 @@ Heaps's law states that the number of unique words in a corpus, $V$, scales sub-
   V \propto N^\delta \text{ for } N > 1, 0 < \delta < 1
 \end{align}
 
-There are several ways to compute Heaps's law for a single corpus. Altmann and Gerlach use two methods: compute $V$ and $N$ for each document in the corpus and progress over each word in a corpus calculating new values of $V$ and $N$ as each word is added. The latter approach works for single documents of sufficient length as well, such as a book [@altmann2015laws].
+There are several ways to compute Heaps's law for a single corpus. Altmann and Gerlach use two methods: the first computes $V$ and $N$ for each document in the corpus and the second progresses over each word in a corpus calculating new values of $V$ and $N$ as each word is added. The latter approach works for single documents of sufficient length as well, such as a book [@altmann2015laws].
 
-#### Taylor's law
-Taylor's law is a third power law relationship, originally posed in the context of ecology by Lionel Roy Taylor [@taylor1961aggregation]. In linguistics, Taylor's law states that the standard deviation of the total number of words is proportional to the power of the mean of the total number of words. Formally,
+[DO I WANT TO DESCRIBE THE RELATIONSHIP BETWEEN ZIPF'S AND HEAPS'S LAWS?]
+
+# The LDA Data Generating Process (LDA-DGP)
+
+describe here
+
+# Linking the LDA-DGP to Zipf's law
 
 
-\begin{align}
-  \sigma(N) \propto \mu(N)^\epsilon \text{ for } \mu(N) > 1
-\end{align}
+# Experiments
 
-where $\sigma(N) = \sqrt{\mathbb{V}(N)}$, $\mu(N) = \mathbb{E}(N)$, and $\epsilon$ is to be fit from data.
+## Synthetic Data Generation and Evaluation Metrics
 
-#### Relationship between laws
-Gerlach and Altmann explore the relationships between Zipf's, Heaps's laws [@gerlach2014]. They model word frequencies as resulting from a Poisson process. The "null" Poisson model links Zipf's and Heaps's laws. Yet it fits the data under Taylor's law poorly. They do find that incorporating a topic model---where relative frequencies of words differ by topic---fits data for all three laws reasonably well. 
+## Describing Properties of Synthetic Corpora
 
-Gerlach and Altmann use LDA as the topic model, but they do not use the LDA-DGP directly. Instead, they use the Poisson process model. Asymptotically, the Poisson process model and the LDA-DGP should be equivalent; the Poisson process is the limiting distribution of repeated Bernoulli trials (as the LDA-DGP is). Yet in the face of power laws and pre-asymptotics of finite samples (i.e., corpora), this choice warrants more exploration. Moreover, they used a "quenched average"---a concept from physics---rather than true expected value for this analysis. Under some conditions the two concepts may be equivalent; in other conditions not. 
+## Describing LDA Model Misspecification
 
-Even so, Gerlach and Altmann's exploration is a crucial link between Zip's law, Heaps's law, Taylor's law, and LDA, albeit asymptotically. 
+# Discussion
 
 
 # BACKUP
