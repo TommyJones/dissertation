@@ -1,4 +1,4 @@
-# Appendix [X]: _tidylda_ Code Examples
+# Appendix 6: _tidylda_ Code Examples
 
 This section performs an example analysis on a toy data set to demonstrate _tidylda_'s functionality. The data is a randomly selected subset of 100 grant abstracts funded by NIH in 2014 [@nih].
 

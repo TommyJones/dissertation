@@ -97,11 +97,6 @@ library(tidyverse)
 
 \newpage{}
 
-```{r, child='appendices/transfer-algorithm.Rmd'}
-```
-
-\newpage{}
-
 ```{r, child='appendices/posterior-partition.Rmd'}
 ```
 

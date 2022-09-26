@@ -1,4 +1,4 @@
-# Appendix [X]: Collapsed Gibbs Sampling for LDA
+# Appendix 2: Collapsed Gibbs Sampling for LDA
 
 \begin{algorithm}[H]
 \SetAlgoLined
