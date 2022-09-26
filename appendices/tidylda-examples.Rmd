@@ -242,10 +242,11 @@ Finally, _tidylda_ enables sampling from the posterior of a model to enable unce
 library(ggridges)
 
 ### Construct posterior samples of theta for document 1 ----
-posterior_theta_1 <- posterior(lda2, matrix = "theta", which = 1, times = 100)
+posterior_theta_1 <- posterior(lda2) 
 
 # make ridgeline plot
 posterior_theta_1 %>% 
+  generate(matrix = "theta", which = 1, times = 100) %>% 
   ggplot(aes(x = theta, y = factor(topic), fill = factor(topic))) +
   geom_density_ridges() + 
   theme_ridges() + 
@@ -254,13 +255,14 @@ posterior_theta_1 %>%
   xlab("P(Topic | Document 1)")
 
 ### Construct posterior samples of beta for topic 1 ----
-posterior_beta_1 <- posterior(lda2, matrix = "beta", which = 1, times = 100)
+posterior_beta_1 <- posterior(lda2)
 
 # get top 10 words
 token_list <- colnames(lda2$beta)[order(lda2$beta[1,], decreasing = TRUE)[1:10]]
 
 # make ridgeline plot
 posterior_beta_1 %>% 
+  generate(matrix = "beta", which = 1, times = 100) %>%
   filter(token %in% token_list) %>%
   mutate(token = factor(token, levels = token_list)) %>%
   ggplot(aes(x = beta, y = token, fill = token)) +
