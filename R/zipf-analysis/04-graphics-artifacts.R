@@ -5,6 +5,45 @@ library(tidytext)
 
 set.seed(8675309)
 
+### create a function for simulating a zipf distribution from a corpus ----
+# function to imitate zipf distribution of a corpus
+imitate_zipf <- function(dtm, sum_eta = 1000) {
+  
+  # get word freqs
+  wf <- Matrix::colSums(dtm)
+  
+  # get xmin
+  m <- displ$new(wf)
+  
+  xmin <- estimate_xmin(m)
+  
+  # do log-log regression
+  d <- tibble(
+    rank = seq_along(wf),
+    freq = sort(wf, decreasing = TRUE)
+  ) 
+  
+  f <- lm(
+    log(freq) ~ I(log(rank)),
+    data = d |>
+      filter(freq >= xmin$xmin)
+  )
+  
+  # solve for eta_v / sum(eta)
+  d$p <- predict(f, newdata = d |> select(rank))
+  
+  eta <- exp(d$p - log(sum(dtm)))
+  
+  # make sure it sums to one
+  eta <- eta / sum(eta)
+  
+  # scale by sum_eta
+  eta <- eta * sum_eta
+  
+  # return from function
+  eta
+}
+
 
 ### create a matrix for plotting NIH vs simulated data ----
 nih <- read_csv("data-raw/RePORTER_PRJABS_C_FY2014.csv.zip")
@@ -17,7 +56,6 @@ nih_dtm <-
   unnest_tokens(
     output = word, 
     input = abstract_text,
-    stopwords = stop_words$word,
     token = "ngrams",
     n_min = 1,
     n = 2
@@ -33,16 +71,15 @@ wf <- colSums(nih_dtm)
 # create word frequencies of simulated data of same dimensions
 pars1 <- sample_parameters(
   alpha = rep(0.1, 25),
-  beta = generate_zipf(
-    vocab_size = ncol(nih_dtm),
-    magnitude = 1000,
-    zipf_par = 1
+  beta = imitate_zipf(
+    dtm = nih_dtm,
+    sum_eta = 1000
   ),
   num_documents = nrow(nih_dtm)
 )
 
 pars2 <- sample_parameters(
-  alpha = generate_zipf(
+  alpha = generate_zipf( # from tm samples
     vocab_size = 25,
     magnitude = 0.1 * 25,
     zipf_par = 1
@@ -57,10 +94,9 @@ pars3 <- sample_parameters(
     magnitude = 0.1 * 25,
     zipf_par = 1
   ),
-  beta = generate_zipf(
-    vocab_size = ncol(nih_dtm),
-    magnitude = 1000,
-    zipf_par = 1
+  beta = imitate_zipf(
+    dtm = nih_dtm,
+    sum_eta = 1000
   ),
   num_documents = nrow(nih_dtm)
 )
