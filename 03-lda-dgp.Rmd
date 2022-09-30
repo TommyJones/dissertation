@@ -1,12 +1,12 @@
-# Studying the LDA-DGP {#ldadgp}
+# Linking Zipf's law to the LDA-DGP {#ldadgp}
 
-LDA is a latent variable model and as a result it can be challenging to study. No ground truth exists against which to compare models and methods. Selection of hyperparameters when building models is notoriously difficult. Little formal guidance exists to guide a researcher's choices. Lack of ground truth complicates development of new metrics and methods. How is one to know if a new method is an improvement or a new metric insightful?
+LDA is a latent variable model and, as a result, it can be challenging to study. No ground truth exists against which to compare models and methods. Selecting hyperparameters when building models is notoriously difficult as little formal guidance exists to guide a researcher's choices. Lack of ground truth complicates development of new metrics and methods. How is one to know if a new method is an improvement or a new metric insightful?
 
 Fortuately, LDA models a generative process.This allows researchers to generate synthetic data sets by sampling from the LDA data generating process (LDA-DGP) where they have chosen $K$, $\boldsymbol\alpha$, and $\boldsymbol\eta$ themselves. They then may use these simulated data sets to compare a model against a synthetic ground truth. Such "simulation studies" have a lengthy history in the statistical literature, going back to 1975 or further [@Hoaglin1975]. Yet to be valid, synthetic data from the LDA-DGP must conform to empirical statistical laws of language such as Zipf's and Heaps's laws. 
 
 In this chapter I examine the LDA-DGP analytically and empirically to do the following:
 
-1. Link Zipf's and Heaps's laws to the LDA-DGP,
+1. Link Zipf's law to the LDA-DGP,
 2. Describe the roll of the magnitudes of $\boldsymbol\alpha$ and $\boldsymbol\eta$ in tuning the correlations between documents and topics, and
 3. Describe the effects of misspecification of hyperparameters on the posterior of fit LDA models.
 
@@ -48,35 +48,135 @@ where $r$ is a word's rank, $F(r)$ is the frequency of a word's rank, and $\gamm
 Goldwater et al. explore the relationship between Zipf's law and then standard statistical models of language [@goldwater2011zipf]. They develop a framework for producing power law word frequencies in two stages. Critically, they link this framework to several models closely related to LDA but do not extend it to the LDA-DGP itself.
 
 #### Heaps's law
-Heaps's law states that the number of unique words in a corpus, $V$, scales sub-linearly with the total number of words in a corpus, $N$ [@heaps1978information]. Heaps's law is another power law. Unlike Zipf's law, it is an increasing power law.
+Heaps's law states that the number of unique words in a corpus, $V$, scales sub-linearly with the total number of words in a corpus, $N$ [@heaps1978information]. Under mild assumptions, Heaps's law is asymptotically equivalent to Zipf's law [@kornai1999zipf]. Unlike Zipf's law, it is an increasing power law.
 
 \begin{align}
   V \propto N^\delta \text{ for } N > 1, 0 < \delta < 1
 \end{align}
 
-There are several ways to compute Heaps's law for a single corpus. Altmann and Gerlach use two methods: the first computes $V$ and $N$ for each document in the corpus and the second progresses over each word in a corpus calculating new values of $V$ and $N$ as each word is added. The latter approach works for single documents of sufficient length as well, such as a book [@altmann2015laws].
+There are several ways to compute Heaps's law for a single corpus. Altmann and Gerlach use two methods: the first computes $V$ and $N$ for each document in the corpus and the second progresses over each word in a corpus calculating new values of $V$ and $N$ as each word is added. The latter approach works for single documents of sufficient length as well, such as a book [@altmann2015laws]. 
 
-[DO I WANT TO DESCRIBE THE RELATIONSHIP BETWEEN ZIPF'S AND HEAPS'S LAWS?]
+## The LDA Data Generating Process (LDA-DGP)
 
-# The LDA Data Generating Process (LDA-DGP)
+Assuming there are $D$ contexts, $K$ topics, $V$ unique words, $N$ total words and $N_d$ words in the $d$-th context, the LDA-DGP is as follows. For each word, $n$, in context $d$: 
 
-describe here
+1. Generate $\boldsymbol{B}$ by sampling $K$ topics $\boldsymbol\beta_k \sim \text{Dirichlet}(\boldsymbol\eta), \forall k \in \{1,2,...,K\}$
+2. Generate $\boldsymbol\Theta$ by sampling $D$ documents $\boldsymbol\theta_d \sim \text{Dirichlet}(\boldsymbol\alpha), \forall d \in \{1,2, ..., D\}$
+3. Then for each context, $d$
+    1. Draw topic $z_{d,n}$ from $\text{Multinomial}(\boldsymbol\theta_d)$
+    2. Draw word $w_{d,n}$ from $\text{Multinomial}(\boldsymbol\beta_{z_{d,n}})$
+    3. Repeat 1. and 2. $N_d$ times.
 
-# Linking the LDA-DGP to Zipf's law
+Note that context $d$ has $N_d$ words $\forall d \in \{1, 2, ..., D\}$ and that the total number of words in the corpus is $N = \sum_{d=1}^D N_d$.
+
+## Linking the LDA-DGP to Zipf's law
+Zipf's law describes the relative frequencies between words in a corpus. Therefore, the expected term frequency distribution of a corpus drawn from the LDA-DGP should describe the relationship between Zipf's law and the LDA-DGP. This relationship is derived in Appendix 3 and gives the following relationship:
+
+\begin{align}
+    \mathbb{E}(w_v) &=
+        N \frac{\eta_v}{\sum_{v = 1}^V \eta_v} \label{eq:1}
+\end{align}
+
+where $w_v$ is the total number of times word $v$ was sampled across all $D$ contexts.
+
+(\ref{eq:1}) implies that the relative frequencies of words $i$ and $j$ are given by their ranks in a power law relationship. In other words, the shape of $\boldsymbol\eta$ is a power law, given by Zipf's law. This makes intuitive sense. Given Zipf's law, a single topic should be power law-shaped as an author could conceivably write only about a single topic.
+
+No elements of $\boldsymbol\alpha$ appear in (\ref{eq:1}). As shown in Appendix 3, the $\alpha_i$'s sum and factor out of the derivation. That the average distribution of topics across documents is not tied to Zipf's law also makes intuitive sense. Word frequencies would not give us insight into the distribution of topics in a corpus
+
+the expected term frequency of a corpus drawn from the LDA-DGP depends only on and is proportional to $\boldsymbol\eta$. The Dirichlet parameter $\boldsymbol\eta$ shapes the distribution of words over topics. Then, to generate corpora that follow Zipf’s law, the entries of $\boldsymbol\eta$ must themselves follow a power law distribution. The distribution of topics within documents does not matter as the $\alpha_i$'s factor out of the derivation. This makes some ntuitive sense. An author can theoretically write an entire corpus of documents about only one topic or an author may write a corpus of documents with an even distribution of topics. In either case the aggregate word frequencies must follow Zipf's law.
+
+However, other documents could follow other topic distributions. Yet the language
+
+This result is consistent with
+the framework laid out by Goldwater et al. (2011). The Dirichlet multinomial
+model - of which LDA is an application - is a special case of their framework.
+In this framework, the Dirichlet prior has a parameter following a power law.
 
 
-# Experiments
+They did not put this in the specific form of LDA, however, as is done in this
+paper.
+Using this specification of the Dirichlet multinomial it is now possible to
+generate corpora with the statistical properties of natural language within an
 
-## Synthetic Data Generation and Evaluation Metrics
+LDA framework. This facilitates exploring the properties of LDA under dif-
+ferent conditions and the development of metrics aiding in model specification
 
-## Describing Properties of Synthetic Corpora
+and post-estimation diagnostics. However, further questions remain. How het-
+erogeneous or homogenous are topics in real data? For example, is it sufficient
 
-## Describing LDA Model Misspecification
+to draw topics from a single asymptotic Dirichlet distribution? Or, is there a
+limit to the topical heterogeneity present in a real corpus if sensible estimates
+are to be obtained by an LDA model?
+The prior for the distribution of topics within documents does not need to
+follow a Dirichlet distribution at all. The proof in the Appendix shows that
+the elements of phi sum to 1 and factor out in expectation. A non-Dirichlet
 
-# Discussion
+distribution would only scale the expected term frequency distribution. How-
+ever, since power laws are scale free there would be no substantive effect on
+
+the term frequency.
+
+```{r compare-hypers, fig.cap = "this is a caption", fig.width = 7, fig.height = 2.5}
+
+library(tidyverse)
+library(patchwork)
+
+nih_plotmat <- read_rds("data-derived/zipf-analysis/nih-plotmat.rds")
+
+p1 <- nih_plotmat |> ggplot() + 
+  geom_line(aes(x = rank, y = pl_pl), color = NA, lty = 4, lwd = 1.25) + 
+  geom_line(aes(x = rank, y = npl_npl), color = "#b2df8a", lty = 2, lwd = 1.25) +
+  geom_line(aes(x = rank, y = pl_npl), color = "#a6cee3", lty = 4, lwd = 1.25) + 
+  ylim(1, 10000) +
+  scale_x_continuous(trans='log10') +
+  scale_y_continuous(trans='log10') +
+  ylab("Frequency") +
+  xlab("Rank") +
+  ggtitle("Symmetric Eta")
+
+p2 <- nih_plotmat |> ggplot() + 
+  geom_line(aes(x = rank, y = pl_pl), color = "#1f78b4", lty = 4, lwd = 1.25) + 
+  geom_line(aes(x = rank, y = npl_pl), color = "#33a02c", lty = 2, lwd = 1.25) + 
+  ylim(1, 10000) + 
+  scale_x_continuous(trans='log10') +
+  scale_y_continuous(trans='log10') +
+  ylab("") +
+  xlab("Rank") + 
+  ggtitle("Power Law Eta")
+
+p3 <- nih_plotmat |> ggplot() + 
+  geom_line(aes(x = rank, y = nih), color = "#d95f02", lwd = 1.25) + 
+  geom_line(aes(x = rank, y = pl_pl), color = "#1b9e77", lty = 4, lwd = 1.25) + 
+  ylim(1, 10000) +
+  scale_x_continuous(trans='log10') +
+  scale_y_continuous(trans='log10') +
+  ylab("") +
+  xlab("Rank") + 
+  ggtitle("NIH Corpus")
 
 
-# BACKUP
+plot(p1 + p2 + p3)
+
+```
+
+Figure \@ref(fig:compare-hypers) plots word frequencies of simulated and real data on a log-log scale. The leftmost image plots word frequencies of simulated data sampled from the LDA-DGP with a symmetric $\boldsymbol\eta$. The light blue dashed and dotted line has a power law $\boldsymbol\alpha$ and the light green dashed line has a symmetric $\boldsymbol\alpha$. The center image plots word frequencies of simulated data sampled from the LDA-DGP with a power law $\boldsymbol\eta$. The green dashed and dotted line has a power law $\boldsymbol\alpha$ and the blue dashed line has a symmetric $\boldsymbol\alpha$. The rightmost image contains word frequencies from a random sample of 1,000 abstracts from grants awarded by the US National Institutes of Health (NIH) in 2014 [@nih], which is the solid orange line. Consistent with [@ha2002zipf], unigrams and bigrams are included. The dashed and dotted green line is the same as in the center image, provided as a comparison. All six plots have the same number of words.
+
+The left and center images confirm the implications of the derrivation in Appendix 3. Specifically, that to generate word frequencies consistent with Zipf's law, $\boldsymbol\eta$ must have a power law distribution regardless of the shape of $\boldsymbol\alpha$. 
+
+The rightmost image demonstrates that simulated data can have a power law word frequency distribution similar to real world data. But it also points to a calibration issue. The simulated data has a steeper slope, starting higher than the NIH data but dropping to zero faster. This indicates that the Zipf-Heaps relationship is different between the NIH data and the simulated data. I suspect that this is related to how I calibrated the slope of the power law in the simulation, not due to a structural impass. I leave this calibration to future research.
+
+## Experiments
+
+### Synthetic Data Generation and Evaluation Metrics
+
+### Describing Properties of Synthetic Corpora
+
+### Describing LDA Model Misspecification
+
+## Discussion
+
+
+## BACKUP
 LDA is a latent variable model, as a result it can be challenging to study. We do not observe ground truth topics in real data, against which to compare the correctness of a topic model. Extrinsic evaluation method compare a topic model's results against a different ground truth---one that we do observe, such as a document's class. If a researcher's concern is document classification, then it is better to build a supervised classifier. LDA's strength is in its unsupervised nature, enabling us to discover that which we don't already know. It appears we have a "catch 22": we want to use LDA as a tool of discovery, but without ground truth, how do we know if our discovery is true or a statistical fluke? 
 
 Fortunately, LDA models a data generating process, the LDA-DGP. Researchers can, and do, generate data sets by sampling from the LDA-DGP where they have chosen $K$, $\boldsymbol\alpha$, and $\boldsymbol\eta$ themselves. They then may use these simulated data sets to compare a model against a synthetic ground truth. Such "simulation studies" have a lengthy history in the statistical literature, going back to 1975 or further [@Hoaglin1975].
