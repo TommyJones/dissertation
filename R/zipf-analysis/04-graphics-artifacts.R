@@ -2,6 +2,7 @@ library(tidyverse)
 library(Matrix)
 library(tmsamples)
 library(tidytext)
+library(poweRlaw)
 
 set.seed(8675309)
 
