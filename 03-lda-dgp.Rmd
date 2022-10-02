@@ -40,7 +40,7 @@ Empirical distributions of Zipf's law for large corpora demonstrate a relationsh
 Formally, Zipf's law is
 
 \begin{align}
-  F(r) \propto r^{-\gamma} \text{ for } \gamma \geq 1, r > 1
+F(r) \propto r^{-\gamma} \text{ for } \gamma \geq 1, r > 1
 \end{align}
 
 where $r$ is a word's rank, $F(r)$ is the frequency of a word's rank, and $\gamma$ is a parameter to be estimated. For human language $\gamma \approx 1$ [@cancho2003] and can be found through maximum likelihood estimation [@gillespie2015]. Altmann and Gerlach find $1.03 \leq \gamma \leq 1.58$ depending on the corpus and estimation method [@altmann2015laws]
@@ -51,7 +51,7 @@ Goldwater et al. explore the relationship between Zipf's law and then standard s
 Heaps's law states that the number of unique words in a corpus, $V$, scales sub-linearly with the total number of words in a corpus, $N$ [@heaps1978information]. Under mild assumptions, Heaps's law is asymptotically equivalent to Zipf's law [@kornai1999zipf]. Unlike Zipf's law, it is an increasing power law.
 
 \begin{align}
-  V \propto N^\delta \text{ for } N > 1, 0 < \delta < 1
+V \propto N^\delta \text{ for } N > 1, 0 < \delta < 1
 \end{align}
 
 There are several ways to compute Heaps's law for a single corpus. Altmann and Gerlach use two methods: the first computes $V$ and $N$ for each document in the corpus and the second progresses over each word in a corpus calculating new values of $V$ and $N$ as each word is added. The latter approach works for single documents of sufficient length as well, such as a book [@altmann2015laws]. 
@@ -63,58 +63,41 @@ Assuming there are $D$ contexts, $K$ topics, $V$ unique words, $N$ total words a
 1. Generate $\boldsymbol{B}$ by sampling $K$ topics $\boldsymbol\beta_k \sim \text{Dirichlet}(\boldsymbol\eta), \forall k \in \{1,2,...,K\}$
 2. Generate $\boldsymbol\Theta$ by sampling $D$ documents $\boldsymbol\theta_d \sim \text{Dirichlet}(\boldsymbol\alpha), \forall d \in \{1,2, ..., D\}$
 3. Then for each context, $d$
-    1. Draw topic $z_{d,n}$ from $\text{Multinomial}(\boldsymbol\theta_d)$
-    2. Draw word $w_{d,n}$ from $\text{Multinomial}(\boldsymbol\beta_{z_{d,n}})$
-    3. Repeat 1. and 2. $N_d$ times.
+1. Draw topic $z_{d,n}$ from $\text{Multinomial}(\boldsymbol\theta_d)$
+2. Draw word $w_{d,n}$ from $\text{Multinomial}(\boldsymbol\beta_{z_{d,n}})$
+3. Repeat 1. and 2. $N_d$ times.
 
 Note that context $d$ has $N_d$ words $\forall d \in \{1, 2, ..., D\}$ and that the total number of words in the corpus is $N = \sum_{d=1}^D N_d$.
 
 ## Linking the LDA-DGP to Zipf's law
-Zipf's law describes the relative frequencies between words in a corpus. Therefore, the expected term frequency distribution of a corpus drawn from the LDA-DGP should describe the relationship between Zipf's law and the LDA-DGP. This relationship is derived in Appendix 3 and gives the following relationship:
+Zipf's law describes the relative frequencies between words in a corpus. Therefore, the expected term frequency distribution of a corpus drawn from the LDA-DGP should describe the relationship between Zipf's law and the LDA-DGP. The following relationship is derived in Appendix 3:
 
 \begin{align}
-    \mathbb{E}(w_v) &=
-        N \frac{\eta_v}{\sum_{v = 1}^V \eta_v} \label{eq:1}
+\mathbb{E}(w_v) &=
+N \frac{\eta_v}{\sum_{v = 1}^V \eta_v} \label{eq:zipf}
 \end{align}
 
 where $w_v$ is the total number of times word $v$ was sampled across all $D$ contexts.
 
-(\ref{eq:1}) implies that the relative frequencies of words $i$ and $j$ are given by their ranks in a power law relationship. In other words, the shape of $\boldsymbol\eta$ is a power law, given by Zipf's law. This makes intuitive sense. Given Zipf's law, a single topic should be power law-shaped as an author could conceivably write only about a single topic.
+\@ref(eq:zipf) implies that the relative frequencies of words $i$ and $j$ are given by their ranks in a power law relationship. In other words, the shape of $\boldsymbol\eta$ is a power law, given by Zipf's law. No elements of $\boldsymbol\alpha$ appear in \@ref(eq:zipf). As shown in Appendix 3, the $\alpha_i$'s sum and factor out of the derivation. This makes some intuitive sense. An author can theoretically write an entire corpus of documents about only one topic or an author may write a corpus of documents with an even distribution of topics. In either case the aggregate word frequencies must follow Zipf's law.
 
-No elements of $\boldsymbol\alpha$ appear in (\ref{eq:1}). As shown in Appendix 3, the $\alpha_i$'s sum and factor out of the derivation. That the average distribution of topics across documents is not tied to Zipf's law also makes intuitive sense. Word frequencies would not give us insight into the distribution of topics in a corpus
+This result is consistent with the framework laid out by Goldwater et al. [@goldwater2011zipf]. The Dirichlet multinomial model - of which LDA is an application - is a special case of their framework. In this framework, the Dirichlet prior has a parameter following a power law. They did not put this in the specific form of LDA, however, as is done in this paper. Using this specification of the Dirichlet multinomial it is now possible to generate corpora with the statistical properties of natural language within an LDA framework. This facilitates exploring the properties of LDA under different conditions and the development of metrics aiding in model specification and post-estimation diagnostics. 
 
-the expected term frequency of a corpus drawn from the LDA-DGP depends only on and is proportional to $\boldsymbol\eta$. The Dirichlet parameter $\boldsymbol\eta$ shapes the distribution of words over topics. Then, to generate corpora that follow Zipf’s law, the entries of $\boldsymbol\eta$ must themselves follow a power law distribution. The distribution of topics within documents does not matter as the $\alpha_i$'s factor out of the derivation. This makes some ntuitive sense. An author can theoretically write an entire corpus of documents about only one topic or an author may write a corpus of documents with an even distribution of topics. In either case the aggregate word frequencies must follow Zipf's law.
+The relationship in \@ref(eq:zipf) also implies that one can estimate the shape of $\boldsymbol\eta$ from a document term matrix. Formally linking Zipf's law with the LDA-DGP we have
 
-However, other documents could follow other topic distributions. Yet the language
+\begin{align}
+    \mathbb{E}(w_v) &=
+        N \frac{\eta_v}{\sum_{v = 1} ^ V eta_v} =
+        C \cdot r_v ^{-\gamma}
+\end{align}
 
-This result is consistent with
-the framework laid out by Goldwater et al. (2011). The Dirichlet multinomial
-model - of which LDA is an application - is a special case of their framework.
-In this framework, the Dirichlet prior has a parameter following a power law.
+$C$ and $\gamma$ may be estimated from data and $r_v$, the rank of word $v$, is known. Some algebra then yields
 
+\begin{align}
+    \frac{\eta_v}{\sum_{v = 1}^V \eta_v} = \frac{C}{N}\cdot r_v ^ {-\gamma}, \forall v
+\end{align}
 
-They did not put this in the specific form of LDA, however, as is done in this
-paper.
-Using this specification of the Dirichlet multinomial it is now possible to
-generate corpora with the statistical properties of natural language within an
-
-LDA framework. This facilitates exploring the properties of LDA under dif-
-ferent conditions and the development of metrics aiding in model specification
-
-and post-estimation diagnostics. However, further questions remain. How het-
-erogeneous or homogenous are topics in real data? For example, is it sufficient
-
-to draw topics from a single asymptotic Dirichlet distribution? Or, is there a
-limit to the topical heterogeneity present in a real corpus if sensible estimates
-are to be obtained by an LDA model?
-The prior for the distribution of topics within documents does not need to
-follow a Dirichlet distribution at all. The proof in the Appendix shows that
-the elements of phi sum to 1 and factor out in expectation. A non-Dirichlet
-
-distribution would only scale the expected term frequency distribution. How-
-ever, since power laws are scale free there would be no substantive effect on
-
-the term frequency.
+What still remains is for a researcher to specify the magnitude of $\boldsymbol\eta$, in other words $\sum_{v=1}^V \eta_v$, and of course $\boldsymbol\alpha$ and the number of topics, $K$. The empirical evidence for specifying $\boldsymbol\eta$ as a power law rather than a flat prior is explored, though not resoved, in section 3.4.3.
 
 ```{r compare-hypers, fig.cap = "this is a caption", fig.width = 7, fig.height = 2.5}
 
@@ -159,19 +142,190 @@ plot(p1 + p2 + p3)
 
 ```
 
-Figure \@ref(fig:compare-hypers) plots word frequencies of simulated and real data on a log-log scale. The leftmost image plots word frequencies of simulated data sampled from the LDA-DGP with a symmetric $\boldsymbol\eta$. The light blue dashed and dotted line has a power law $\boldsymbol\alpha$ and the light green dashed line has a symmetric $\boldsymbol\alpha$. The center image plots word frequencies of simulated data sampled from the LDA-DGP with a power law $\boldsymbol\eta$. The green dashed and dotted line has a power law $\boldsymbol\alpha$ and the blue dashed line has a symmetric $\boldsymbol\alpha$. The rightmost image contains word frequencies from a random sample of 1,000 abstracts from grants awarded by the US National Institutes of Health (NIH) in 2014 [@nih], which is the solid orange line. Consistent with [@ha2002zipf], unigrams and bigrams are included. The dashed and dotted green line is the same as in the center image, provided as a comparison. All six plots have the same number of words.
+Figure \@ref(fig:compare-hypers) plots word frequencies of simulated and real data on a log-log scale. The leftmost image plots word frequencies of simulated data sampled from the LDA-DGP with a symmetric $\boldsymbol\eta$. The light blue dashed and dotted line has a power law $\boldsymbol\alpha$ and the light green dashed line has a symmetric $\boldsymbol\alpha$. The center image plots word frequencies of simulated data sampled from the LDA-DGP with a power law $\boldsymbol\eta$. The green dashed and dotted line has a power law $\boldsymbol\alpha$ and the blue dashed line has a symmetric $\boldsymbol\alpha$. The rightmost image contains word frequencies from a random sample of 1,000 abstracts from grants awarded by the US National Institutes of Health (NIH) in 2014 [@nih], which is the solid orange line. Consistent with [@ha2002zipf], unigrams and bigrams are included. Crucially, stopwords have _not_ been removed from the NIH data, allowing the head of the distribution to reach its full magnitude. The dashed and dotted green line is the same as in the center image, provided as a comparison. All six plots have the same number of contexts and words. The left and center images confirm the implications of the derrivation in Appendix 3. Specifically, that to generate word frequencies consistent with Zipf's law, $\boldsymbol\eta$ must have a power law distribution regardless of the shape of $\boldsymbol\alpha$. The rightmost image demonstrates that simulated data can have a power law word frequency distribution similar to real world data.
 
-The left and center images confirm the implications of the derrivation in Appendix 3. Specifically, that to generate word frequencies consistent with Zipf's law, $\boldsymbol\eta$ must have a power law distribution regardless of the shape of $\boldsymbol\alpha$. 
-
-The rightmost image demonstrates that simulated data can have a power law word frequency distribution similar to real world data. But it also points to a calibration issue. The simulated data has a steeper slope, starting higher than the NIH data but dropping to zero faster. This indicates that the Zipf-Heaps relationship is different between the NIH data and the simulated data. I suspect that this is related to how I calibrated the slope of the power law in the simulation, not due to a structural impass. I leave this calibration to future research.
+Finally, the asymptotic equivalence between Zipf's and Heap's law indicates that $\boldsymbol\eta$ drives both Zipf's and Heap's laws, the two most commonly-understood emprical language laws.
 
 ## Experiments
+Simulation studies allow researchers to know the true parameters that generated a data set and evaluate how an estimated model performs against "the truth". But if simulated data cannot replicate the key statistical properties of its real world counterpart, it calls into question any conclusion made with such synthetic data. However, linking the LDA-DGP Zipf's law (and Heaps's law) adds rigor to simulation studies of LDA by giving synthetic data the gross statistical properties of human language. 
 
-### Synthetic Data Generation and Evaluation Metrics
+In this section, I generate 4,096 synthetic data sets using different parametarizations of the LDA-DGP and baseline corpus parameters, such as number of contexts, vocabulary size, etc. Each of these corpora are consistent with Zipf's/Heaps's laws. After briefly describing the properties of these synthetic corpora, I use them to explore the effects of misspecifying hyperparameters when fitting LDA models.
+
+### Experimental Set Up
+
+#### Synthetic Data Generation
+Each data set is drawn from a model with a unique combination of the following hyper parameters, resulting in 4,096 unique combinations:
+
+1. $\sum_{v=1} ^ V \eta_v \in \{50, 250, 500, 1000\}$
+2. $\sum_{k = 1} ^ K \alpha_k \in \{0.5, 1, 3, 5\}$
+3. $N_d \sim \text{Poi}(\lambda)$ where $\lambda \in \{50, 100, 200, 400\}$
+4. $V \in \{1000, 5000, 10000, 20000\}$
+5. $D \in \{500, 1000, 2000, 4000\}$
+6. $K \in \{25, 50, 100, 200\}$
+
+I choose $\boldsymbol\eta$ to be proportional to a power law, consistent with Appendix 3 and Zipf's law [@zipf1949]. I chose $\boldsymbol\alpha$ to be symmetric for all data sets. The magnitudes of the Dirichlet hyperparameters, $\boldsymbol\eta$ and $\boldsymbol\alpha$ vary while keeping their shapes fixed. The magnitude of the parameter of a Dirichlet distribution plays a strong role in tuning the covariance between draws from that distribution. A smaller magnitude means larger variability between draws. In other words, if $\left(\sum_{v=1}^V \eta_v \right)$ is smaller, topics are less linguistically similar. If $\left(\sum_{v=1}^V \eta_v \right)$ is larger, topics are more linguistically similar. Similarly, $\left(\sum_{k=1}^K \alpha_k \right)$ tunes the topical similarity of documents.
+
+#### Modeling Choices
+
+For each[^tookasample] of the simulated data sets I fit five LDA models, one perfectly specified according to the parameters that generated the data and four misspecified models. The misspecified models misspecify $K$, $\sum_{k = 1}^K \alpha_k$, $\sum_{v = 1}^V \eta_v$, and the shape of $\boldsymbol\eta$, making it flat. For each model, the Gibbs sampler was run for 200 iterations, 150 of which were burn in iterations. The final posterior is the average over the last 50 iterations.
+
+[^tookasample]: As of the initial draft of this work, completed on approximately 10/3/2022, I took a random sample of 1,024 data sets to perform the modeling analysis. I have written up these preliminary results. I will perform the analysis on the full set of 4,096 data sets in the final version of this dissertation.
+
+#### Evaluation Metrics
+
+For each synthetic data set I calculate parameter values for Zipf's law using linear regression in log-log space. Specifically, I fit $\log_{10} w_v = \log_{10}C -\gamma\log_{10}r_v + \epsilon_v$, where $\epsilon_v$ is the linear regression error term for the $v$-th word. This method is often biased by low rank words. To compensate, I use the `poweRLaw` package [@rpowerlawjss] to select a threshold for excluding low rank words. 
+
+I also calculate several statistics from the synthetic data that a researcher would have available to them. These are $N$, the total number of word instances, $\hat{V}$, the total *observed* vocabulary size, and their ratio, $\frac{N}{\hat{V}}$. 
+
+When fitting LDA models using Gibbs sampline, it is useful to see if the chain has converged. To do this, I use Geweke's convergence statistic [@geweke1991evaluating] on the log likelihood of the estimated model over the last 50 iterations of the chain (the area over which I average the posteriors). The test statistic is a standard Z-score on the difference between two sample means of two partitions of the chain, generally the first 10 percent and last 50 percent. If the two partitions are not significantly different, one can assume that the chain has converged. I compare the absolute values of the Geweke test statistic between the perfectly specified and misspecified models to estimate the degree to which model misspecification affects convergence. The absolute value is used because the Geweke test statistic is drawn from a symmetric two-tailed distribution where extremes have both positive and negative values. 
+
+In addition to the Geweke statistic, I also compare the following between correctly-specified and misspecified models:
+
+* Log Likelihood, averaged over the last 50 Gibbs iterations, of perfectly specified to misspecified models. The log likelihood calculation follows that used in [@chen2015warplda].
+* Coefficient of determination, or $R^2$. This statistic calculates the proportion of variability in the data that has been accounted for in the fit model. This statistic and a study of its properties is the next chapter of this dissertation.
+* Probabilistic coherence (see Appendix [5])---or just "coherence"---averaged over all topics in a model. 
+* Prevalence of each topic, averaged across all topics in the model. The prevalence of topic $k$ is calculated with $\sum_{d = 1} ^ D N_d \cdot \theta_{d,k}$.
+
+In the comparing correctly specified and misspecified models, I use a paired t-statistic to calculate 95% confidence intervals in the difference between the correct (i.e., "untreated") and misspecified (i.e., "treated") groups. This paired t-statistic confidence interval is applied to the Geweke statistics, log likelihood, $R^2$, probabilistic coherence, and prevalence.
 
 ### Describing Properties of Synthetic Corpora
 
 ### Describing LDA Model Misspecification
+
+```{r model-plots, fig.cap = "this is my caption", fig.width = 7, fig.height = 5}
+t_tests <- read_rds("data-derived/zipf-analysis/model-t-tests.rds")
+
+times_help <- function(x, y) x * y
+
+ll_plot <- 
+  t_tests |> 
+  filter(outcome == "ll") |> 
+  ggplot() + 
+  geom_bar(aes(x = parameter, y = mean_diff, fill = factor(parameter)), stat = "identity") + 
+  geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
+  geom_hline(yintercept = 0, lty = 2) +
+  xlab("") + ylab("") +
+  ggtitle("Log Likelihood") +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_blank()) +
+  ylim(
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "ll"], 
+      t_tests$ci_95_high[t_tests$outcome == "ll"]
+    ) |> 
+      abs() |> max() %>% times_help(-1),
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "ll"], 
+      t_tests$ci_95_high[t_tests$outcome == "ll"]
+    ) |> 
+      abs() |> max()
+  )
+
+r2_plot <- 
+  t_tests |> 
+  filter(outcome == "r2") |> 
+  ggplot() + 
+  geom_bar(aes(x = parameter, y = mean_diff, fill = factor(parameter)), stat = "identity") + 
+  geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
+  geom_hline(yintercept = 0, lty = 2) +
+  xlab("") + ylab("") +
+  ggtitle("R-Squared") +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_blank()) +
+  ylim(
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "r2"], 
+      t_tests$ci_95_high[t_tests$outcome == "r2"]
+    ) |> 
+      abs() |> max() %>% times_help(-1),
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "r2"], 
+      t_tests$ci_95_high[t_tests$outcome == "r2"]
+    ) |> 
+      abs() |> max()
+  )
+
+mean_coherence_plot <- 
+  t_tests |> 
+  filter(outcome == "mean_coherence") |> 
+  ggplot() + 
+  geom_bar(aes(x = parameter, y = mean_diff, fill = factor(parameter)), stat = "identity") + 
+  geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
+  geom_hline(yintercept = 0, lty = 2) +
+  xlab("") + ylab("") +
+  ggtitle("Mean Coherence") +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ylim(
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "mean_coherence"], 
+      t_tests$ci_95_high[t_tests$outcome == "mean_coherence"]
+    ) |> 
+      abs() |> max() %>% times_help(-1),
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "mean_coherence"], 
+      t_tests$ci_95_high[t_tests$outcome == "mean_coherence"]
+    ) |> 
+      abs() |> max()
+  )
+
+mean_prevalence_plot <- 
+  t_tests |> 
+  filter(outcome == "mean_prevalence") |> 
+  ggplot() + 
+  geom_bar(aes(x = parameter, y = mean_diff, fill = factor(parameter)), stat = "identity") + 
+  geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
+  geom_hline(yintercept = 0, lty = 2) +
+  xlab("") + ylab("") +
+  ggtitle("Mean Prevalence") +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ylim(
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "mean_prevalence"], 
+      t_tests$ci_95_high[t_tests$outcome == "mean_prevalence"]
+    ) |> 
+      abs() |> max() %>% times_help(-1),
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "mean_prevalence"], 
+      t_tests$ci_95_high[t_tests$outcome == "mean_prevalence"]
+    ) |> 
+      abs() |> max()
+  )
+
+geweke_plot <- 
+  t_tests |> 
+  filter(outcome == "geweke") |> 
+  ggplot() + 
+  geom_bar(aes(x = parameter, y = mean_diff, fill = factor(parameter)), stat = "identity") + 
+  geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
+  geom_hline(yintercept = 0, lty = 2) +
+  xlab("") + ylab("") +
+  ggtitle("Geweke Statistic") +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ylim(
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "geweke"], 
+      t_tests$ci_95_high[t_tests$outcome == "geweke"]
+    ) |> 
+      abs() |> max() %>% times_help(-1),
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "geweke"], 
+      t_tests$ci_95_high[t_tests$outcome == "geweke"]
+    ) |> 
+      abs() |> max()
+  )
+
+pw <- 
+  (ll_plot + r2_plot + plot_spacer() + 
+  mean_coherence_plot + mean_prevalence_plot + geweke_plot) +
+  plot_annotation(title = "Mean Differences") 
+
+plot(pw)
+
+```
+
 
 ## Discussion
 
