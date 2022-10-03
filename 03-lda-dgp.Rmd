@@ -192,8 +192,9 @@ In the comparing correctly specified and misspecified models, I use a paired t-s
 
 Each of the synthetic corpora was generated with $\boldsymbol\eta$ such that its Zipf coefficient was the same, $\gamma = 1.07$. Even so, there was considerable variation in the observed Zipf coefficient, Zipf constant ($C$), and minimum word frequency used to estimate the two Zipf parameters, $gamma$ and $C$. I find that the estimate for $\gamma$ is biased downwards in most of the synthetic data sets. The estimated value of $\gamma$ is highly correlated with the number of topics and, to a lesser degree, the magnitude of $\boldsymbol\eta$ of the generating distribution. The Zipf constant, $C$, is largely correlated with the total volume of words in the data set. The minimum word frequency used to estimate the Zipf parameters is highly correlated with the number of topics in the generating distribution. The magnitude of $\boldsymbol\alpha$ does not appear to be a significant driver of any Zipf-related variable.
 
-Figure \@ref(fig:dtm-hist) below plots histograms of the Zipf coefficient, $\gamma$, Zipf constant, $C$, and minimum word frequency used to estimate the Zipf parameters. The leftmost histogram for $\gamma$ has a dashed line at $\gamma = 1.07$, which was used to seed each of the simulations. The Zipf constant and minimum used word frequency are presented on a log scale. All three demonstrate variability and the downward bias of the estimated Zipf coefficient over the seeded value is apparent.
+Heaps's law describes the relationship between the total number of words in a corpus and the size of the vocabulary. It is an increasing power law with a slope that gets flatter as the total number of words increases. In the context of a simulated corpus, it is related to the difference between the total size of the lexicon available to the DGP, $V$, and the total number of unique words observed. If every word is sampled at least once, then the number of observed words equals $V$. However, under Zipf's law it is more likely that the total number of observed words will be less than $V$. I find that having more topics is highly correlated with observing more words.
 
+Figure \@ref(fig:dtm-hist) below plots histograms of the Zipf coefficient, $\gamma$, Zipf constant, $C$, minimum word frequency used to estimate the Zipf parameters, and the difference between the total vocabulary size and observed vocabulary size. The leftmost histogram for $\gamma$ has a dashed line at $\gamma = 1.07$, which was used to seed each of the simulations. The Zipf constant and minimum used word frequency are presented on a log scale. All four demonstrate variability and the downward bias of the estimated Zipf coefficient over the seeded value is apparent.
 
 
 ```{r dtm-hist, fig.cap = "this is a caption", fig.width = 7, fig.height = 2.5}
@@ -206,6 +207,7 @@ h1 <- dtm_metrics |>
   geom_vline(xintercept = 1.07, lty = 2, lwd = 1.25) +
   ylab("") + xlab("") +
   ggtitle("Zipf Coefficient") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
   theme(axis.text.y = element_blank())
 
 h2 <- dtm_metrics |>
@@ -213,6 +215,7 @@ h2 <- dtm_metrics |>
   geom_histogram(aes(x = zipf2_const ^ 10), fill = rgb(0.513, 0.287, 0.200, 0.5)) +
   ylab("") + xlab("") +
   ggtitle("Zipf Constant") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
   theme(axis.text.y = element_blank()) +
   scale_x_continuous(trans = "log10")
 
@@ -220,18 +223,28 @@ h3 <- dtm_metrics |>
   ggplot() + 
   geom_histogram(aes(x = zipf_xmin), fill = rgb(0.280,0.317,0.403, 0.5)) +
   ylab("") + xlab("") +
-  ggtitle("Min. Used Word Freq.") +
+  ggtitle("Min. Word Freq.") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
   theme(axis.text.y = element_blank()) +
   scale_x_continuous(trans = "log10")
 
-plot(h1 + h2 + h3)
+h4 <- dtm_metrics |>
+  ggplot() + 
+  geom_histogram(aes(x = Nv - vocab), fill = rgb(0.094,0.363,0.544, 0.5)) +
+  ylab("") + xlab("") +
+  ggtitle("Vocab. Diff.") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  theme(axis.text.y = element_blank())
+
+
+plot(h1 + h2 + h3 + h4 + plot_layout(ncol = 4))
 
 ```
 
 
-I used linear regression as a multiple correlation to examine which features of the LDA-DGP were associated with variability in the three parameters in Figure \@ref(fig:dtm-hist). This use of linear regression is not to model drivers of each parameter, rather to describe linear correlations holding other variables constant. For each of the three parameters of interest, I regressed them on the seed parameters of the LDA-DGP from Section 3.4.1.1 and their quadratics. The result, excluding regression constants, along with 95% confidence intervals are plotted in Figure \@ref(fig:zipf-regs). The top row includes both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$. The bottom row excludes both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$.
+I used linear regression as a multiple correlation to examine which features of the LDA-DGP were associated with variability in the four parameters in Figure \@ref(fig:dtm-hist). This use of linear regression is not to model drivers of each parameter, rather to describe linear correlations holding other variables constant. For each of the three parameters of interest, I regressed them on the seed parameters of the LDA-DGP from Section 3.4.1.1 and their quadratics. The result, excluding regression constants, along with 95% confidence intervals are plotted in Figure \@ref(fig:zipf-regs). The top row includes both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$. The bottom row excludes both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$.
 
-```{r zipf-regs, fig.cap = "Coefficients from regressions of three Zipf's law-related variables on parameters from the LDA-DGP and their quadratics, excluding intercept terms. The top row includes terms related to $\\boldsymbol\\alpha$ and the bottom row excludes them. Removing the $\\boldsymbol\\alpha$-related terms does not affect goodness of fit. The adjusted $R^2$ of the models in the top row are 0.733, 0.984, and 0.866 respectively. The adjusted $R^2$ of the models in the bottom row are 0.736, 0.984, and 0.866 respectively. The regressions for the Zipf constant and minimum word frequency are scaled by log 10.", fig.height = 5, fig.width = 7.5}
+```{r zipf-regs, fig.cap = "Coefficients from regressions of four Zipf's law-related variables on parameters from the LDA-DGP and their quadratics, excluding intercept terms. The top row includes terms related to $\\boldsymbol\\alpha$ and the bottom row excludes them. Removing the $\\boldsymbol\\alpha$-related terms does not affect goodness of fit. The adjusted $R^2$ of the models in the top row are 0.733, 0.984, 0.866, and 0.920 respectively. The adjusted $R^2$ of the models in the bottom row are 0.736, 0.984, 0.866, and 0.920 respectively. The regressions for the Zipf constant and minimum word frequency are scaled by log 10.", fig.height = 5, fig.width = 7.5}
 
 library(broom)
 
@@ -553,7 +566,7 @@ p7 <- heaps_reg |>
   ylab("") + xlab("") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   theme(axis.text.y = element_blank()) +
-  ggtitle("V minus observed vocab")
+  ggtitle("Vocab. Diff.")
 
 p8 <- heaps_reg |>
   filter(alpha == "n" & term != "(Intercept)") |>
@@ -577,17 +590,17 @@ p8 <- heaps_reg |>
   ylab("") + xlab("") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   theme(axis.text.y = element_blank()) +
-  ggtitle("V minus observed vocab")
+  ggtitle("Vocab. Diff.")
 
 plot(
-  (p1 + p2 + p3 + p7) / 
-    (p4 + p5 + p6 + p8)+ 
-    plot_annotation(title = "Regressions with (top) and without (bottom) Sum(alpha)")
+    (p1 + p2 + p3 + p7 + p4 + p5 + p6 + p8) + 
+        plot_layout(ncol = 4) + 
+        plot_annotation(title = "Regression Coefficients With (top) and Without (bottom) Sum(alpha)")
 )
 
 ```
 
-The magnitude of $\boldsymbol\alpha$ has on the three Zipf variables appears to be negligible. In each case, the coefficient on $\sum_{k = 1} ^ K \alpha_k$ show a moderately-sized mean response on the outcome. However, in all three cases, the 95% confidence interval is extremely large. Removing both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$ does not lower the $R^2$ of any of the regressions, nor appreciably change the coefficients associated with other variables.
+The magnitude of $\boldsymbol\alpha$ has on the four Zipf variables appears to be negligible. In each case, the coefficient on $\sum_{k = 1} ^ K \alpha_k$ show a moderately-sized mean response on the outcome. However, in all three cases, the 95% confidence interval is extremely large. Removing both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$ does not lower the $R^2$ of any of the regressions, nor appreciably change the coefficients associated with other variables.
 
 The number of topics, $K$, is positively associated with the Zipf coefficient, $\gamma$, and negatively associated with the minimum frequency of words used to estimate the Zipf parameters. In other words, more topics is associated with a steeper slope of the Zipf curve in log-log space. And more topics is also associated with Zipf's law "falling" off for low frequency words deeper into the tail. In plain speech: a corpus with more topics seems to express Zipf's law more strongly.
 
@@ -597,14 +610,12 @@ The Zipf constant, $C$, is most strongly associated by the total volume of words
 
 Interestingly, the number of unique words in a corpus, $V$, does not appear to have a strong correlation to Zipf's law.
 
-Heaps's law describes the relationship between the total number of words in a corpus and the size of the vocabulary. It is an increasing power law with a slope that gets flatter as the total number of words increases. In the context of a simulated corpus, it is related to the difference between the total size of the lexicon available to the DGP, $V$, and the total number of unique words observed. If every word is sampled at least once, then the number of observed words equals $V$. However, under Zipf's law it is more likely that the total number of observed words will be less than $V$. Figure \@ref(fig:heaps-reg) 
-
-
+Finally, having more topics, and to a lesser degree a larger magnitude $\boldsymbol\eta$ and longer contexts, are associated with observing more vocabulary words. It makes intuitive sense that longer contexts would be associated with observing more vocabulary words; it's simply a larger sample. A larger magnitude $\boldsymbol\eta$ means that there is less variability in vocabulary between topics, which would make the tail end of the Zipf distribution less sparse. This, again, would make it more likely that one would observe a larger vocabulary. 
 
 
 ### Describing LDA Model Misspecification
 
-blah
+The previous subsection demonstrated that we can reproduce the gross statistical properties of human language using the LDA-DGP. In this section, 
 
 ```{r model-plots, fig.cap = "this is my caption", fig.width = 7, fig.height = 5}
 t_tests <- read_rds("data-derived/zipf-analysis/model-t-tests.rds")
@@ -744,44 +755,6 @@ plot(pw)
 ## Discussion
 
 
-## BACKUP
-LDA is a latent variable model, as a result it can be challenging to study. We do not observe ground truth topics in real data, against which to compare the correctness of a topic model. Extrinsic evaluation method compare a topic model's results against a different ground truth---one that we do observe, such as a document's class. If a researcher's concern is document classification, then it is better to build a supervised classifier. LDA's strength is in its unsupervised nature, enabling us to discover that which we don't already know. It appears we have a "catch 22": we want to use LDA as a tool of discovery, but without ground truth, how do we know if our discovery is true or a statistical fluke? 
-
-Fortunately, LDA models a data generating process, the LDA-DGP. Researchers can, and do, generate data sets by sampling from the LDA-DGP where they have chosen $K$, $\boldsymbol\alpha$, and $\boldsymbol\eta$ themselves. They then may use these simulated data sets to compare a model against a synthetic ground truth. Such "simulation studies" have a lengthy history in the statistical literature, going back to 1975 or further [@Hoaglin1975].
-
-One cannot choose arbitrary parameters in the LDA-DGP and expect the results to reflect the statistical properties of language. In 2014, when conducting my own simulation study, I discovered that commonly used values for $\boldsymbol\eta$ cannot produce corpora consistent with Zipf's law [@zipf1949]. I include a proof of this in Appendix 2.[^phd] Figure 1 plots data simulated from the LDA-DGP against an actual corpus of NSF grant abstracts [@jones2014zipf]. The same holds for an asymmetric $\boldsymbol\eta$ if it is not proportional to a power law. The simulation corresponding to symmetric $\boldsymbol\eta$---by far the most common specification since Wallach et al. in 2009 [@wallach2009rethinking]---does not conform to a power law, which is linear in log-log space. Yet setting $\boldsymbol\eta$ proportional to a power law does produce power law distributed data, similar to the actual NSF abstracts data.[^pardon] Language has such stark statistical properties---i.e. power law distributions---that the validity of a simulation that cannot produce such properties is suspect.
-
-[^phd]: Small as it was, this is the discovery that prompted me to seek a PhD. I wanted to complete this research, but knew that I could not do it without the structure and support of a formal program.
-
-[^pardon]: Pardon the use of $\beta$ rather than $\eta$ in the figure. The figure is old and does not conform to my current notation scheme. I made the switch so that _tidylda_ would be more consistent with popular text analysis packages in the R ecosystem.
-
-```{r nsf-corpus, fig.align = 'center', out.width = "100%", fig.cap = "Comparing two simulated data with different Dirichlet priors. The leftmost figure uses an asymmetric, but not proportional to a power law, parameter. The center figure uses a symmetric parameter. The rightmost figure compares simulations to word frequencies in an actual corpus of NSF grant abstracts. The simulation generated with a symmetric prior for words over topics---as is commonly used---is not consistent with Zipf's law. It represents an impossible prior. Only the simulation made with a prior proportional to a power law produces word frequencies similar to the actual corpus. From Jones and St. Thomas, 2014."}
-knitr::include_graphics(here::here("figures", "nsf-sim2.png"))
-```
-
-Still, producing data with statistical properties of human language from the LDA-DGP means more than the low bar of one's simulation study not being invalid. If the LDA-DGP can produce data that shares the statistical properties of human language, then LDA is a valid model for analyzing corpora of human language. Put another way: when conducting a simulation study, Shi et al. state "our analysis is grounded on the assumption that a hidden topic structure exists in the texts" [@shi2019eval]. I go further: if the LDA-DGP can produce data consistent with statistical laws of language, then _this is the correct assumption to make_. 
-
-Techniques---whether analytical of empirical---that discover the "right" model on simulated data can guide the researcher on real data sets. Yet it is unlikely that there is a "right" model for any real corpus. This is why I refer to "detecting pathologically misspecified models", rather than "finding the right model". It may also be that the LDA-DGP cannot perfectly reproduce relevant statistical laws of language. If that is the case, researchers must decide whether LDA is "good enough" or if a different topic model---for example CTMs [@blei2007ctm] or STMs [@roberts2013stm]---is a better choice. 
-
-My objectives with this research are as follows: I wish to analytically link the LDA-DGP to relevant statistical laws of language[^beguninone], discover rules and heuristics from statistics on $\boldsymbol{X}$ to guide LDA model specification, and discover diagnostic statistics to discover whether an LDA model is pathologically misspecified. The remainder of this section is organized as follows: Section 4.1 summarizes related work from complex systems theory, stochastic simulation, and topic modeling. Section 4.2 outlines the approach I propose for this study.
-
-[^beguninone]: I have begun this work with Appendix 2.
 
 
 
-## Proposed Contributions
-
-I propose making the following contributions:
-
-1. Produce formal mathematical statements linking the LDA-DGP to Zipf's, Heaps's, and Taylor's laws of language as well as other corpus statistics such as correlation between words in two contexts,
-2. Use principles of statistical design to plan and produce many synthetic corpora using the LDA-DGP that conform to statistical laws of human language and comprise a representative sample of the population of corpora that researchers may study with LDA,
-3. Using (1) and (2) above, attempt to find rules or heuristics for specifying $K$, $\boldsymbol\alpha$, and $\boldsymbol\eta$ based on properties of the corpus, and
-4. Using (1) and (2) above, diagnose the effects of model misspecification and attempt to develop diagnostic statistics or tests one may apply to an LDA model to detect pathological misspecification.
-
-For (2), I intend to use principles from statistical design, recommended for such studies [@morrissimulationstudies]. Considerations for producing a collection of simulated data sets include varying observable corpus variables---the number of documents, document lengths, vocabulary sizes, correlations between documents, and possibly more---and varying latent LDA-DGP parameters---$K$, $\boldsymbol\alpha$ and $\boldsymbol\eta$. Another relationship that I may need to derive is the expected correlation between the words in any two documents produced by the LDA-DGP.[^covariance]
-
-[^covariance]: The covariance between words in any two documents is a function of the interaction between the covariance given by independent draws from the Dirichlet distribution that produced the documents---$\boldsymbol\theta_d \sim \text{Dirichlet}(\boldsymbol\alpha)$---and the covariance given by independent draws from the Dirichlet distributions that produce the words---$\boldsymbol\beta_k \sim \text{Dirichlet}(\boldsymbol\eta)$.
-
-For (3), I intend to consider the same variables. The goal is to use the observable corpus variables to predict the latent LDA-DGP parameters.
-
-Diagnostic statistics that I am considering for (4) are: coherence metrics, likelihood metrics, $R^2$ (see below), and parameters from Zipf's, Heaps's, and Taylor's laws observed in the data compared to those predicted by drawing from the posterior of a fit LDA model. Pathological misspecifications I am considering are: too many or too few topics and misspecifications in shape or magnitude of $\boldsymbol\alpha$ or $\boldsymbol\eta$. I am also interested in exploring the effects of the procedure for optimizing $\boldsymbol\alpha$ [@minka2000estimating] employed in MALLET [@mallet].
