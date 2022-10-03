@@ -184,7 +184,7 @@ In addition to the Geweke statistic, I also compare the following between correc
 * Log Likelihood, averaged over the last 50 Gibbs iterations, of perfectly specified to misspecified models. The log likelihood calculation follows that used in [@chen2015warplda].
 * Coefficient of determination, or $R^2$. This statistic calculates the proportion of variability in the data that has been accounted for in the fit model. This statistic and a study of its properties is the next chapter of this dissertation.
 * Probabilistic coherence (see Appendix 5)---or just "coherence"---averaged over all topics in a model. 
-* Prevalence of each topic, averaged across all topics in the model. The prevalence of topic $k$ is calculated with $\sum_{d = 1} ^ D N_d \cdot \theta_{d,k}$.
+* Prevalence of each topic, averaged across all topics in the model. The prevalence of topic $k$ is calculated with $\sum_{d = 1} ^ D N_d \cdot \theta_{d,k} \cdot100$.
 
 In the comparing correctly specified and misspecified models, I use a paired t-statistic to calculate 95% confidence intervals in the difference between the correct (i.e., "untreated") and misspecified (i.e., "treated") groups. This paired t-statistic confidence interval is applied to the Geweke statistics, log likelihood, $R^2$, probabilistic coherence, and prevalence.
 

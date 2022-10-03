@@ -181,7 +181,7 @@ bin_table %>%
 ```
 
 
-Table \@ref(tab:bin-reg-table), below, contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratics. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $*** \equiv p \leq 0.01$, $** \equiv  p \leq 0.05$, and $* \equiv  p \leq 0.1$.
+Table \@ref(tab:bin-reg-table) contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratics. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $*** \equiv p \leq 0.01$, $** \equiv  p \leq 0.05$, and $* \equiv  p \leq 0.1$.
 
 In all cases, $a$ has the most substantial impact on the outcome. If $a$ is too small, a chain of models is unlikely to converge and if $a$ is too large the chain will converge far from the true data generating topics. As $a$ increases, the probability of a model converging also increases, albeit with decreasing returns as indicated by the decreasing quadratic. Intuitively, larger values of $a$ decrease the variance between models in a chain leading to faster convergence. Yet of the models that converge, $a$ increases the distance of the fitted topics to their matches in the data generating distribution, again with decreasing returns.
 
@@ -283,14 +283,14 @@ reg_table <-
   mutate(
     Variable = case_when(
       Variable == "(Intercept)" ~ "Intercept",
-      Variable == "a" ~ "$a$",
+      Variable == "a" ~ "a",
       Variable == "doc_length" ~ "Avg. Doc. Length",
-      Variable == "beta_sum" ~ "$\\sum(\\boldsymbol\\eta)$",
-      Variable == "alpha_sum" ~ "$\\sum(\\boldsymbol\\alpha)$",
-      Variable == "I(a^2)" ~ "$a^2$",
-      Variable == "I(doc_length^2)" ~ "$(\\text{Avg. Doc. Length})^2$",
-      Variable == "I(beta_sum^2)" ~ "$\\sum(\\boldsymbol\\eta)^2$",
-      Variable == "I(alpha_sum^2)" ~ "$\\sum(\\boldsymbol\\alpha)^2$",
+      Variable == "beta_sum" ~ "Sum(eta)",
+      Variable == "alpha_sum" ~ "Sum(alpha)",
+      Variable == "I(a^2)" ~ "a Squared.",
+      Variable == "I(doc_length^2)" ~ "Avg. Doc. Length Squared",
+      Variable == "I(beta_sum^2)" ~ "Sum(eta) Squared",
+      Variable == "I(alpha_sum^2)" ~ "Sum(alpha) Squared",
     )
   ) 
 
