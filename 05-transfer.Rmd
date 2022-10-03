@@ -287,7 +287,7 @@ reg_table <-
       Variable == "doc_length" ~ "Avg. Doc. Length",
       Variable == "beta_sum" ~ "Sum(eta)",
       Variable == "alpha_sum" ~ "Sum(alpha)",
-      Variable == "I(a^2)" ~ "a Squared.",
+      Variable == "I(a^2)" ~ "a Squared",
       Variable == "I(doc_length^2)" ~ "Avg. Doc. Length Squared",
       Variable == "I(beta_sum^2)" ~ "Sum(eta) Squared",
       Variable == "I(alpha_sum^2)" ~ "Sum(alpha) Squared",
@@ -510,7 +510,7 @@ I also examine changes in individual topics over time. To showcase one example, 
 
 \begin{align}
 \text{Prevalence} &\equiv 
-\sum_{d = 1}^D n_d \cdot \theta_{d,k} \cdot \boldsymbol\beta_k (\#eq:prevalence)
+\sum_{d = 1}^D n_d \cdot \theta_{d,k} \cdot \boldsymbol\beta_k  \cdot 100 (\#eq:prevalence)
 \end{align}
 
 

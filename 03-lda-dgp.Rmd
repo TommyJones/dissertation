@@ -617,6 +617,18 @@ Finally, having more topics, and to a lesser degree a larger magnitude $\boldsym
 
 The previous subsection demonstrated that we can reproduce the gross statistical properties of human language using the LDA-DGP. In this section, 
 
+HOLDING ALL ELSE CONSTANT B/C EXPERIMENTAL DESIGN
+
+
+Key take aways:
+
+1. misspecifying the number of topics has the greatest impact on goodness of fit
+2. specification of eta has an impact as well, but how is mixed (flat vs pl)
+3. misspecification of alpha does not seem to have much of an impact, counter result to other studies --> needs much more rigorous examination than I do here
+4. Flat eta seems to really improve coherence --> overfit on data?
+5. K is only thing that affects average prevalence in ways that are very intuitive
+6. Looks like misspecification leads to more robust convergence? What?
+
 ```{r model-plots, fig.cap = "this is my caption", fig.width = 7, fig.height = 5}
 t_tests <- read_rds("data-derived/zipf-analysis/model-t-tests.rds")
 
@@ -754,7 +766,13 @@ plot(pw)
 
 ## Discussion
 
+Key discussion points
 
+1. Stop words - several paths here
+2. Eta is more important than has been appreciated
+3. Alpha may be less important, but this goes against convention and other research. More exploraton necessary
+4. Misspecifying K has the most consistent overall effect. Instinct of many to worry about it is right. Need future research to find principled ways of setting it. Simulations consistent with Zipf's law now may make this a reality. Future!
+5. Some evidence for flat eta being good for fitting models. Again, more research is necessary.
 
 
 ```{r clear-dgp-data}
