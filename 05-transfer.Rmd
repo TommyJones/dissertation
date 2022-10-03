@@ -41,7 +41,7 @@ Each $\omega_k^{(t)}$ tunes the relative weight between the base model (as prior
 a^{(t)} \cdot \sum_{v = 1}^V Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)}
 \end{align}
 
-Appendix [X] shows the full derivation of the relationship between $a^{(t)}$ and $\omega_k^{(t)}$.
+Appendix 4 shows the full derivation of the relationship between $a^{(t)}$ and $\omega_k^{(t)}$.
 
 When $a^{(t)} = 1$, fine tuning is equivalent to adding the data in $\boldsymbol{X}^{(t)}$ to $\boldsymbol{X}^{(t-1)}$. In other words, each word occurrence in $\boldsymbol{X}^{(t)}$ carries the same weight in the posterior as each word occurrence in $\boldsymbol{X}^{(t-1)}$. If $\boldsymbol{X}^{(t)}$ has more data than $\boldsymbol{X}^{(t-1)}$, then it will carry more weight overall. If it has less, it will carry less.
 
@@ -59,7 +59,7 @@ _tidylda_---described in Chapter 6---implements an algorithm for tLDA in 6 steps
 5. Initialize $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$
 6. Begin Gibbs sampling with $P(z = k) = \frac{Cv_{k, n} + \eta_{k,n}}{\sum_{v=1}^V Cv_{k, v} + \eta_{k,v}} \cdot \frac{Cd_{d, k} + \alpha_k}{\left(\sum_{k=1}^K Cd_{d, k} + \alpha_k\right) - 1}$
 
-Step 1 uses the relationship in (27), above. Step 2 uses a standard prediction method for LDA models. _tidylda_ uses a dot-product prediction described in Appendix [1?] for speed. MCMC prediction would work as well.
+Step 1 uses the relationship in (27), above. Step 2 uses a standard prediction method for LDA models. _tidylda_ uses a dot-product prediction described in Appendix 1 for speed. MCMC prediction would work as well.
 
 Any real-world application of tLDA presents several practical issues which are addressed in steps 3 - 5, described in more detail below. These issues include: the vocabularies in $\boldsymbol{X}^{(t-1)}$ and $\boldsymbol{X}^{(t)}$ will not be identical; users may wish to add topics, expecting $\boldsymbol{X}^{(t)}$ to contain topics not in $\boldsymbol{X}^{(t-1)}$; and $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ should be initialized proportional to $\boldsymbol{Cd}^{(t-1)}$ and $\boldsymbol{Cv}^{(t-1)}$, respectively.
 
@@ -69,7 +69,7 @@ _tidylda_ implements an algorithm to fold in new words. This method slightly mod
 #### Adding New Topics
 tLDA employs a similar method to add new, randomly initialized, topics if desired. This is achieved by appending rows to both $\boldsymbol\eta^{(t)}$ and $\boldsymbol{B}^{(t)}$, adding entries to $\boldsymbol\alpha$, and adding columns to $\boldsymbol\Theta^{(t)}$, obtained in step two above. The tLDA implementation in _tidylda_ sets the rows of $\boldsymbol\eta^{(t)}$ equal to the column means across previous topics. Then new rows of $\boldsymbol{B}^{(t)}$ are the new rows of $\boldsymbol\eta^{(t)}$ but normalized to sum to one. This effectively sets the prior for new topics equal to the average of the weighted posteriors of pre-existing topics.
 
-The choice of setting the prior to new topics as the average of pre-existing topics is admittedly subjective. A uniform prior over words is unrealistic, being inconsistent with Zipf's law [@zipf1949]. (See also the appendix in [@jones2019coefficient].) The average over existing topics is only one viable choice. Another choice might be to choose the shape of new $\boldsymbol\eta_k$ from an estimated Zipf's coefficient of $\boldsymbol{X}^{(t)}$ and choose the magnitude by another means. I leave this exploration for future research.
+The choice of setting the prior to new topics as the average of pre-existing topics is admittedly subjective. A uniform prior over words is unrealistic, being inconsistent with Zipf's law [@zipf1949]. (See Chapter 3.) The average over existing topics is only one viable choice. Another choice might be to choose the shape of new $\boldsymbol\eta_k$ from an estimated Zipf's coefficient of $\boldsymbol{X}^{(t)}$ and choose the magnitude by another means. I leave this exploration for future research.
 
 New entries to $\boldsymbol\alpha$ are initialized to be the median value of the pre-existing topics in $\boldsymbol\alpha$. Similarly, columns are appended to $\boldsymbol\Theta^{(t)}$. Entries for new topics are taken to be the median value for pre-existing topics on a per-document basis. This effectively places a uniform prior for new topics. This choice is also subjective. Other heuristic choices may be made, but it is not obvious that they would be any better or worse choices. I also leave this to be explored in future research.
 
@@ -88,7 +88,7 @@ To evaluate tLDA, I conduct two simulation experiments and an analysis on a real
 ### Simulation Analysis
 Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall i,j \geq 0, i \neq j$, and (2) if $a \geq 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyperparameters for any LDA model remains an open problem. Yet I hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
 
-To test the above, I conduct two simulation experiments. I generate topics by drawing from 128 data generating distributions. Then for each data generating distribution, I sample 100 corpora of 100 documents each. I fit a model on the first 100 documents of the data and iteratively add the remaining 100 documents at a time, fine tuning at each stage, with values of $a$ ranging from $0.2$ to $2$. The experiments are described in more detail in the below sections.
+To test the above, I conduct two simulation experiments. I generate topics by drawing from 128 data generating distributions. Then for each data generating distribution, I sample 100 corpora of 100 contexts each. I fit a model on the first 100 contexts of the data and iteratively add the remaining 100 contexts at a time, fine tuning at each stage, with values of $a$ ranging from $0.2$ to $2$. The experiments are described in more detail in the below sections.
 
 On average, models converge towards the true topics of the data generating process when values of $a$ are greater than 0.8. When values of $a$ are less than 0.8, the models tend not to converge as there is high variance between estimates. There is very high variance as to whether or not models converge when $a$ is around 0.8. Properties of the data generating process, particularly the magnitude of $\boldsymbol\alpha$, also influence whether or not the models converge. This points towards a need for more study of LDA as a data generating process of language, rather than an inherent limitation of tLDA. 
 
@@ -103,9 +103,9 @@ Specifically, I chose the following:
 3. $N_d \sim \text{Poi}(\lambda)$ where $\lambda \in \{50, 100, 200, 400\}$
 4. $V = 5,000$ and $K = 25$
 
-The above creates 64 unique sets of hyper parameters. From each, I generate two sets of population statistics, $\left\{ \boldsymbol\Theta, \boldsymbol{B} \right\}$, leaving 128 unique sets of population parameters to parametarize the generation process described in Section 1.1. From each of these sets of population parameters, $i$, 100 word count matrices, $\boldsymbol{X}_i^{(t)}$, with 100 documents each are sampled.
+The above creates 64 unique sets of hyper parameters. From each, I generate two sets of population statistics, $\left\{ \boldsymbol\Theta, \boldsymbol{B} \right\}$, leaving 128 unique sets of population parameters to parametarize the generation process described in Section 1.1. From each of these sets of population parameters, $i$, 100 word count matrices, $\boldsymbol{X}_i^{(t)}$, with 100 contexts each are sampled.
 
-The magnitudes of the Dirichlet hyperparameters, $\boldsymbol\eta$ and $\boldsymbol\alpha$ vary while keeping their shapes fixed. The magnitude of the parameter of a Dirichlet distribution plays a strong role in tuning the covariance between draws from that distribution. A smaller magnitude means larger variability between draws. In other words, if $\left(\sum_{v=1}^V \eta_v \right)$ is smaller, topics are less linguistically similar. If $\left(\sum_{v=1}^V \eta_v \right)$ is larger, topics are more linguistically similar. Similarly, $\left(\sum_{k=1}^K \alpha_k \right)$ tunes the topical similarity of documents.
+The magnitudes of the Dirichlet hyperparameters, $\boldsymbol\eta$ and $\boldsymbol\alpha$ vary while keeping their shapes fixed. The magnitude of the parameter of a Dirichlet distribution plays a strong role in tuning the covariance between draws from that distribution. A smaller magnitude means larger variability between draws. In other words, if $\left(\sum_{v=1}^V \eta_v \right)$ is smaller, topics are less linguistically similar. If $\left(\sum_{v=1}^V \eta_v \right)$ is larger, topics are more linguistically similar. Similarly, $\left(\sum_{k=1}^K \alpha_k \right)$ tunes the topical similarity of contexts.
 
 #### Modeling Choices
 
@@ -149,7 +149,7 @@ Logistic regression is used to analyze which factors lead to model convergence o
 
 Whether or not the model converges towards the data generating distribution is assessed in a similar two step process. A topic converges towards the true generating distribution if the average slope of $H_{k,\mathfrak{k}}^{(t)}$ is negative, $\mathfrak{k}$ indexes the topic closest to $k$, averaging over the last. After discarding the first two periods, a t-test with a null hypothesis that the average of $H_{k,\mathfrak{k}}^{'(t)}$ from periods 3 to 100 is greater than zero. The whole model is considered to have converged towards the true data generating distribution using a binomial test, as above. Only models considered to have converged, above, are considered.
 
-Linear regression is used to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. I use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
+Linear regression is used to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. I use the hyper parameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
 
 #### Results
 
@@ -340,7 +340,7 @@ model_metrics <- read_rds("data-derived/tlda-sbir/model-metrics.rds")
 
 ##### Analysis for varying values of $a$
 
-For each value of $a$, a chain of 39 models is produced. The first model in the chain has 100 topics and the last has 138. The analysis focuses on four key statistics: $R^2$, log likelihood, probabilistic coherence (see Appendix [x])---or just "coherence"---averaged over all topics, and the Hellinger distance of each topic at time $t$ to itself at time $t-1$ averaged across all topics. $R^2$ and the log likelihood are model-wide goodness-of-fit metrics. Coherence is a proxy for human interpretability. And mean Hellinger distance measures how much the estimated topics change from year to year. 
+For each value of $a$, a chain of 39 models is produced. The first model in the chain has 100 topics and the last has 138. The analysis focuses on four key statistics: $R^2$, log likelihood, probabilistic coherence (see Appendix 5)---or just "coherence"---averaged over all topics, and the Hellinger distance of each topic at time $t$ to itself at time $t-1$ averaged across all topics. $R^2$ and the log likelihood are model-wide goodness-of-fit metrics. Coherence is a proxy for human interpretability. And mean Hellinger distance measures how much the estimated topics change from year to year. 
 
 Figure \@ref(fig:sbir-vary-a-1) plots these four statistics for each value of $a$ over time. A clear pattern appears for mean Hellinger distance but not for other statistics. Mean Hellinger distance is highest when $a$ is smallest and decrease as $a$ grows. This is consistent with expectation. When $a$ is small, the prior has less weight in the posterior and the data has more. This will lead to a posterior that changes significantly period to period as it is more-strongly shaped by the data. 
 
@@ -464,7 +464,7 @@ plot(p1 + p2 + p3 + p4 + plot_layout(guides = "collect"))
 
 ##### Analysis for $a = 0.8$
 
-Figure \@ref(fig:sbir-deep-1) contains two charts derived from model chains where $a = 0.8$. The top plots the $R^2$ statistic. The bottom plots probabilistic coherence (Appendix [x]) averaged across topics. The black line is the actual value of each statistic. The blue line and associated shaded interval is the result of a loess model using default parameters when calling `geom_smooth` from the R package ggplot2 [@ggplot].
+Figure \@ref(fig:sbir-deep-1) contains two charts derived from model chains where $a = 0.8$. The top plots the $R^2$ statistic. The bottom plots probabilistic coherence (Appendix 5) averaged across topics. The black line is the actual value of each statistic. The blue line and associated shaded interval is the result of a loess model using default parameters when calling `geom_smooth` from the R package ggplot2 [@ggplot].
 
 
 ```{r sbir-deep-1, fig.width = 7, fig.height = 4, fig.cap = "Both $R^2$ and probabilistic coherence are highest in 1983, drop off quickly, and remain flat for remaining time periods. This is likely due to $R^2$ and coherence being calculated using only data in the current period.", warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
@@ -628,7 +628,7 @@ knitr::kable(
 ```
 
 
-I hypothesize that most topics decreased over time because of the addition of one randomly initialized topic in each year. This is due to two related effects. Having more topics, all else constant, diffuses the probability mass of the posterior over more categories. In the years where a new topic is introduced, more posterior probability mass comes from the data than the prior for these topics, again shifting mass away from established topics. 
+I hypothesize that most topics decreased over time because of the addition of one randomly initialized topic in each year. This is due to two related effects. Having more topics, all else constant, diffuses the probability mass of the posterior over more categories. In the years where a new topic is introduced, more posterior probability mass comes from the data than the prior for these topics, again shifting mass away from established topics.  
 
 Yet there is some evidence that adding randomized topics is successful for topic discovery. For example, a topic related to Covid-19 emerges (topic 137, top terms in 2021 {19, covid, opiod, oud, sars}) from a randomly-initialized topic in 2020. Topic 126, which emerged in 2019 and whose words relate to the US Air Force (air, force, uas, solution, benefit) , correspond to a major increase in the number of SBIR grants from the US Air Force. Presumably the granting institution is mentioned in the title or abstract. (See Figure \@ref(fig:sbir-emerge-win))
 
