@@ -757,4 +757,7 @@ plot(pw)
 
 
 
+```{r clear-dgp-data}
+rm(list = ls())
+```
 
