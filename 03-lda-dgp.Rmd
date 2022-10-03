@@ -86,15 +86,15 @@ This result is consistent with the framework laid out by Goldwater et al. [@gold
 The relationship in \@ref(eq:zipf) also implies that one can estimate the shape of $\boldsymbol\eta$ from a document term matrix. Formally linking Zipf's law with the LDA-DGP we have
 
 \begin{align}
-    \mathbb{E}(w_v) &=
-        N \frac{\eta_v}{\sum_{v = 1} ^ V eta_v} =
-        C \cdot r_v ^{-\gamma}
+\mathbb{E}(w_v) &=
+N \frac{\eta_v}{\sum_{v = 1} ^ V eta_v} =
+C \cdot r_v ^{-\gamma}
 \end{align}
 
 $C$ and $\gamma$ may be estimated from data and $r_v$, the rank of word $v$, is known. Some algebra then yields
 
 \begin{align}
-    \frac{\eta_v}{\sum_{v = 1}^V \eta_v} = \frac{C}{N}\cdot r_v ^ {-\gamma}, \forall v
+\frac{\eta_v}{\sum_{v = 1}^V \eta_v} = \frac{C}{N}\cdot r_v ^ {-\gamma}, \forall v
 \end{align}
 
 What still remains is for a researcher to specify the magnitude of $\boldsymbol\eta$, in other words $\sum_{v=1}^V \eta_v$, and of course $\boldsymbol\alpha$ and the number of topics, $K$. The empirical evidence for specifying $\boldsymbol\eta$ as a power law rather than a flat prior is explored, though not resoved, in section 3.4.3.
@@ -183,14 +183,428 @@ In addition to the Geweke statistic, I also compare the following between correc
 
 * Log Likelihood, averaged over the last 50 Gibbs iterations, of perfectly specified to misspecified models. The log likelihood calculation follows that used in [@chen2015warplda].
 * Coefficient of determination, or $R^2$. This statistic calculates the proportion of variability in the data that has been accounted for in the fit model. This statistic and a study of its properties is the next chapter of this dissertation.
-* Probabilistic coherence (see Appendix [5])---or just "coherence"---averaged over all topics in a model. 
+* Probabilistic coherence (see Appendix 5)---or just "coherence"---averaged over all topics in a model. 
 * Prevalence of each topic, averaged across all topics in the model. The prevalence of topic $k$ is calculated with $\sum_{d = 1} ^ D N_d \cdot \theta_{d,k}$.
 
 In the comparing correctly specified and misspecified models, I use a paired t-statistic to calculate 95% confidence intervals in the difference between the correct (i.e., "untreated") and misspecified (i.e., "treated") groups. This paired t-statistic confidence interval is applied to the Geweke statistics, log likelihood, $R^2$, probabilistic coherence, and prevalence.
 
 ### Describing Properties of Synthetic Corpora
 
+Each of the synthetic corpora was generated with $\boldsymbol\eta$ such that its Zipf coefficient was the same, $\gamma = 1.07$. Even so, there was considerable variation in the observed Zipf coefficient, Zipf constant ($C$), and minimum word frequency used to estimate the two Zipf parameters, $gamma$ and $C$. I find that the estimate for $\gamma$ is biased downwards in most of the synthetic data sets. The estimated value of $\gamma$ is highly correlated with the number of topics and, to a lesser degree, the magnitude of $\boldsymbol\eta$ of the generating distribution. The Zipf constant, $C$, is largely correlated with the total volume of words in the data set. The minimum word frequency used to estimate the Zipf parameters is highly correlated with the number of topics in the generating distribution. The magnitude of $\boldsymbol\alpha$ does not appear to be a significant driver of any Zipf-related variable.
+
+Figure \@ref(fig:dtm-hist) below plots histograms of the Zipf coefficient, $\gamma$, Zipf constant, $C$, and minimum word frequency used to estimate the Zipf parameters. The leftmost histogram for $\gamma$ has a dashed line at $\gamma = 1.07$, which was used to seed each of the simulations. The Zipf constant and minimum used word frequency are presented on a log scale. All three demonstrate variability and the downward bias of the estimated Zipf coefficient over the seeded value is apparent.
+
+
+
+```{r dtm-hist, fig.cap = "this is a caption", fig.width = 7, fig.height = 2.5}
+
+dtm_metrics <- read_rds("data-derived/zipf-analysis/dtm-metrics.rds")
+
+h1 <- dtm_metrics |>
+  ggplot() + 
+  geom_histogram(aes(x = -1 * zipf2_coef), fill = rgb(0.221, 0.421, 0.358, 0.5)) +
+  geom_vline(xintercept = 1.07, lty = 2, lwd = 1.25) +
+  ylab("") + xlab("") +
+  ggtitle("Zipf Coefficient") +
+  theme(axis.text.y = element_blank())
+
+h2 <- dtm_metrics |>
+  ggplot() + 
+  geom_histogram(aes(x = zipf2_const ^ 10), fill = rgb(0.513, 0.287, 0.200, 0.5)) +
+  ylab("") + xlab("") +
+  ggtitle("Zipf Constant") +
+  theme(axis.text.y = element_blank()) +
+  scale_x_continuous(trans = "log10")
+
+h3 <- dtm_metrics |>
+  ggplot() + 
+  geom_histogram(aes(x = zipf_xmin), fill = rgb(0.280,0.317,0.403, 0.5)) +
+  ylab("") + xlab("") +
+  ggtitle("Min. Used Word Freq.") +
+  theme(axis.text.y = element_blank()) +
+  scale_x_continuous(trans = "log10")
+
+plot(h1 + h2 + h3)
+
+```
+
+
+I used linear regression as a multiple correlation to examine which features of the LDA-DGP were associated with variability in the three parameters in Figure \@ref(fig:dtm-hist). This use of linear regression is not to model drivers of each parameter, rather to describe linear correlations holding other variables constant. For each of the three parameters of interest, I regressed them on the seed parameters of the LDA-DGP from Section 3.4.1.1 and their quadratics. The result, excluding regression constants, along with 95% confidence intervals are plotted in Figure \@ref(fig:zipf-regs). The top row includes both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$. The bottom row excludes both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$.
+
+```{r zipf-regs, fig.cap = "Coefficients from regressions of three Zipf's law-related variables on parameters from the LDA-DGP and their quadratics, excluding intercept terms. The top row includes terms related to $\\boldsymbol\\alpha$ and the bottom row excludes them. Removing the $\\boldsymbol\\alpha$-related terms does not affect goodness of fit. The adjusted $R^2$ of the models in the top row are 0.733, 0.984, and 0.866 respectively. The adjusted $R^2$ of the models in the bottom row are 0.736, 0.984, and 0.866 respectively. The regressions for the Zipf constant and minimum word frequency are scaled by log 10.", fig.height = 5, fig.width = 7.5}
+
+library(broom)
+
+
+# format tables for plotting
+zipf_reg <- list(
+  zipf_coef = 
+    lm(I(-1 * zipf2_coef) ~
+         Nv +I(Nv^2) + 
+         Nd + I(Nd^2) + 
+         Nk + I(Nk^2) + 
+         doc_length + I(doc_length^2) + 
+         beta_sum + I(beta_sum^2) + 
+         alpha_sum + I(alpha_sum^2), data = dtm_metrics) |>
+    tidy() |>
+    mutate(outcome = "gamma"),
+  zipf_const = 
+    lm(zipf2_const ~
+         Nv +I(Nv^2) + 
+         Nd + I(Nd^2) + 
+         Nk + I(Nk^2) + 
+         doc_length + I(doc_length^2) + 
+         beta_sum + I(beta_sum^2) + 
+         alpha_sum + I(alpha_sum^2), data = dtm_metrics) |>
+    tidy() |>
+    mutate(outcome = "log10(C)"),
+  xmin = 
+    lm(I(log10(zipf_xmin)) ~
+         Nv +I(Nv^2) + 
+         Nd + I(Nd^2) + 
+         Nk + I(Nk^2) + 
+         doc_length + I(doc_length^2) + 
+         beta_sum + I(beta_sum^2) + 
+         alpha_sum + I(alpha_sum^2), data = dtm_metrics) |>
+    tidy() |>
+    mutate(outcome = "xmin")
+) |>
+  bind_rows()
+
+zipf_reg_no_alpha <- list(
+  zipf_coef = 
+    lm(I(-1 * zipf2_coef) ~
+         Nv +I(Nv^2) + 
+         Nd + I(Nd^2) + 
+         Nk + I(Nk^2) + 
+         doc_length + I(doc_length^2) + 
+         beta_sum + I(beta_sum^2), data = dtm_metrics) |>
+    tidy() |>
+    mutate(outcome = "gamma"),
+  zipf_const = 
+    lm(zipf2_const ~
+         Nv +I(Nv^2) + 
+         Nd + I(Nd^2) + 
+         Nk + I(Nk^2) + 
+         doc_length + I(doc_length^2) + 
+         beta_sum + I(beta_sum^2), data = dtm_metrics) |>
+    tidy() |>
+    mutate(outcome = "log10(C)"),
+  xmin = 
+    lm(I(log10(zipf_xmin)) ~
+         Nv +I(Nv^2) + 
+         Nd + I(Nd^2) + 
+         Nk + I(Nk^2) + 
+         doc_length + I(doc_length^2) + 
+         beta_sum + I(beta_sum^2), data = dtm_metrics) |>
+    tidy() |>
+    mutate(outcome = "xmin")
+) |>
+  bind_rows()
+
+
+# make some substitutions on term names for pretty plotting
+zipf_reg <- 
+  zipf_reg |>
+  mutate(
+    term = case_when(
+      term == "Nv" ~ "V",
+      term == "I(Nv^2)" ~ "V-sq.",
+      term == "Nk" ~ "K",
+      term == "I(Nk^2)" ~ "K-sq.",
+      term == "Nd" ~ "D",
+      term == "I(Nd^2)" ~ "D-sq.",
+      term == "doc_length" ~ "Avg. Doc. Length",
+      term == "I(doc_length^2)" ~ "Avg. Doc. Length-sq.",
+      term == "beta_sum" ~ "Sum(eta)",
+      term == "I(beta_sum^2)" ~ "Sum(eta)-sq.",
+      term == "alpha_sum" ~ "Sum(alpha)",
+      term == "I(alpha_sum^2)" ~ "Sum(alpha)-sq.",
+      TRUE ~ term
+    )
+  )
+
+zipf_reg_no_alpha <- 
+  zipf_reg_no_alpha |>
+  mutate(
+    term = case_when(
+      term == "Nv" ~ "V",
+      term == "I(Nv^2)" ~ "V-sq.",
+      term == "Nk" ~ "K",
+      term == "I(Nk^2)" ~ "K-sq.",
+      term == "Nd" ~ "D",
+      term == "I(Nd^2)" ~ "D-sq.",
+      term == "doc_length" ~ "Avg. Doc. Length",
+      term == "I(doc_length^2)" ~ "Avg. Doc. Length-sq.",
+      term == "beta_sum" ~ "Sum(eta)",
+      term == "I(beta_sum^2)" ~ "Sum(eta)-sq.",
+      term == "alpha_sum" ~ "Sum(alpha)",
+      term == "I(alpha_sum^2)" ~ "Sum(alpha)-sq.",
+      TRUE ~ term
+    )
+  )
+
+
+p1 <- zipf_reg |>
+  filter(outcome == "gamma" & term != "(Intercept)") |>
+  mutate(
+    ci_high = estimate + 1.96 * std.error,
+    ci_low = estimate - 1.96 * std.error
+  ) |>
+  mutate(
+    xlim_low = -1 * max(abs(c(ci_high, ci_low))),
+    xlim_high = max(abs(c(ci_high, ci_low)))
+  ) |>
+  ggplot() +
+  geom_bar(aes(x = estimate, y = term, fill = term), stat = "identity") +
+  geom_errorbar(aes(
+    y = term, 
+    xmin = ci_low, 
+    xmax = ci_high
+  )) + 
+  theme(legend.position = "none") +
+  scale_y_discrete(limits = rev) +
+  ylab("") + xlab("") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ggtitle("Zipf Coefficient")
+
+p2 <- zipf_reg |>
+  filter(outcome == "log10(C)" & term != "(Intercept)") |>
+  mutate(
+    ci_high = estimate + 1.96 * std.error,
+    ci_low = estimate - 1.96 * std.error
+  ) |>
+  mutate(
+    xlim_low = -1 * max(abs(c(ci_high, ci_low))),
+    xlim_high = max(abs(c(ci_high, ci_low)))
+  ) |>
+  ggplot() +
+  geom_bar(aes(x = estimate, y = term, fill = term), stat = "identity") +
+  geom_errorbar(aes(
+    y = term, 
+    xmin = ci_high, 
+    xmax = ci_low
+  )) + 
+  theme(legend.position = "none") +
+  scale_y_discrete(limits = rev) +
+  ylab("") + xlab("") +
+  theme(axis.text.y = element_blank()) +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ggtitle("Zipf Constant")
+
+p3 <- zipf_reg |>
+  filter(outcome == "xmin" & term != "(Intercept)") |>
+  mutate(
+    ci_high = estimate + 1.96 * std.error,
+    ci_low = estimate - 1.96 * std.error
+  ) |>
+  mutate(
+    xlim_low = -1 * max(abs(c(ci_high, ci_low))),
+    xlim_high = max(abs(c(ci_high, ci_low)))
+  ) |>
+  ggplot() +
+  geom_bar(aes(x = estimate, y = term, fill = term), stat = "identity") +
+  geom_errorbar(aes(
+    y = term, 
+    xmin = ci_high, 
+    xmax = ci_low
+  )) + 
+  theme(legend.position = "none") +
+  scale_y_discrete(limits = rev) +
+  ylab("") + xlab("") +
+  theme(axis.text.y = element_blank()) +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ggtitle("Min. Word Freq.")
+
+
+p4 <- zipf_reg_no_alpha |>
+  filter(outcome == "gamma" & term != "(Intercept)") |>
+  mutate(
+    ci_high = estimate + 1.96 * std.error,
+    ci_low = estimate - 1.96 * std.error
+  ) |>
+  mutate(
+    xlim_low = -1 * max(abs(c(ci_high, ci_low))),
+    xlim_high = max(abs(c(ci_high, ci_low)))
+  ) |>
+  ggplot() +
+  geom_bar(aes(x = estimate, y = term, fill = term), stat = "identity") +
+  geom_errorbar(aes(
+    y = term, 
+    xmin = ci_low, 
+    xmax = ci_high
+  )) + 
+  theme(legend.position = "none") +
+  scale_y_discrete(limits = rev) +
+  ylab("") + xlab("") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ggtitle("Zipf Coefficient")
+
+p5 <- zipf_reg_no_alpha |>
+  filter(outcome == "log10(C)" & term != "(Intercept)") |>
+  mutate(
+    ci_high = estimate + 1.96 * std.error,
+    ci_low = estimate - 1.96 * std.error
+  ) |>
+  mutate(
+    xlim_low = -1 * max(abs(c(ci_high, ci_low))),
+    xlim_high = max(abs(c(ci_high, ci_low)))
+  ) |>
+  ggplot() +
+  geom_bar(aes(x = estimate, y = term, fill = term), stat = "identity") +
+  geom_errorbar(aes(
+    y = term, 
+    xmin = ci_high, 
+    xmax = ci_low
+  )) + 
+  theme(legend.position = "none") +
+  scale_y_discrete(limits = rev) +
+  ylab("") + xlab("") +
+  theme(axis.text.y = element_blank()) +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ggtitle("Zipf Constant")
+
+p6 <- zipf_reg_no_alpha |>
+  filter(outcome == "xmin" & term != "(Intercept)") |>
+  mutate(
+    ci_high = estimate + 1.96 * std.error,
+    ci_low = estimate - 1.96 * std.error
+  ) |>
+  mutate(
+    xlim_low = -1 * max(abs(c(ci_high, ci_low))),
+    xlim_high = max(abs(c(ci_high, ci_low)))
+  ) |>
+  ggplot() +
+  geom_bar(aes(x = estimate, y = term, fill = term), stat = "identity") +
+  geom_errorbar(aes(
+    y = term, 
+    xmin = ci_high, 
+    xmax = ci_low
+  )) + 
+  theme(legend.position = "none") +
+  scale_y_discrete(limits = rev) +
+  ylab("") + xlab("") +
+  theme(axis.text.y = element_blank()) +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ggtitle("Min. Word Freq.")
+
+# add some heaps stuff here
+heaps_reg <- 
+  list(
+    with_alpha =  
+      lm(I(Nv - vocab) ~
+           Nv +I(Nv^2) + 
+           Nd + I(Nd^2) + 
+           Nk + I(Nk^2) + 
+           doc_length + I(doc_length^2) + 
+           beta_sum + I(beta_sum^2) + 
+           alpha_sum + I(alpha_sum^2), data = dtm_metrics) |>
+      tidy() |>
+      mutate(alpha = "y"),
+    no_alpha = 
+      lm(I(Nv - vocab) ~
+           Nv +I(Nv^2) + 
+           Nd + I(Nd^2) + 
+           Nk + I(Nk^2) + 
+           doc_length + I(doc_length^2) + 
+           beta_sum + I(beta_sum^2), data = dtm_metrics) |>
+      tidy() |>
+      mutate(alpha = "n")
+  ) |>
+  bind_rows() |>
+  mutate(
+    term = case_when(
+      term == "Nv" ~ "V",
+      term == "I(Nv^2)" ~ "V-sq.",
+      term == "Nk" ~ "K",
+      term == "I(Nk^2)" ~ "K-sq.",
+      term == "Nd" ~ "D",
+      term == "I(Nd^2)" ~ "D-sq.",
+      term == "doc_length" ~ "Avg. Doc. Length",
+      term == "I(doc_length^2)" ~ "Avg. Doc. Length-sq.",
+      term == "beta_sum" ~ "Sum(eta)",
+      term == "I(beta_sum^2)" ~ "Sum(eta)-sq.",
+      term == "alpha_sum" ~ "Sum(alpha)",
+      term == "I(alpha_sum^2)" ~ "Sum(alpha)-sq.",
+      TRUE ~ term
+    )
+  )
+
+
+p7 <- heaps_reg |>
+  filter(alpha == "y" & term != "(Intercept)") |>
+  mutate(
+    ci_high = estimate + 1.96 * std.error,
+    ci_low = estimate - 1.96 * std.error
+  ) |>
+  mutate(
+    xlim_low = -1 * max(abs(c(ci_high, ci_low))),
+    xlim_high = max(abs(c(ci_high, ci_low)))
+  ) |>
+  ggplot() +
+  geom_bar(aes(x = estimate, y = term, fill = term), stat = "identity") +
+  geom_errorbar(aes(
+    y = term, 
+    xmin = ci_low, 
+    xmax = ci_high
+  )) + 
+  theme(legend.position = "none") +
+  scale_y_discrete(limits = rev) +
+  ylab("") + xlab("") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  theme(axis.text.y = element_blank()) +
+  ggtitle("V minus observed vocab")
+
+p8 <- heaps_reg |>
+  filter(alpha == "n" & term != "(Intercept)") |>
+  mutate(
+    ci_high = estimate + 1.96 * std.error,
+    ci_low = estimate - 1.96 * std.error
+  ) |>
+  mutate(
+    xlim_low = -1 * max(abs(c(ci_high, ci_low))),
+    xlim_high = max(abs(c(ci_high, ci_low)))
+  ) |>
+  ggplot() +
+  geom_bar(aes(x = estimate, y = term, fill = term), stat = "identity") +
+  geom_errorbar(aes(
+    y = term, 
+    xmin = ci_low, 
+    xmax = ci_high
+  )) + 
+  theme(legend.position = "none") +
+  scale_y_discrete(limits = rev) +
+  ylab("") + xlab("") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  theme(axis.text.y = element_blank()) +
+  ggtitle("V minus observed vocab")
+
+plot(
+  (p1 + p2 + p3 + p7) / 
+    (p4 + p5 + p6 + p8)+ 
+    plot_annotation(title = "Regressions with (top) and without (bottom) Sum(alpha)")
+)
+
+```
+
+The magnitude of $\boldsymbol\alpha$ has on the three Zipf variables appears to be negligible. In each case, the coefficient on $\sum_{k = 1} ^ K \alpha_k$ show a moderately-sized mean response on the outcome. However, in all three cases, the 95% confidence interval is extremely large. Removing both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$ does not lower the $R^2$ of any of the regressions, nor appreciably change the coefficients associated with other variables.
+
+The number of topics, $K$, is positively associated with the Zipf coefficient, $\gamma$, and negatively associated with the minimum frequency of words used to estimate the Zipf parameters. In other words, more topics is associated with a steeper slope of the Zipf curve in log-log space. And more topics is also associated with Zipf's law "falling" off for low frequency words deeper into the tail. In plain speech: a corpus with more topics seems to express Zipf's law more strongly.
+
+The magnitude of $\boldsymbol\eta$ has a similar relationship as $K$ to $\gamma$ and the minimum frequency of words used to estimate the Zipf parameters. In other words, Having topics that are more highly correlated with each other (tuned by the magnitude of $\boldsymbol\eta$) is associated with a corpus expressing Zipf's law more strongly.
+
+The Zipf constant, $C$, is most strongly associated by the total volume of words in a corpus. The total volum of words in a corpus is the average context length multipled by the total number of contexts (i.e., Avg. Doc Length times $D$). In a separate regression not reported here, the average context length and number of contexts alone account for 95% of the variance in $\log_{10} C$. This makes intuitive sense as $C$ acts only to scale Zipf's law to the corpus on which it is applied.
+
+Interestingly, the number of unique words in a corpus, $V$, does not appear to have a strong correlation to Zipf's law.
+
+Heaps's law describes the relationship between the total number of words in a corpus and the size of the vocabulary. It is an increasing power law with a slope that gets flatter as the total number of words increases. In the context of a simulated corpus, it is related to the difference between the total size of the lexicon available to the DGP, $V$, and the total number of unique words observed. If every word is sampled at least once, then the number of observed words equals $V$. However, under Zipf's law it is more likely that the total number of observed words will be less than $V$. Figure \@ref(fig:heaps-reg) 
+
+
+
+
 ### Describing LDA Model Misspecification
+
+blah
 
 ```{r model-plots, fig.cap = "this is my caption", fig.width = 7, fig.height = 5}
 t_tests <- read_rds("data-derived/zipf-analysis/model-t-tests.rds")
@@ -319,7 +733,7 @@ geweke_plot <-
 
 pw <- 
   (ll_plot + r2_plot + plot_spacer() + 
-  mean_coherence_plot + mean_prevalence_plot + geweke_plot) +
+     mean_coherence_plot + mean_prevalence_plot + geweke_plot) +
   plot_annotation(title = "Mean Differences") 
 
 plot(pw)
