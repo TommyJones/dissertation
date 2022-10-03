@@ -87,7 +87,7 @@ The relationship in \@ref(eq:zipf) also implies that one can estimate the shape 
 
 \begin{align}
 \mathbb{E}(w_v) &=
-N \frac{\eta_v}{\sum_{v = 1} ^ V eta_v} =
+N \frac{\eta_v}{\sum_{v = 1} ^ V \eta_v} =
 C \cdot r_v ^{-\gamma}
 \end{align}
 
