@@ -1,4 +1,4 @@
-# Linking Zipf's law to the LDA-DGP {#ldadgp}
+# Linking Zipf's law to the LDA-DGP for Simulation Studies {#ldadgp}
 
 LDA is a latent variable model and, as a result, it can be challenging to study. No ground truth exists against which to compare models and methods. Selecting hyper parameters when building models is notoriously difficult as little formal guidance exists to guide a researcher's choices. Lack of ground truth complicates development of new metrics and methods. How is one to know if a new method is an improvement or a new metric insightful?
 
@@ -18,7 +18,7 @@ Work related to studying the LDA-DGP pulls from two seemingly disparate fields: 
 
 ### Simulation Studies for LDA
 
-Synthetic corpora appear commonly in topic modeling research. Shi et al. [@shi2019eval] list 14 works using synthetic corpora to study topic models. (See Table S3 in [@shi2019eval].) Most use some flavor of the LDA-DGP and focus on only one or two aspects of comparison between model and ground truth in the synthetic data set. Boyd-Graber, Hu, and Mimno suggest the use of semi-synthetic data---i.e., drawing simulations from the posterior---to capture properties of natural language [@boydgraber2017applications]. I am unaware of any work linking empirical laws of language to the LDA-DGP. Shi et al. link their simulation method to Zipf's law but it does not use the LDA-DGP to produce its simulations [@shi2019eval; @shi2019thesis]. 
+Synthetic corpora appear commonly in topic modeling research. Shi et al. [@shi2019eval] list 14 works using synthetic corpora to study topic models. (See Table S3 in [@shi2019eval].) Most use some flavor of the LDA-DGP and focus on only one or two aspects of comparison between model and ground truth in the synthetic data set. Boyd-Graber, Hu, and Mimno suggest the use of semi-synthetic data---i.e., drawing simulations from the posterior of LDA models fit on real-world data---to capture properties of natural language [@boydgraber2017applications]. I am unaware of any work linking empirical laws of language to the LDA-DGP. Shi et al. link their simulation method to Zipf's law but it does not use the LDA-DGP to produce its simulations [@shi2019eval; @shi2019thesis]. 
 
 Shi et al. go further than others and argue that use of synthetic corpora is "a principled approach" to evaluating topic models [@shi2019eval; @shi2019thesis]. Their approach does reproduce Zipf's law of language. Yet it does not use the LDA-DGP. It may represent a principled approach to studying probabilistic topic models with simulated data, but it is a parallel path to the one in this chapter. Using the LDA-DGP specifically allows for stronger statements related to pathological misspecification of LDA models. e.g., "Under the true model, then I would expect to see outcome A. Instead I see outcome B. Therefore, my model must be misspecified."[^linearanalogue] 
 
@@ -63,9 +63,9 @@ Assuming there are $D$ contexts, $K$ topics, $V$ unique words, $N$ total words a
 1. Generate $\boldsymbol{B}$ by sampling $K$ topics $\boldsymbol\beta_k \sim \text{Dirichlet}(\boldsymbol\eta), \forall k \in \{1,2,...,K\}$
 2. Generate $\boldsymbol\Theta$ by sampling $D$ documents $\boldsymbol\theta_d \sim \text{Dirichlet}(\boldsymbol\alpha), \forall d \in \{1,2, ..., D\}$
 3. Then for each context, $d$
-1. Draw topic $z_{d,n}$ from $\text{Multinomial}(\boldsymbol\theta_d)$
-2. Draw word $w_{d,n}$ from $\text{Multinomial}(\boldsymbol\beta_{z_{d,n}})$
-3. Repeat 1. and 2. $N_d$ times.
+    1. Draw topic $z_{d,n}$ from $\text{Multinomial}(\boldsymbol\theta_d)$
+    2. Draw word $w_{d,n}$ from $\text{Multinomial}(\boldsymbol\beta_{z_{d,n}})$
+4. Repeat 1. and 2. $N_d$ times.
 
 Note that context $d$ has $N_d$ words $\forall d \in \{1, 2, ..., D\}$ and that the total number of words in the corpus is $N = \sum_{d=1}^D N_d$.
 
@@ -79,7 +79,7 @@ N \frac{\eta_v}{\sum_{v = 1}^V \eta_v} \label{eq:zipf}
 
 where $w_v$ is the total number of times word $v$ was sampled across all $D$ contexts.
 
-\@ref(eq:zipf) implies that the relative frequencies of words $i$ and $j$ are given by their ranks in a power law relationship. In other words, the shape of $\boldsymbol\eta$ is a power law, given by Zipf's law. No elements of $\boldsymbol\alpha$ appear in \@ref(eq:zipf). As shown in Appendix 3, the $\alpha_i$'s sum and factor out of the derivation. This makes some intuitive sense. An author can theoretically write an entire corpus of documents about only one topic or an author may write a corpus of documents with an even distribution of topics. In either case the aggregate word frequencies must follow Zipf's law.
+Equation \@ref(eq:zipf) implies that the relative frequencies of words $i$ and $j$ are given by their ranks in a power law relationship. In other words, the shape of $\boldsymbol\eta$ is a power law, given by Zipf's law. No elements of $\boldsymbol\alpha$ appear in \@ref(eq:zipf). As shown in Appendix 3, the $\alpha_i$'s sum and factor out of the derivation. This makes some intuitive sense. An author can theoretically write an entire corpus of documents about only one topic or an author may write a corpus of documents with an even distribution of topics. In either case the aggregate word frequencies must follow Zipf's law.
 
 This result is consistent with the framework laid out by Goldwater et al. [@goldwater2011zipf]. The Dirichlet multinomial model - of which LDA is an application - is a special case of their framework. In this framework, the Dirichlet prior has a parameter following a power law. They did not put this in the specific form of LDA, however, as is done in this paper. Using this specification of the Dirichlet multinomial it is now possible to generate corpora with the statistical properties of natural language within an LDA framework. This facilitates exploring the properties of LDA under different conditions and the development of metrics aiding in model specification and post-estimation diagnostics. 
 
@@ -99,7 +99,7 @@ $C$ and $\gamma$ may be estimated from data and $r_v$, the rank of word $v$, is 
 
 What still remains is for a researcher to specify the magnitude of $\boldsymbol\eta$, in other words $\sum_{v=1}^V \eta_v$, and of course $\boldsymbol\alpha$ and the number of topics, $K$. The empirical evidence for specifying $\boldsymbol\eta$ as a power law rather than a flat prior is explored, though not resoved, in section 3.4.3.
 
-```{r compare-hypers, fig.cap = "Frequency vs. rank curves plotted in log-log space for several synthetic corpora and one real corpus. Only when $\\boldsymbol\\eta$ is proportional to a power law do we see Zipf's law in synthetic corpora.", fig.width = 7, fig.height = 2.5}
+```{r compare-hypers, fig.cap = "Frequency vs. rank curves plotted in log-log space for several synthetic corpora and one real corpus. The leftmost chart plots both a power law and symmetric $\\boldsymbol\\alpha$ with a symmetric $\\boldsymbol\\eta$. The center chart plots both a power law and symmetric $\\boldsymbol\\alpha$ with a power law $\\boldsymbol\\eta$. The rightmost chart plots real data from the NIH corpus against a power law $\\boldsymbol\\alpha$ and power law $\\boldsymbol\\eta$. Only when $\\boldsymbol\\eta$ is proportional to a power law do we see Zipf's law in synthetic corpora.", fig.width = 7, fig.height = 2.5}
 
 library(tidyverse)
 library(patchwork)
@@ -141,7 +141,7 @@ p3 <- nih_plotmat |> ggplot() +
   ggtitle("NIH Corpus")
 
 
-plot(p1 + p2 + p3)
+plot(p1 + p2 + p3, common.legend = TRUE, legend="bottom")
 
 ```
 
@@ -180,7 +180,7 @@ Heaps's law describes the relationship between the total number of words in a co
 Figure \@ref(fig:dtm-hist) below plots histograms of the Zipf coefficient, $\gamma$, Zipf constant, $C$, minimum word frequency used to estimate the Zipf parameters, and the difference between the total vocabulary size and observed vocabulary size. The leftmost histogram for $\gamma$ has a dashed line at $\gamma = 1.07$, which was used to seed each of the simulations. The Zipf constant and minimum used word frequency are presented on a log scale. All four demonstrate variability and the downward bias of the estimated Zipf coefficient over the seeded value is apparent.
 
 
-```{r dtm-hist, fig.cap = "this is a caption", fig.width = 7, fig.height = 2.5}
+```{r dtm-hist, fig.cap = "Histograms of the Zipf coefficient, $\\gamma$, Zipf constant, $C$, minimum word frequency used to estimate the Zipf parameters, and the difference between the total vocabulary size and observed vocabulary size. The Zipf constant and minimum used word frequency are presented on a log scale.", fig.width = 7, fig.height = 2.5}
 
 dtm_metrics <- read_rds("data-derived/zipf-analysis/dtm-metrics.rds")
 
