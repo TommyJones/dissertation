@@ -28,6 +28,7 @@ output:
     number_sections: true
     toc: true
     toc_depth: 2
+    # template: GMU_dissertation_template.tex
   bookdown::html_document2:
     toc: true
     keep_md: yes
