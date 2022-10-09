@@ -174,7 +174,7 @@ Each data set is drawn from a model with a unique combination of the following h
 
 1. $\sum_{v=1} ^ V \eta_v \in \{50, 250, 500, 1000\}$
 2. $\sum_{k = 1} ^ K \alpha_k \in \{0.5, 1, 3, 5\}$
-3. $N_d \sim \text{Poi}(\lambda)$ where $\lambda \in \{50, 100, 200, 400\}$
+3. $N_d \sim \text{Pois}(\lambda)$ where $\lambda \in \{50, 100, 200, 400\}$
 4. $V \in \{1000, 5000, 10000, 20000\}$
 5. $D \in \{500, 1000, 2000, 4000\}$
 6. $K \in \{25, 50, 100, 200\}$

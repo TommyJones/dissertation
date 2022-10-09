@@ -1,7 +1,7 @@
 # Fine Tuning Latent Dirichlet Allocation for Transfer Learning {#transfer}
 As stated in Section 1, properties of language make the fine tuning paradigm of transfer learning attractive for statistical analyses of corpora. The pervasiveness of power laws in language---the most famous example of which is Zipf's law [@zipf1949]---mean that we can expect just about any corpus of language to not contain information relevant to the analysis. (i.e., Linguistic information necessary for understanding the corpus of study would be contained in a super set of language around---but not contained in---said corpus.) Intuitively, humans approach corpus analytics in a way that on its surface appears consistent with fine tuning transfer learning. Humans have general competence in a language before consulting a corpus to learn a new subject---or even just to have human analysis of the corpus. Also as stated in Section 1, LDA has attractive properties as a model for statistical analyses of corpora. Its very nature allows us to use probability theory to guide model specification and quantify uncertainty around claims made with the model. 
 
-This chapter introduces _tLDA_, short for transfer-LDA. tLDA enables use cases for fine-tuning from a base model with a single incremental update (i.e., "fine tuning") or with many incremental updates---e.g., on-line learning, possibly in a time-series context---using Latent Dirichlet Allocation. tLDA uses collapsed Gibbs sampling [@griffiths2004scientific] but its methods should extend to other MCMC methods [@yao2009streaming][@lightlda][@yahoolda][@chen2015warplda]. tLDA is available for the R language for statistical computing [@rlang] in the _tidylda_ package [@tidylda].
+This chapter introduces _tLDA_, short for transfer-LDA. tLDA enables use cases for fine-tuning from a base model with a single incremental update (i.e., "fine tuning") or with many incremental updates---e.g., on-line learning, possibly in a time-series context---using Latent Dirichlet Allocation. tLDA uses collapsed Gibbs sampling [@griffiths2004scientific] but its methods should extend to other MCMC methods [@yao2009streaming] [@lightlda] [@yahoolda] [@chen2015warplda]. tLDA is available for the R language for statistical computing [@rlang] in the _tidylda_ package [@tidylda].
 
 ## Related Work
 
@@ -34,7 +34,7 @@ w_{d_{n}}|z_{k},\boldsymbol\beta_k^{(t)} &\sim
 The above indicates that tLDA places a matrix prior for words over topics where $\eta_{k, v}^{(t)} = \omega_{k}^{(t)} \cdot \mathbb{E}\left[\beta_{k,v}^{(t-1)}\right] = \omega_{k}^{(t)} \cdot \frac{Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)}}{\sum_{v=1}^V Cv_{k,v}^{(t-1)}}$. Because the posterior at time $t$ depends only on data at time $t$ and the state of the model at time $t-1$, tLDA models retain the Markov property.
 
 #### Selecting the prior weight
-Each $\omega_k^{(t)}$ tunes the relative weight between the base model (as prior) and new data in the posterior for each topic. This specification introduces $K$ new tuning parameters and setting $\omega_k^{(t)}$ directly is possible but not intuitive. Yet introducing a new parameter and performing some algebra collapses these $K$ tuning parameters into a single parameter with several intutive critical values. This tuning parameter, $a^{(t)}$, is related to each $\omega_k^{(t)}$ as follows:
+Each $\omega_k^{(t)}$ tunes the relative weight between the base model (as prior) and new data in the posterior for each topic. This specification introduces $K$ new tuning parameters and setting $\omega_k^{(t)}$ directly is possible but not intuitive. However, after introducing a new parameter, we can algebraically show that the $K$ tuning parameters collapse into a single parameter with several intuitive critical values. This tuning parameter, $a^{(t)}$, is related to each $\omega_k^{(t)}$ as follows:
 
 \begin{align}
 \omega_k^{(t)} &=
@@ -86,7 +86,7 @@ After a single iteration, the number of times each topic was sampled at each doc
 To evaluate tLDA, I conduct two simulation experiments and an analysis on a real-world data set. The simulation experiments evaluate the degree to which tLDA converges towards a ground truth data generating distribution. The real-world data analysis constructs time series of topics from a data set of Small Business Innovation Research (SBIR) grant abstracts from 1983 to 2021.
 
 ### Simulation Analysis
-Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall i,j \geq 0, i \neq j$, and (2) if $a \geq 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyperparameters for any LDA model remains an open problem. Yet I hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
+Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall\ i,j \geq 0, i \neq j$, and (2) if $a \geq 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyperparameters for any LDA model remains an open problem. Yet I hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
 
 To test the above, I conduct two simulation experiments. I generate topics by drawing from 128 data generating distributions. Then for each data generating distribution, I sample 100 corpora of 100 contexts each. I fit a model on the first 100 contexts of the data and iteratively add the remaining 100 contexts at a time, fine tuning at each stage, with values of $a$ ranging from $0.2$ to $2$. The experiments are described in more detail in the below sections.
 
@@ -94,13 +94,13 @@ On average, models converge towards the true topics of the data generating proce
 
 #### Synthetic Data Generation
 
-I assume that the total vocabulary size, $V$, and number of topics, $K$, are fixed with value of $5,000$ and $25$ respectively. I further assume that $\boldsymbol\alpha$ is flat (symmetric) and that $\boldsymbol\eta$ is proportional to a power law (asymmetric) to account for Zipf's law (cite). I vary the magnitudes of $\boldsymbol\alpha$ and $\boldsymbol\eta$ and vary the number of words sampled in each context.
+I assume that the total vocabulary size, $V$, and number of topics, $K$, are fixed with value of $5,000$ and $25$ respectively. I further assume that $\boldsymbol\alpha$ is flat (symmetric) and that $\boldsymbol\eta$ is proportional to a power law (asymmetric) to account for Zipf's law [@zipf1949]. I vary the magnitudes of $\boldsymbol\alpha$ and $\boldsymbol\eta$ and vary the number of words sampled in each context.
 
 Specifically, I chose the following:
 
 1. $\left(\sum_{v=1}^V \eta_v \right) \in \{50, 100, 200, 400\}$
 2. $\left(\sum_{k=1}^K \alpha_k \right) \in \{0.5, 1, 3, 5\}$
-3. $N_d \sim \text{Poi}(\lambda)$ where $\lambda \in \{50, 100, 200, 400\}$
+3. $N_d \sim \text{Pois}(\lambda)$ where $\lambda \in \{50, 100, 200, 400\}$
 4. $V = 5,000$ and $K = 25$
 
 The above creates 64 unique sets of hyper parameters. From each, I generate two sets of population statistics, $\left\{ \boldsymbol\Theta, \boldsymbol{B} \right\}$, leaving 128 unique sets of population parameters to parametarize the generation process described in Section 1.1. From each of these sets of population parameters, $i$, 100 word count matrices, $\boldsymbol{X}_i^{(t)}$, with 100 contexts each are sampled.
@@ -113,7 +113,7 @@ I fit a total of 128,000 LDA models to the simulated data. For each of the 128 u
 
 In each case, the base model was fit with $K = 30$ topics, and commonly-used flat priors with $\alpha_k = 0.05$ and $\eta_v = 0.01$. The Gibbs sampler runs for 200 iterations. Posterior estimates are taken averaging over the last 50 iterations. Subsequent models are fine tuned with an additional 200 iterations with posterior estimates averaged over the last 50 and $a$ set as described above.
 
-I fit more topics than in the population data for two reasons. First, it's unrealistic that a researcher will know the right number of topics a-priori. (In real data a true number does not even exist.) Second, fitting a fewer number of topics than is in the population would lead to a pathologically-mispecified model regardless of other choices. 
+I fit more topics than in the population data for two reasons. First, it's unrealistic that a researcher will know the right number of topics a-priori, and in practice a true number likely does not exist. Second, fitting a fewer number of topics than is in the population would lead to a pathologically-mispecified model regardless of other choices. 
 
 #### Evaluation Method
 
@@ -122,7 +122,7 @@ I base the analysis on calculations from the pairwise Hellinger distance [@helli
 \begin{align}
 H(\hat{\boldsymbol\beta}_k^{(t)},\boldsymbol\beta_{\mathfrak{k}}) &=
 \sqrt{\frac{1}{2} 
-\sum_{v=1}^V (\sqrt{\hat{\beta}_{k,v}^{(t)}} - \sqrt{\beta_{\mathfrak{k},v}}) ^ 2}
+\sum_{v=1}^V \left(\sqrt{\hat{\beta}_{k,v}^{(t)}} - \sqrt{\beta_{\mathfrak{k},v}}\right) ^ 2}
 \end{align}
 
 Note that it is not necessarily true that $k = \mathfrak{k}$ for any pair of topics. For simplicity, I denote the above $H_{k,\mathfrak{k}}^{(t)}$ and its derivative with respect to $t$ as $H_{k,\mathfrak{k}}^{'(t)}$.
@@ -130,24 +130,24 @@ Note that it is not necessarily true that $k = \mathfrak{k}$ for any pair of top
 From a theoretical perspective, the following should be true:
 \begin{align}
     & \text{If } \hat{\boldsymbol\beta}_k^{(t)} 
-      \text{ converges towards a stable posterior, then }
+      \text{ converges in probability towards a stable posterior, then }
       \underset{t \to \infty}{\lim} 
       H_{k,\mathfrak{k}}^{'(t)} = 0 \label{eq:1} \\
-    & \text{If } \hat{\boldsymbol\beta}_k^{(t)} \text{ converges to }
+    & \text{If } \hat{\boldsymbol\beta}_k^{(t)} \text{ converges in probability to }
       \boldsymbol\beta_{\mathfrak{k}} \text{, then (\ref{eq:1}) holds and }
       \underset{t \to \infty}{\lim}
       H_{k,\mathfrak{k}}^{(t)} = 0 \label{eq:2}
 \end{align}
 
-By extension of (\ref{eq:1}), if a whole model converges to a stable posterior, then $\underset{t \to \infty}{\lim} \sum_{k=1}^K H_{k,\mathfrak{k}}^{'(t)} = 0$. Note that converging to a stable posterior does not mean that the model converged towards the true topics of the data generating distribution. If (\ref{eq:2}) holds, then that also implies that $\hat{\boldsymbol\beta}_k^{(t)}$ is a consistent estimator of $\boldsymbol\beta_{\mathfrak{k}}$. This is unlikely to be true as an imperfect specification of $\boldsymbol\alpha$ and $\boldsymbol\eta$ mean that $H_{k,\mathfrak{k}}^{(t)}$ will always be positive. However, if $\hat{\boldsymbol\beta}_k^{(t)}$ is heading *towards* $\boldsymbol\beta_{\mathfrak{k}}$, then $H_{k,\mathfrak{k}}^{'(t)} < 0$ as it approaches its limit. I approximate $H_{k,\mathfrak{k}}^{'(t)}$ by $H_{k,\mathfrak{k}}^{(t)} - H_{k,\mathfrak{k}}^{(t - 1)}$, normalized by $H_{k,\mathfrak{k}}^{(0)}$. 
+By extension of (\ref{eq:1}), if a whole model converges in probability to a stable posterior, then $\underset{t \to \infty}{\lim} \sum_{k=1}^K H_{k,\mathfrak{k}}^{'(t)} = 0$.  If (\ref{eq:2}) holds, then that also implies that $\hat{\boldsymbol\beta}_k^{(t)}$ is a consistent estimator of $\boldsymbol\beta_{\mathfrak{k}}$. This is unlikely to be true as an imperfect specification of $\boldsymbol\alpha$ and $\boldsymbol\eta$ mean that $H_{k,\mathfrak{k}}^{(t)}$ will always be positive. However, if $\hat{\boldsymbol\beta}_k^{(t)}$ is heading *towards* $\boldsymbol\beta_{\mathfrak{k}}$, then $H_{k,\mathfrak{k}}^{'(t)} < 0$ as it approaches its limit. I approximate $H_{k,\mathfrak{k}}^{'(t)}$ by $H_{k,\mathfrak{k}}^{(t)} - H_{k,\mathfrak{k}}^{(t - 1)}$, normalized by $H_{k,\mathfrak{k}}^{(0)}$. 
 
-Convergence is assessed in a two step process, first assessing the convergence of each estimated topic and then assessing the convergence of the model as a whole. To assess the convergence of a topic, I perform a t-test on the last 20 periods of $H_{k,\mathfrak{k}}^{'(t)}$, with a null hypothesis of the mean being unequal to zero at the 0.05 significance level. If I reject the null, I consider a topic's estimate to have converged. 
+Assessing (\ref{eq:1}) is a two step process, first assessing the convergence of each estimated topic and then assessing the convergence of the model as a whole. To assess the convergence of a topic, I perform a t-test on the last 20 periods of $H_{k,\mathfrak{k}}^{'(t)}$, with a null hypothesis of the mean being unequal to zero at the 0.05 significance level. If I reject the null, I consider a topic's estimate to have converged. If the null is true for all topics, we'd still expect a 5% rejection rate by random chance.
 
-The second step corrects for multiple tests and assesses the convergence of the model as a whole. Under a hull hypothesis that we'd consider 5% of topics to have converged by random chance, I perform a binomial test. A model has converged if I reject the null that the rejection rate above is less than or equal to 5%.
+The second step corrects for multiple tests and assesses the convergence of the model as a whole. I perform a binomial test on the proportion of topics whose null hypothesis is rejected in the first step. Specifically, I test the null hypothesis that the true probability of rejection in step one is less than or equal to 5%. The binomial test is also done at the 0.05 significance level.
 
 Logistic regression is used to analyze which factors lead to model convergence or divergence. I use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is a binary for the model having converged or not.
 
-Whether or not the model converges towards the data generating distribution is assessed in a similar two step process. A topic converges towards the true generating distribution if the average slope of $H_{k,\mathfrak{k}}^{(t)}$ is negative, $\mathfrak{k}$ indexes the topic closest to $k$, averaging over the last. After discarding the first two periods, a t-test with a null hypothesis that the average of $H_{k,\mathfrak{k}}^{'(t)}$ from periods 3 to 100 is greater than zero. The whole model is considered to have converged towards the true data generating distribution using a binomial test, as above. Only models considered to have converged, above, are considered.
+Assessing whether or not the model converges towards the data generating distribution---i.e., assessing (\ref{eq:2})---is a similar two step process. A topic converges in probability towards the true generating distribution if the average slope of $H_{k,\mathfrak{k}}^{(t)}$ is negative, $\mathfrak{k}$ indexes the topic closest to $k$, averaging over the last. After discarding the first two periods, a t-test with a null hypothesis that the average of $H_{k,\mathfrak{k}}^{'(t)}$ from periods 3 to 100 is greater than zero. The whole model is considered to have converged towards the true data generating distribution using a binomial test, as above. Only models considered to have converged, using the procedure defined above, are considered.
 
 Linear regression is used to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. I use the hyper parameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
 
@@ -172,16 +172,17 @@ Models where $a < 0.8$ almost never converge; 384 out of 385 such models diverge
 ```{r tlda-boxplot, fig.width = 5, fig.height = 3, fig.cap = "Boxplot of the p-values assessing convergence for each value of $a$. Below $a = 0.8$ almost all p-values are near one. Above $a = 0.8$ almost all p-values are near zero, with a few exceptions. But at $a = 0.8$ there is high variance in the p-values assessing model convergence."}
 
 bin_table %>%
-  ggplot(aes(x = a, y = bin_test_p)) + 
+  ggplot(aes(x = factor(a), y = bin_test_p)) + 
   geom_boxplot(aes(fill = factor(a)), position = position_dodge()) + 
   theme(legend.position = "none") + 
-  ylab("P-value of Binomial test") + 
+  ylab("P-value of Binomial test") +
+  xlab("a") + 
   ggtitle("") # "Figure [x]: Structural break in convergence for a = 0.8"
 
 ```
 
 
-Table \@ref(tab:bin-reg-table) contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratics. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $*** \equiv p \leq 0.01$, $** \equiv  p \leq 0.05$, and $* \equiv  p \leq 0.1$.
+Table \@ref(tab:bin-reg-table) contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratic effects. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $*** \equiv p \leq 0.01$, $** \equiv  p \leq 0.05$, and $* \equiv  p \leq 0.1$.
 
 In all cases, $a$ has the most substantial impact on the outcome. If $a$ is too small, a chain of models is unlikely to converge and if $a$ is too large the chain will converge far from the true data generating topics. As $a$ increases, the probability of a model converging also increases, albeit with decreasing returns as indicated by the decreasing quadratic. Intuitively, larger values of $a$ decrease the variance between models in a chain leading to faster convergence. Yet of the models that converge, $a$ increases the distance of the fitted topics to their matches in the data generating distribution, again with decreasing returns.
 
@@ -314,7 +315,7 @@ knitr::kable(
 ```
 
 ### Emperical Analysis
-The simulations above examines the properties of tLDA when fine tuning is performed by adding data from the same generating distribution. While helpful for isolating effects, the real world is far messier. This section demonstrates tLDA for topic discovery on real data in a time series context. The analysis consists of two parts: exploring the aggregate effect of varying values of $a$ on the model chains and a more detailed exploration of the model chain when $a = 0.8$.
+The simulations above examines the properties of tLDA when fine tuning is performed by adding data from the same generating distribution. Simulations are helpful for isolating effects, but the real world data is far messier. This section demonstrates tLDA for topic discovery on real data in a time series context. The analysis consists of two parts: exploring the aggregate effect of varying values of $a$ on the model chains and a more detailed exploration of the model chain when $a = 0.8$.
 
 #### Data Description
 The dataset consists of 188,554 titles and abstracts of Small Business Innovation Research (SBIR) and Small Business Technology Transfer (STTR) research grants awarded from 1983 to 2021. The SBIR and STTR programs provide grants to small businesses to encourage them to participate in US federal government research programs. The dataset grows from 785 grants in 1983 to an average of 6,377 per year from 2001 to 2020. Only 815 grants had been published for 2021 at the time the dataset was downloaded. After applying common preprocessing steps (described below) the dataset contained 92,196 unique words across all years. 
@@ -342,7 +343,7 @@ model_metrics <- read_rds("data-derived/tlda-sbir/model-metrics.rds")
 
 For each value of $a$, a chain of 39 models is produced. The first model in the chain has 100 topics and the last has 138. The analysis focuses on four key statistics: $R^2$, log likelihood, probabilistic coherence (see Appendix 5)---or just "coherence"---averaged over all topics, and the Hellinger distance of each topic at time $t$ to itself at time $t-1$ averaged across all topics. $R^2$ and the log likelihood are model-wide goodness-of-fit metrics. Coherence is a proxy for human interpretability. And mean Hellinger distance measures how much the estimated topics change from year to year. 
 
-Figure \@ref(fig:sbir-vary-a-1) plots these four statistics for each value of $a$ over time. A clear pattern appears for mean Hellinger distance but not for other statistics. Mean Hellinger distance is highest when $a$ is smallest and decrease as $a$ grows. This is consistent with expectation. When $a$ is small, the prior has less weight in the posterior and the data has more. This will lead to a posterior that changes significantly period to period as it is more-strongly shaped by the data. 
+Figure \@ref(fig:sbir-vary-a-1) plots these four statistics for each value of $a$ over time. A clear pattern appears for mean Hellinger distance but not for other statistics. Mean Hellinger distance is highest when $a$ is smallest and decrease as $a$ grows, consistent with expectation. When $a$ is small, the prior has less weight in the posterior than the data. This results in a posterior that changes significantly period to period as it is more-strongly shaped by that period's data. 
 
 ```{r sbir-vary-a-1, fig.width = 7, fig.height = 4, fig.cap = "Plotted over time, mean Hellinger distance has a clear pattern consistent with expectation. Higher values of $a$ put more mass on the prior, leading to less change year-to-year. The pattern is harder to see for $R^2$, coherence, and log likelihood."}
 
@@ -398,7 +399,9 @@ plot(p1 + p2 + p3 + p4 + plot_layout(guides = "collect"))
 ```
 
 
-Figure \@ref(fig:sbir-vary-a-2) plots the average of each statistic over all years. The pattern for mean Hellinger distance is the same and the patterns for other statistics are now clearer. Log likelihood and $R^2$ are also highest for low values of $a$ and decrease as $a$ increases. Yet over $a = 0.4$ to $a = 0.8$ the difference is extremely subtle. The pattern for coherence is curious. Coherence is maximized when $a = 0.8$. Referring back to Figure \@ref(fig:sbir-vary-a-1), the lines cross each other repeatedly year over year. Based on the peak of coherence and the fact that $R^2$ and log likelihood are still near their peaks, the model where $a = 0.8$ is chosen for deeper analysis.
+Figure \@ref(fig:sbir-vary-a-2) plots the average of each statistic over all years. The pattern for mean Hellinger distance is the same and the patterns for other statistics are now clearer. Log likelihood and $R^2$ are also highest for low values of $a$ and decrease as $a$ increases. Yet over $a = 0.4$ to $a = 0.8$ the difference is extremely subtle. The pattern for coherence is somewhat surprising. That coherence is maximized when a = 0.8 may suggest the importance of this value. Further study is warranted on the optimal choice of $a$.
+
+Based on the peak of coherence and the fact that $R^2$ and log likelihood are still near their peaks when $a = 0.8$, I choose the model where $a = 0.8$ for deeper analysis.
 
 ```{r sbir-vary-a-2, fig.width = 7, fig.height = 4, fig.cap = "Averaging over all years, the patterns for each statistic are clearer. $R^2$ and log likelihood are decreasing functions of $a$, but for values less than $a = 1$, differences are very small. Coherence reaches a small peak at $a = 0.8$. Mean Hellinger distance is also a decreasing function of $a$ as expected."}
 
@@ -504,7 +507,7 @@ plot(p1 + p2 + plot_layout(ncol = 1))
 
 Both show a similar patter. The initial value of the statistic in 1983 is the largest. The statistic then quickly drops off and remains more or less flat over the remainder of the series. I hypothesize that this is due to two factors: the relative effects of the prior and data on the posterior and the fact that $R2$ and probabilistic coherence are comparisons of the posterior to the data, disregarding the prior. The initial model has a flat and small prior, its relative weight in the posterior is small compared to the words.[^notactuallysmalltho] But because $a = 0.8$, there is more weight on the prior, relative to the data, as time goes by. The end result is that posterior contains a significant amount of information not in the data at any time period.
 
-[^notactuallysmalltho]: This isn't to say that the prior is non-informative! The non-informative Dirichlet prior would have $\eta_k = 1$ or $\eta_k = \frac{1}{2}, \forall k$.
+[^notactuallysmalltho]: Note that this does not imply the prior is non-informative as the non-informative Dirichlet prior would have $\eta_k = 1$ or $\eta_k = \frac{1}{2}, \forall k$.
 
 I also examine changes in individual topics over time. To showcase one example, Figure \@ref(fig:sbir-deep-2) contains two charts for topic 24. The top chart plots changes in the top 5 words. As the mix of words in the top 5 changes, some lines drop off and new lines emerge. The top 5 words are labeled at the first period where a topic emerges (1983 for topic 24) and in the final period, 2021. The bottom chart plots a topic's prevalence over time using the actual statistic in black and blue loess line with a corresponding shaded interval. The calculation for prevalence is in \@ref(eq:prevalence), below.
 
@@ -690,11 +693,11 @@ plot(p1 / p2)
 
 tLDA supports several transfer learning use cases. Using simulated and real-world data, I show some properties of the tuning parameter $a$ on models using tLDA. I leave exploration of using tLDA to encode expert input for future work. In principle this would require encoding expert judgement into a matrix prior $\boldsymbol\eta$. 
 
-One other area I leave for future study is using tLDA to build large pre-trained language models, as is common with deep learning transformers like BERT and the GPT family. This is similarly possible in principle. Ideally, an implementation of tLDA based on a more scaleable algorithm than Gibbs would be used to maximize data throughput over time. 
+One other area I leave for future study is using tLDA to build large pre-trained language models, as is common with deep learning transformers like BERT and the GPT family. This is similarly possible in principle. However, the Gibbs algorithm used for this paper makes building such large models computationally infeasible. However, existing algorithms for scaling LDA estimates to "web-scale" data such as [@chen2015warplda] can be used to implement tLDA.
 
 Empirical studies here show that tLDA should converge if $a \geq 1$. The simulations showed this when fine tuning on more data drawn from the same distribution. The real-world data analysis still showed signs of convergence for large $a$ even though the generating distributions are presumed to be different over time. 
 
-Values of $a$ around 0.8 emerge as a critical zone in all analyses. $a = 1$ has the most intuitive interpretation---that each word in the previous data set(s) has the same weight as each word in the current data set. Yet it appears there is more fruitful work to be done in determining when it's best to have slight recency bias versus equal footing between base model and training set.
+Values of $a$ around 0.8 emerge as a critical zone in all analyses. However, $a = 1$ has the most intuitive interpretation---that each word in the previous data set(s) has the same weight as each word in the current data set. Yet it appears there is more fruitful work to be done in determining when it's best to have slight recency bias versus equal footing between base model and training set.
 
 tLDA is implemented in _tidylda_ for the R language, described in more detail in Chapter 6, next.
 
