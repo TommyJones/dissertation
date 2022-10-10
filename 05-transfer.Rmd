@@ -1,5 +1,7 @@
 # Fine Tuning Latent Dirichlet Allocation for Transfer Learning {#transfer}
-As stated in Section 1, properties of language make the fine tuning paradigm of transfer learning attractive for statistical analyses of corpora. The pervasiveness of power laws in language---the most famous example of which is Zipf's law [@zipf1949]---mean that we can expect just about any corpus of language to not contain information relevant to the analysis. (i.e., Linguistic information necessary for understanding the corpus of study would be contained in a super set of language around---but not contained in---said corpus.) Intuitively, humans approach corpus analytics in a way that on its surface appears consistent with fine tuning transfer learning. Humans have general competence in a language before consulting a corpus to learn a new subject---or even just to have human analysis of the corpus. Also as stated in Section 1, LDA has attractive properties as a model for statistical analyses of corpora. Its very nature allows us to use probability theory to guide model specification and quantify uncertainty around claims made with the model. 
+As stated in Section 1, statistical properties of language make the fine tuning paradigm of transfer learning attractive for analyses of corpora. The pervasiveness of power laws in language---the most famous example of which is Zipf's law [@zipf1949]---mean that we can expect just about any corpus of language to not contain information relevant to the analysis. (i.e., Linguistic information necessary for understanding the corpus of study would be contained in a super set of language around---but not contained in---said corpus.) 
+
+Intuitively, when people learn a new subject from by reading, they do it in a way that on its surface appears consistent with fine tuning transfer learning. Humans have general competence in a language before consulting a corpus to learn a new subject. This person then reads the corpus, learns about the subject, and in the process updates and expands their knowledge of the anguage. Also as stated in Section 1, LDA has attractive properties as a model for statistical analyses of corpora. Its very nature allows us to use probability theory to guide model specification and quantify uncertainty around claims made with the model. 
 
 This chapter introduces _tLDA_, short for transfer-LDA. tLDA enables use cases for fine-tuning from a base model with a single incremental update (i.e., "fine tuning") or with many incremental updates---e.g., on-line learning, possibly in a time-series context---using Latent Dirichlet Allocation. tLDA uses collapsed Gibbs sampling [@griffiths2004scientific] but its methods should extend to other MCMC methods [@yao2009streaming] [@lightlda] [@yahoolda] [@chen2015warplda]. tLDA is available for the R language for statistical computing [@rlang] in the _tidylda_ package [@tidylda].
 
@@ -64,7 +66,7 @@ Step 1 uses the relationship in (27), above. Step 2 uses a standard prediction m
 Any real-world application of tLDA presents several practical issues which are addressed in steps 3 - 5, described in more detail below. These issues include: the vocabularies in $\boldsymbol{X}^{(t-1)}$ and $\boldsymbol{X}^{(t)}$ will not be identical; users may wish to add topics, expecting $\boldsymbol{X}^{(t)}$ to contain topics not in $\boldsymbol{X}^{(t-1)}$; and $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ should be initialized proportional to $\boldsymbol{Cd}^{(t-1)}$ and $\boldsymbol{Cv}^{(t-1)}$, respectively.
 
 #### Aligning Vocabulary
-_tidylda_ implements an algorithm to fold in new words. This method slightly modifies the posterior probabilities in $\boldsymbol{B}^{(t-1)}$ and adds a non-zero prior by modifying $\boldsymbol\eta^{(t)}$. It involves three steps. First, append columns to $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$ that correspond to out-of-vocabulary words. Next, set the new entries for these new words to some small value, $\epsilon > 0$ in both $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$. Finally, re-normalize the rows of $\boldsymbol{B}^{(t-1)}$ so that they sum to one. For computational reasons, $\epsilon$ must be greater than zero. Specifically, the _tidylda_ implementation chooses $\epsilon$ to the lowest decile of all values in $\boldsymbol{B}^{(t-1)}$ or $\boldsymbol\eta^{(t)}$, respectively. 
+_tidylda_ implements an algorithm to fold in new words. This method slightly modifies the posterior probabilities in $\boldsymbol{B}^{(t-1)}$ and adds a non-zero prior by modifying $\boldsymbol\eta^{(t)}$. It involves three steps. First, append columns to $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$ that correspond to out-of-vocabulary words. Next, set the new entries for these new words to some small value, $\epsilon > 0$ in both $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$. Finally, re-normalize the rows of $\boldsymbol{B}^{(t-1)}$ so that they sum to one. For computational reasons, $\epsilon$ must be greater than zero. Specifically, the _tidylda_ implementation chooses $\epsilon$ to the lowest decile of all values in $\boldsymbol{B}^{(t-1)}$ or $\boldsymbol\eta^{(t)}$, respectively. This choice is somewhat arbitrary. $\epsilon$ should be small and the lowest decile of a power law seems sufficiently small. 
 
 #### Adding New Topics
 tLDA employs a similar method to add new, randomly initialized, topics if desired. This is achieved by appending rows to both $\boldsymbol\eta^{(t)}$ and $\boldsymbol{B}^{(t)}$, adding entries to $\boldsymbol\alpha$, and adding columns to $\boldsymbol\Theta^{(t)}$, obtained in step two above. The tLDA implementation in _tidylda_ sets the rows of $\boldsymbol\eta^{(t)}$ equal to the column means across previous topics. Then new rows of $\boldsymbol{B}^{(t)}$ are the new rows of $\boldsymbol\eta^{(t)}$ but normalized to sum to one. This effectively sets the prior for new topics equal to the average of the weighted posteriors of pre-existing topics.
@@ -156,6 +158,7 @@ Linear regression is used to analyze which factors lead to fitted topics being c
 ```{r tlda-load-libraries}
 # load libraries, just in case
 library(tidyverse)
+library(patchwork)
 # library(memisc)
 
 # load analysis data
@@ -318,7 +321,44 @@ knitr::kable(
 The simulations above examines the properties of tLDA when fine tuning is performed by adding data from the same generating distribution. Simulations are helpful for isolating effects, but the real world data is far messier. This section demonstrates tLDA for topic discovery on real data in a time series context. The analysis consists of two parts: exploring the aggregate effect of varying values of $a$ on the model chains and a more detailed exploration of the model chain when $a = 0.8$.
 
 #### Data Description
-The dataset consists of 188,554 titles and abstracts of Small Business Innovation Research (SBIR) and Small Business Technology Transfer (STTR) research grants awarded from 1983 to 2021. The SBIR and STTR programs provide grants to small businesses to encourage them to participate in US federal government research programs. The dataset grows from 785 grants in 1983 to an average of 6,377 per year from 2001 to 2020. Only 815 grants had been published for 2021 at the time the dataset was downloaded. After applying common preprocessing steps (described below) the dataset contained 92,196 unique words across all years. 
+The data set consists of 188,554 titles and abstracts of Small Business Innovation Research (SBIR) and Small Business Technology Transfer (STTR) research grants awarded from 1983 to 2021. The SBIR and STTR programs provide grants to small businesses to encourage them to participate in US federal government research programs. The data set grows from 785 grants in 1983 to an average of 6,377 per year from 2001 to 2020. Only 815 grants had been published for 2021 at the time the data set was downloaded. After applying common preprocessing steps (described below) the data set contained 92,196 unique words across all years. From the charts in Figure \@ref(fig:sbir-counts), we can see there is a structural break in the volume of data at the year 2000. 
+
+```{r sbir-counts, fig.cap = "Number of abstracts and number of words for the SBIR corpus over time. In 2000, there appears to be a structural break. Only 815 grants had been published for 2021 at the time the data set was downloaded.", fig.width = 7, fig.height = 4}
+
+load("data-derived/tlda-sbir/sbir-dtm-by-year.RData")
+
+
+tmp <- sbir_dtms |> map(nrow) |> unlist()
+
+# compensate for a super bizarre error when knitting
+if (length(tmp) == 38)
+  tmp <- c(NA, tmp)
+
+count_table <-
+  tibble(
+    year = as.numeric(names(sbir_dtms)),
+    abs_count = tmp,
+    word_count = sbir_dtms |> map(function(x) sum(x)) |> unlist()
+  )
+
+p1 <-
+  count_table |>
+  ggplot() +
+  geom_line(aes(x = year, y = abs_count)) +
+  ylab("") + xlab("") +
+  ggtitle("Number of Abstracts")
+
+p2 <-
+  count_table |>
+  ggplot() +
+  geom_line(aes(x = year, y = word_count / 1000)) +
+  ylab("") + xlab("") +
+  ggtitle("Number of Words, '000")
+
+plot(p2 / p1 + plot_annotation(title = "SBIR Corpus Over Time"))
+
+```
+
 
 #### Modeling Choices
 The data are modeled successively by award year using tLDA. For each year, a document term matrix is constructed using _tidytext_ [@tidytextjss]. All text is converted to lowercase, common stop words are removed, and punctuation is stripped. The vocabulary is pruned on a per-document level, rather than for the whole corpus. This prevents unintentional information leakage from period to period. Words that appear only once in a document are removed from that document's vocabulary. 
