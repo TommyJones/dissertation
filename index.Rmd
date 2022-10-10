@@ -9,8 +9,8 @@ date: "`r format(Sys.time(), '%d %B %Y')`"
 abstract: |
   Language is one of the most information rich and abundant data sources available. Rigorous statistical study of linguistic phenomena can elevate the digital humanities, linguistic applications to computational social science, and statistics itself. As yet, statistical applications to language, whether in linguistics, computation, or otherwise, are largely ad-hoc. Performance gains in modeling have largely been due to two factors: fine tuning transfer learning and increasing the size and complexity of models. Due to the statistical nature of human language---governed by several power law phenomena---fine tuning transfer learning may be advantageous for corpus analyses, not just artificial intelligence applications. Yet state of the art "transformer" models are expensive and opaque. I propose we revisit Latent Dirichlet Allocation (LDA) for corpus statistics. As a parametric statistical model of a data generating process, it has the potential to be used in statistically rigorous ways to study language. In this dissertation, I state my case for what I refer to as "corpus statistics", a more statistically rigorous take on analyzing text data. I link the data generating process for LDA to Zipf's law and use that relationship to engage in simulation studies for LDA. I also develop a coefficient of determination for topic models, extend LDA to enable pre-train/fine tuning transfer learning, and implement this research and more in an R package, _tidylda_. 
   
-bibliography: [topicmodels.bib,simulation.bib,zipf.bib,manual_entry.bib,transformers.bib,software.bib]
-csl: ieee.csl
+bibliography: [bib/topicmodels.bib,bib/simulation.bib,bib/zipf.bib,bib/manual_entry.bib,bib/transformers.bib,bib/software.bib]
+csl: csl/ieee.csl
 link-citations: yes
 
 header-includes:
