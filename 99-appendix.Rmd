@@ -1,0 +1,41 @@
+`r if(knitr:::is_latex_output()) '\\appendix'`
+
+`r if(!knitr:::is_latex_output()) '# (APPENDIX) Appendix {-}'` 
+
+<!--
+If you feel it necessary to include an appendix, it goes here.
+The current implentation does not properly add the "Appendix " prefix to the section headers so you will need to add it yourself.
+-->
+
+
+
+```{r, child='appendices/derive_lambda.Rmd'}
+```
+
+\newpage{}
+
+```{r, child='appendices/collapsed-gibbs.Rmd'}
+```
+
+
+\newpage{}
+
+```{r, child='appendices/expected_frequency.Rmd'}
+```
+
+\newpage{}
+
+```{r, child='appendices/posterior-partition.Rmd'}
+```
+
+\newpage{}
+
+```{r, child='appendices/prob-coherence.Rmd'}
+```
+
+
+\newpage{}
+
+```{r, child='appendices/tidylda-examples.Rmd'}
+```
+
