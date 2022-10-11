@@ -402,14 +402,16 @@ p1 <- partial_r2 |>
   geom_bar(stat = "identity", fill = "#33a02c") + 
   ylab("") +
   xlab("") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
   coord_flip() +
-  ggtitle("Partial R-Squared")
+  ggtitle("Partial R-Sq.")
 
 p2 <- partial_r2 |>
   ggplot(aes(x = partial_r2, y = coherence)) +
   geom_point(color = "#1f78b4") +
   ylab("Coherence") +
-  xlab("Partial R-Squared") + 
+  xlab("Partial R-Sq.") + 
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
   ggtitle(
     paste("Cor:", round(cor(partial_r2$partial_r2, partial_r2$coherence), 2))
   )

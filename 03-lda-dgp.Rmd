@@ -189,7 +189,7 @@ h1 <- dtm_metrics |>
   geom_histogram(aes(x = -1 * zipf2_coef), fill = rgb(0.221, 0.421, 0.358, 0.5)) +
   geom_vline(xintercept = 1.07, lty = 2, lwd = 1.25) +
   ylab("") + xlab("") +
-  ggtitle("Zipf Coefficient") +
+  ggtitle("Zipf Coef.") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   theme(axis.text.y = element_blank())
 
@@ -197,7 +197,7 @@ h2 <- dtm_metrics |>
   ggplot() + 
   geom_histogram(aes(x = zipf2_const ^ 10), fill = rgb(0.513, 0.287, 0.200, 0.5)) +
   ylab("") + xlab("") +
-  ggtitle("Zipf Constant") +
+  ggtitle("Zipf Const.") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   theme(axis.text.y = element_blank()) +
   scale_x_continuous(trans = "log10")
@@ -206,7 +206,7 @@ h3 <- dtm_metrics |>
   ggplot() + 
   geom_histogram(aes(x = zipf_xmin), fill = rgb(0.280,0.317,0.403, 0.5)) +
   ylab("") + xlab("") +
-  ggtitle("Min. Word Freq.") +
+  ggtitle("Min. Freq.") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   theme(axis.text.y = element_blank()) +
   scale_x_continuous(trans = "log10")
@@ -362,7 +362,7 @@ p1 <- zipf_reg |>
   scale_y_discrete(limits = rev) +
   ylab("") + xlab("") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  ggtitle("Zipf Coefficient")
+  ggtitle("Zipf Coef.")
 
 p2 <- zipf_reg |>
   filter(outcome == "log10(C)" & term != "(Intercept)") |>
@@ -386,7 +386,7 @@ p2 <- zipf_reg |>
   ylab("") + xlab("") +
   theme(axis.text.y = element_blank()) +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  ggtitle("Zipf Constant")
+  ggtitle("Zipf Const.")
 
 p3 <- zipf_reg |>
   filter(outcome == "xmin" & term != "(Intercept)") |>
@@ -410,7 +410,7 @@ p3 <- zipf_reg |>
   ylab("") + xlab("") +
   theme(axis.text.y = element_blank()) +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  ggtitle("Min. Word Freq.")
+  ggtitle("Min. Freq.")
 
 
 p4 <- zipf_reg_no_alpha |>
@@ -434,7 +434,7 @@ p4 <- zipf_reg_no_alpha |>
   scale_y_discrete(limits = rev) +
   ylab("") + xlab("") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  ggtitle("Zipf Coefficient")
+  ggtitle("Zipf Coef.")
 
 p5 <- zipf_reg_no_alpha |>
   filter(outcome == "log10(C)" & term != "(Intercept)") |>
@@ -458,7 +458,7 @@ p5 <- zipf_reg_no_alpha |>
   ylab("") + xlab("") +
   theme(axis.text.y = element_blank()) +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  ggtitle("Zipf Constant")
+  ggtitle("Zipf Const.")
 
 p6 <- zipf_reg_no_alpha |>
   filter(outcome == "xmin" & term != "(Intercept)") |>
@@ -482,7 +482,7 @@ p6 <- zipf_reg_no_alpha |>
   ylab("") + xlab("") +
   theme(axis.text.y = element_blank()) +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  ggtitle("Min. Word Freq.")
+  ggtitle("Min. Freq.")
 
 # add some heaps stuff here
 heaps_reg <- 
