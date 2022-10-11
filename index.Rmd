@@ -12,8 +12,10 @@ year: "`r format(Sys.time(), '%Y')`"
 
 institution: 'George Mason University'
 
+institutionlocation: "Fairfax, Virginia"
+
 advisor: 
-  - 'Jason M. Kinser'
+  - 'Dissertation Director: Dr. Jason Kinser'
   
 department: 'Computational and Data Sciences'
 
@@ -25,12 +27,28 @@ output:
   dragondown::thesis_pdf: default
   
 abstract: |
+  \newline{}
+  
   Language is one of the most information rich and abundant data sources available. Rigorous statistical study of linguistic phenomena can elevate the digital humanities, linguistic applications to computational social science, and statistics itself. As yet, statistical applications to language, whether in linguistics, computation, or otherwise, are largely ad-hoc. Performance gains in modeling have largely been due to two factors: fine tuning transfer learning and increasing the size and complexity of models. Due to the statistical nature of human language---governed by several power law phenomena---fine tuning transfer learning may be advantageous for corpus analyses, not just artificial intelligence applications. Yet state of the art "transformer" models are expensive and opaque. I propose we revisit Latent Dirichlet Allocation (LDA) for corpus statistics. As a parametric statistical model of a data generating process, it has the potential to be used in statistically rigorous ways to study language. In this dissertation, I state my case for what I refer to as "corpus statistics", a more statistically rigorous take on analyzing text data. I link the data generating process for LDA to Zipf's law and use that relationship to engage in simulation studies for LDA. I also develop a coefficient of determination for topic models, extend LDA to enable pre-train/fine tuning transfer learning, and implement this research and more in an R package, _tidylda_. 
   
 acknowledgments: |
-  I want to thank a few people.
+  
+  To Bill Kennedy, your guidance and advice have been invaluable. I wouldn't be here without you. Thank you.
+  
+  To Mark Meyer, your thoughtful comments have kept my research rigorous and grounded in statistical best practices. Thank you.
+  
+  To Jason Kinser, thank you for being my dissertation director and keeping this committee (and our department) running.
+  
+  To my remaining committee members, current and former, Carlotta Domeniconi and Olga Gkountouna, thank you for your time and thoughtful comments. 
+  
+  To Alyson Wilson and Will Doane, from STPI to here! Thank you for all of your coaching and guidance over the years.
+  
+  To In-Q-Tel, who has supported my resarch through tuition assistance and work flexibility.
+  
 dedication: |
-  You can have a dedication here if you wish.
+  To my loving mother, who sadly passed away before she could see this moment. Your love and dedication shaped me into the man I am today. For that I am eternally grateful.
+  
+  To my loving father. You are the smartest man that I know. Your hard work and dedication to your career have served me as an example and a curse. May I some day be fit to fill your shoes.
 
 # Specify the location of the bibliography below
 bibliography: [bib/topicmodels.bib,bib/simulation.bib,bib/zipf.bib,bib/manual_entry.bib,bib/transformers.bib,bib/software.bib]
@@ -40,7 +58,7 @@ copyright: |
   All Rights Reserved.
 
 vita: |
-  The Vita is a biography of the student written in the third person in either essay or outline form. It should include full name, place and date of birth (optional), country of citizenship (optional), institutions attended, degrees and honors received, titles of publications, teaching and professional experience, and other pertinent data. The vita should be one page or less
+  Thomas Jones received a Bachelor of Arts in Economics from the College of William and Mary in 2009 and when on to receive a Master of Science in Mathematics and Statistics from Georgetown University in 2012. He is a veteran of the US Marine Corps, having served as an enlisted rifleman from 2000 to 2004. After receiving his Doctor of Philosophy in Computational Sciences and Informatics from George Mason University, he will continue his career as a technology entrepreneur.
 
 # Download your specific csl file and refer to it in the line below.
 csl: csl/ieee.csl
