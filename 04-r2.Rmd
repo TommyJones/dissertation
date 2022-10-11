@@ -377,7 +377,7 @@ A key difference between a partial $R^2$ for topic models and the one for standa
 
 The left of Figure \@ref(fig:nih-partial-r2) plots the partial $R^2$ for the 10 topics contributing the most to the goodness of fit for a 50-topic model on the sample of NIH grant abstracts. The right of Figure \@ref(fig:nih-partial-r2) plots the correlation between probabilistic coherence and the partial $R^2$ of topics in the same 50-topic model. There is a slight positive correlation between a topic's partial $R^2$ and its probabilistic coherence in this model. I leave a deeper exploration between the two variables' relationship to future research.
 
-```{r nih-partial-r2, fig.cap="10 topics with the highest partial $R^2$ from a 50-topic model of the NIH 2014 corpus.", fig.width = 6.5.5, fig.height = 4}
+```{r nih-partial-r2, fig.cap="10 topics with the highest partial $R^2$ from a 50-topic model of the NIH 2014 corpus.", fig.width = 6.5, fig.height = 4}
 library(tidyverse)
 library(patchwork)
 
