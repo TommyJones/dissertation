@@ -189,7 +189,7 @@ McFadden's $R^2$ is a ratio of likelihoods. Various methods exist for calculatin
 
 Each plot in Figure \@ref(fig:r2-sim-plot) shows how the distribution of $R^2$ and McFadden's $R^2$ change as each of the number of estimated topics ($K$), average context length ($\lambda$), vocabulary size ($V$), and number of contexts ($D$) changes using boxplots. The standard $R^2$ does not change with properties of the data except for the average context length. This indicates that one should expect, for example, a higher $R^2$ if analyzing a corpus of full-length articles compared to a corpus of tweets. However, McFadden's $R^2$ is invariant only to the number of contexts. It is positively correlated to the number of topics, average context length, and vocabulary size. This indicates that McFadden's $R^2$ suffers from the same problems as the likelihood function. Many properties of the underlying data affect the resulting metric. 
 
-```{r r2-sim-plot, fig.cap = "Comparing the standard geometric $R^2$ to McFadden's using population parameters and sampled data. Standard $R^2$ is positively correlated with the average document length but invariant to the number of topics, number of unique words, and number of documents. McFadden's is correlated with all but the number of documents.", fig.width = 7, fig.height = 6}
+```{r r2-sim-plot, fig.cap = "Comparing the standard geometric $R^2$ to McFadden's using population parameters and sampled data. Standard $R^2$ is positively correlated with the average document length but invariant to the number of topics, number of unique words, and number of documents. McFadden's is correlated with all but the number of documents.", fig.width = 6.5, fig.height = 6}
 
 library(tidyverse)
 library(patchwork)
@@ -377,7 +377,7 @@ A key difference between a partial $R^2$ for topic models and the one for standa
 
 The left of Figure \@ref(fig:nih-partial-r2) plots the partial $R^2$ for the 10 topics contributing the most to the goodness of fit for a 50-topic model on the sample of NIH grant abstracts. The right of Figure \@ref(fig:nih-partial-r2) plots the correlation between probabilistic coherence and the partial $R^2$ of topics in the same 50-topic model. There is a slight positive correlation between a topic's partial $R^2$ and its probabilistic coherence in this model. I leave a deeper exploration between the two variables' relationship to future research.
 
-```{r nih-partial-r2, fig.cap="10 topics with the highest partial $R^2$ from a 50-topic model of the NIH 2014 corpus.", fig.width = 7.5, fig.height = 4}
+```{r nih-partial-r2, fig.cap="10 topics with the highest partial $R^2$ from a 50-topic model of the NIH 2014 corpus.", fig.width = 6.5.5, fig.height = 4}
 library(tidyverse)
 library(patchwork)
 
