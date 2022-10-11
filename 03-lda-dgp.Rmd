@@ -99,7 +99,7 @@ $C$ and $\gamma$ may be estimated from data and $r_v$, the rank of word $v$, is 
 
 What still remains is for a researcher to specify the magnitude of $\boldsymbol\eta$, in other words $\sum_{v=1}^V \eta_v$, and of course $\boldsymbol\alpha$ and the number of topics, $K$. The empirical evidence for specifying $\boldsymbol\eta$ as a power law rather than a flat prior is explored, though not resoved, in section 3.4.3.
 
-```{r compare-hypers, fig.cap = "Frequency vs. rank curves plotted in log-log space for several synthetic corpora and one real corpus. The leftmost chart plots both a power law and symmetric $\\boldsymbol\\alpha$ with a symmetric $\\boldsymbol\\eta$. The center chart plots both a power law and symmetric $\\boldsymbol\\alpha$ with a power law $\\boldsymbol\\eta$. The rightmost chart plots real data from the NIH corpus against a power law $\\boldsymbol\\alpha$ and power law $\\boldsymbol\\eta$. Only when $\\boldsymbol\\eta$ is proportional to a power law do we see Zipf's law in synthetic corpora.", fig.width = 6.5, fig.height = 2.5}
+```{r compare-hypers, fig.cap = "Frequency vs. rank curves plotted in log-log space for several synthetic corpora and one real corpus. The leftmost chart plots both a power law and symmetric $\\boldsymbol\\alpha$ with a symmetric $\\boldsymbol\\eta$. The center chart plots both a power law and symmetric $\\boldsymbol\\alpha$ with a power law $\\boldsymbol\\eta$. The rightmost chart plots real data from the NIH corpus against a power law $\\boldsymbol\\alpha$ and power law $\\boldsymbol\\eta$. Only when $\\boldsymbol\\eta$ is proportional to a power law do we see Zipf's law in synthetic corpora.", fig.width = 6, fig.height = 2.5}
 
 library(tidyverse)
 library(patchwork)
@@ -180,7 +180,7 @@ Heaps's law describes the relationship between the total number of words in a co
 Figure \@ref(fig:dtm-hist) below plots histograms of the Zipf coefficient, $\gamma$, Zipf constant, $C$, minimum word frequency used to estimate the Zipf parameters, and the difference between the total vocabulary size and observed vocabulary size. The leftmost histogram for $\gamma$ has a dashed line at $\gamma = 1.07$, which was used to seed each of the simulations. The Zipf constant and minimum used word frequency are presented on a log scale. All four demonstrate variability and the downward bias of the estimated Zipf coefficient over the seeded value is apparent.
 
 
-```{r dtm-hist, fig.cap = "Histograms of the Zipf coefficient, $\\gamma$, Zipf constant, $C$, minimum word frequency used to estimate the Zipf parameters, and the difference between the total vocabulary size and observed vocabulary size. The Zipf constant and minimum used word frequency are presented on a log scale.", fig.width = 6.5, fig.height = 2.5}
+```{r dtm-hist, fig.cap = "Histograms of the Zipf coefficient, $\\gamma$, Zipf constant, $C$, minimum word frequency used to estimate the Zipf parameters, and the difference between the total vocabulary size and observed vocabulary size. The Zipf constant and minimum used word frequency are presented on a log scale.", fig.width = 6, fig.height = 2.5}
 
 dtm_metrics <- read_rds("data-derived/zipf-analysis/dtm-metrics.rds")
 
@@ -227,7 +227,7 @@ plot(h1 + h2 + h3 + h4 + plot_layout(ncol = 4))
 
 I used linear regression as a multiple correlation to examine which features of the LDA-DGP were associated with variability in the four parameters in Figure \@ref(fig:dtm-hist). This use of linear regression is not to model drivers of each parameter, rather to describe linear correlations holding other variables constant. For each of the three parameters of interest, I regressed them on the seed parameters of the LDA-DGP from Section 3.4.1.1 and their quadratics. The result, excluding regression constants, along with 95% confidence intervals are plotted in Figure \@ref(fig:zipf-regs). The top row includes both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$. The bottom row excludes both $\sum_{k=1}^K \alpha_k$ and $\left(\sum_{k=1}^K \alpha_k\right)^2$.
 
-```{r zipf-regs, fig.cap = "Coefficients from regressions of four Zipf's law-related variables on parameters from the LDA-DGP and their quadratics, excluding intercept terms. The top row includes terms related to $\\boldsymbol\\alpha$ and the bottom row excludes them. Removing the $\\boldsymbol\\alpha$-related terms does not affect goodness of fit. The adjusted $R^2$ of the models in the top row are 0.733, 0.984, 0.866, and 0.920 respectively. The adjusted $R^2$ of the models in the bottom row are 0.736, 0.984, 0.866, and 0.920 respectively. The regressions for the Zipf constant and minimum word frequency are scaled by log 10.", fig.height = 5, fig.width = 6.5}
+```{r zipf-regs, fig.cap = "Coefficients from regressions of four Zipf's law-related variables on parameters from the LDA-DGP and their quadratics, excluding intercept terms. The top row includes terms related to $\\boldsymbol\\alpha$ and the bottom row excludes them. Removing the $\\boldsymbol\\alpha$-related terms does not affect goodness of fit. The adjusted $R^2$ of the models in the top row are 0.733, 0.984, 0.866, and 0.920 respectively. The adjusted $R^2$ of the models in the bottom row are 0.736, 0.984, 0.866, and 0.920 respectively. The regressions for the Zipf constant and minimum word frequency are scaled by log 10.", fig.height = 5, fig.width = 6}
 
 library(broom)
 
@@ -645,7 +645,7 @@ In theory, a smal
 --->
 
 
-```{r model-plots, fig.cap = "Mean differences (with 95% confidence intervals) in the evaluation metrics between perfectly-specified models and misspecified models. The misspecified hyper parameter is on the x-axis.  ", fig.width = 6.5, fig.height = 5}
+```{r model-plots, fig.cap = "Mean differences (with 95% confidence intervals) in the evaluation metrics between perfectly-specified models and misspecified models. The misspecified hyper parameter is on the x-axis.  ", fig.width = 6, fig.height = 5}
 
 # The Geweke statistic is measured in absolute value since because it is a statistic with a two-tailed test distribution. Histograms of the Geweke Statistic are plotted on the top right. The vertical lines ar at +/- 1.96, between which a model might be considered to have converged at the 0.05 significance level.
 
