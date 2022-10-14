@@ -49,7 +49,7 @@ _tidylda_'s Gibbs sampler has several unique features, described below.
 
 ### Tidy Methods
 
-_tidylda_'s construction follows _Conventions of R Modeling Packages_ [@tidymodelsbook]. In particular, it contains methods for `print`, `summary`, `glance`, `tidy`, and `augment`, consistent with other "tidy" packages. These methods are briefly described below and are demonstrated in Appendix [X].
+_tidylda_'s construction follows _Conventions of R Modeling Packages_ [@tidymodelsbook]. In particular, it contains methods for `print`, `summary`, `glance`, `tidy`, and `augment`, consistent with other "tidy" packages. These methods are briefly described below and are demonstrated in Appendix 6.
 
 * `print`, `summary`, and `glance` return various summaries of the contents of a `tidylda` object, into which an LDA model trained with _tidylda_ is stored.
 * `tidy` returns the contents of $\boldsymbol\Theta$, $\boldsymbol{B}$, or $\boldsymbol\Lambda$ (stored as `theta`, `beta`, and `lambda` respectively), as specified by the user, formatted as a tidy `tibble`, instead of a numeric matrix.
