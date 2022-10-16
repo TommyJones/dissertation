@@ -33,10 +33,8 @@ dtm_list <-
   )
 
 
-### sample subset of dtms to model for prelim results ----
-# THIS NEEDS TO GO AWAY SO THAT YOU GET THE FULL ANALYSIS LATER
-
-dtm_list <- dtm_list[sample(seq_along(dtm_list), 1024)]
+### sample dtms so we get even distribution among parallel threads ----
+dtm_list <- dtm_list[sample(seq_along(dtm_list), length(dtm_list))]
 
 
 ### divide DTMs into batches so we have fewer parallel jobs ----
@@ -220,7 +218,8 @@ metrics <-
                 "data-derived/zipf-analysis/models/",
                 paste(d$seed_pars, collapse = "-"),
                 ".rds"
-              )
+              ),
+              compress = "gz"
             )
             
             # pull out the metrics, rbind them, then spit them out
