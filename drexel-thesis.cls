@@ -607,9 +607,10 @@
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0.4pt}
-\fancyfoot[RE,LO]{\scshape\leftmark}
+% \fancyfoot[RE,LO]{\scshape\leftmark}
+\fancyfoot[CE,CO]{\thepage}
 % \fancyfoot[LE,RO]{\scshape\rightmark}
-\fancyhead[LE,RO]{\thepage}
+% \fancyhead[LE,RO]{\thepage}
 \fancypagestyle{plain}{
   \fancyhf{}
   \renewcommand{\footrulewidth}{0pt}
