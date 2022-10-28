@@ -799,14 +799,69 @@ geweke_density <- model_metrics |>
   theme(legend.position = "none")
 
 
+part_r2_plot <- 
+  t_tests |> 
+  filter(outcome == "partial_r2") |> 
+  ggplot() + 
+  geom_bar(aes(x = parameter, y = mean_diff, fill = factor(parameter)), stat = "identity") + 
+  geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
+  geom_hline(yintercept = 0, lty = 2) +
+  xlab("") + ylab("") +
+  ggtitle("Mean Partial R-sq.") +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ylim(
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "partial_r2"], 
+      t_tests$ci_95_high[t_tests$outcome == "partial_r2"]
+    ) |> 
+      abs() |> max() %>% times_help(-1),
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "partial_r2"], 
+      t_tests$ci_95_high[t_tests$outcome == "partial_r2"]
+    ) |> 
+      abs() |> max()
+  )
+
+lambda_coh_plot <- 
+  t_tests |> 
+  filter(outcome == "mean_lambda_coherence") |> 
+  ggplot() + 
+  geom_bar(aes(x = parameter, y = mean_diff, fill = factor(parameter)), stat = "identity") + 
+  geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
+  geom_hline(yintercept = 0, lty = 2) +
+  xlab("") + ylab("") +
+  ggtitle("Mean Lambda Coherence") +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  ylim(
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "mean_lambda_coherence"], 
+      t_tests$ci_95_high[t_tests$outcome == "mean_lambda_coherence"]
+    ) |> 
+      abs() |> max() %>% times_help(-1),
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "mean_lambda_coherence"], 
+      t_tests$ci_95_high[t_tests$outcome == "mean_lambda_coherence"]
+    ) |> 
+      abs() |> max()
+  )
+
+
+
+
 # pw <- 
 #   (ll_plot + r2_plot + geweke_density + 
 #      mean_coherence_plot + mean_prevalence_plot + geweke_plot) +
 #   plot_annotation(title = "Mean Differences") 
 
 pw <- 
-  (ll_plot + r2_plot + 
-     mean_coherence_plot + mean_prevalence_plot) +
+  (ll_plot + 
+     r2_plot + 
+     mean_coherence_plot + 
+     mean_prevalence_plot +
+     part_r2_plot +
+     lambda_coh_plot) +
   plot_annotation(title = "Mean Differences") 
 
 plot(pw)
