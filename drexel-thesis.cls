@@ -607,9 +607,10 @@
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0.4pt}
-\fancyfoot[RE,LO]{\scshape\leftmark}
-\fancyfoot[LE,RO]{\scshape\rightmark}
-\fancyhead[LE,RO]{\thepage}
+% \fancyfoot[RE,LO]{\scshape\leftmark}
+\fancyfoot[CE,CO]{\thepage}
+% \fancyfoot[LE,RO]{\scshape\rightmark}
+% \fancyhead[LE,RO]{\thepage}
 \fancypagestyle{plain}{
   \fancyhf{}
   \renewcommand{\footrulewidth}{0pt}
@@ -789,17 +790,26 @@
       {\setstretch{\@tsp} \bfseries \@DUT@title \par}%
       \blanklines{\@tsp}%
       \setstretch{\@dsp}%
-      A Thesis\\
-      Submitted to the Faculty\\
-      of\\
-      Drexel University\\
+      A Dissertation submitted in partial fulfillment of the requirements for the degree of 
+      Doctor of Philosophy at George Mason University\\
+      \blanklines{\@tsp}%
+      \setstretch{\@dsp}%
       by\\
+      \blanklines{\@tsp}%
+      \setstretch{\@dsp}%
       \@DUT@author\\
-      in partial fulfillment of the\\
-      requirements for the degree\\
-      of\\
-      \@DUT@degree\\
-      \@DUT@month\ \@DUT@year
+      Master of Science\\
+      Georgetown University, 2012\\
+      Bachelor of Arts\\
+      The College of William and Mary, 2009\\
+      \blanklines{\@tsp}%
+      \setstretch{\@dsp}%
+      Director: Jason Kinser, Chair, Computational and Data Sciences Department\\
+      \blanklines{\@tsp}%
+      \setstretch{\@dsp}%
+      \@DUT@month\ \@DUT@year\\
+      George Mason University\\
+      Fairfax, Virginia\\
     \end{center}\par
     \if@DUT@pagebreak \vspace*{\fill}
     \centering
@@ -1007,9 +1017,9 @@
 \newenvironment{abstract}{%
   \listed@schapter{\abstractname}%
   \blanklines{-4}%
-    \begin{center}
+    % \begin{center}
       \setstretch{\@ssp}%
-      \@DUT@title\\
+      \uppercase{\@DUT@title}\\
       \@DUT@author\\
       \ifdaring{%
         \ifnum\c@@DUT@advisors=\@ne%
@@ -1018,7 +1028,9 @@
         Advisors:
         \fi}{}
       \@DUT@advisor\\
-    \end{center}
+    % \end{center}
+  % \blanklines{\@tsp}%
+  % \setstretch{\@dsp}%
   \blanklines{4}%
   \setstretch{\@dsp}%
   \@nobreaktrue

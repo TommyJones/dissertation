@@ -7,7 +7,7 @@ This chapter introduces _tLDA_, short for transfer-LDA. tLDA enables use cases f
 
 ## Related Work
 
-Work on transfer learning with LDA and other probabilistic topic models falls into three categories. The first category contains topic models that explicitly model a topic's evolution over time [@blei2006dtm][@wang2012dynamic][@tmlda]. These models differ from true transfer learning in that time is explicitly part of the model, rather than being updated post-hoc. The second category contains models that allow external information to guide the development of topics. External information may be in the form of supervised outcomes [@mcauliffe2007supervised] [@ramage2009labled] [@andrzejewski2009latent], seeded by model structure [@jagarlamudi2012transfer], seeded in the prior [@andrzejewski2009], or constructed interactively with subject matter experts [@hu2014interactive]. The third category contains models designed for incremental and on-line learning [@alsumait2008][@hoffman2010online][@rollinglda].
+Work on transfer learning with LDA and other probabilistic topic models falls into three categories. The first category contains topic models that explicitly model a topic's evolution over time [@blei2006dtm] [@wang2012dynamic] [@tmlda]. These models differ from true transfer learning in that time is explicitly part of the model, rather than being updated post-hoc. The second category contains models that allow external information to guide the development of topics. External information may be in the form of supervised outcomes [@mcauliffe2007supervised] [@ramage2009labled] [@andrzejewski2009latent], seeded by model structure [@jagarlamudi2012transfer], seeded in the prior [@andrzejewski2009], or constructed interactively with subject matter experts [@hu2014interactive]. The third category contains models designed for incremental and on-line learning [@alsumait2008] [@hoffman2010online] [@rollinglda].
 
 ## Contribution
 tLDA is a model for updating topics in an existing model with new data, enabling incremental updates and time-series use cases. tLDA has three characteristics differentiating it from previous work:
@@ -323,7 +323,7 @@ The simulations above examines the properties of tLDA when fine tuning is perfor
 #### Data Description
 The data set consists of 188,554 titles and abstracts of Small Business Innovation Research (SBIR) and Small Business Technology Transfer (STTR) research grants awarded from 1983 to 2021. The SBIR and STTR programs provide grants to small businesses to encourage them to participate in US federal government research programs. The data set grows from 785 grants in 1983 to an average of 6,377 per year from 2001 to 2020. Only 815 grants had been published for 2021 at the time the data set was downloaded. After applying common preprocessing steps (described below) the data set contained 92,196 unique words across all years. From the charts in Figure \@ref(fig:sbir-counts), we can see there is a structural break in the volume of data at the year 2000. 
 
-```{r sbir-counts, fig.cap = "Number of abstracts and number of words for the SBIR corpus over time. In 2000, there appears to be a structural break. Only 815 grants had been published for 2021 at the time the data set was downloaded.", fig.width = 7, fig.height = 4}
+```{r sbir-counts, fig.cap = "Number of abstracts and number of words for the SBIR corpus over time. In 2000, there appears to be a structural break. Only 815 grants had been published for 2021 at the time the data set was downloaded.", fig.width = 6, fig.height = 4}
 
 load("data-derived/tlda-sbir/sbir-dtm-by-year.RData")
 
@@ -385,7 +385,7 @@ For each value of $a$, a chain of 39 models is produced. The first model in the 
 
 Figure \@ref(fig:sbir-vary-a-1) plots these four statistics for each value of $a$ over time. A clear pattern appears for mean Hellinger distance but not for other statistics. Mean Hellinger distance is highest when $a$ is smallest and decrease as $a$ grows, consistent with expectation. When $a$ is small, the prior has less weight in the posterior than the data. This results in a posterior that changes significantly period to period as it is more-strongly shaped by that period's data. 
 
-```{r sbir-vary-a-1, fig.width = 7, fig.height = 4, fig.cap = "Plotted over time, mean Hellinger distance has a clear pattern consistent with expectation. Higher values of $a$ put more mass on the prior, leading to less change year-to-year. The pattern is harder to see for $R^2$, coherence, and log likelihood."}
+```{r sbir-vary-a-1, fig.width = 6, fig.height = 4, fig.cap = "Plotted over time, mean Hellinger distance has a clear pattern consistent with expectation. Higher values of $a$ put more mass on the prior, leading to less change year-to-year. The pattern is harder to see for $R^2$, coherence, and log likelihood."}
 
 p1 <- 
   model_metrics |>
@@ -443,7 +443,7 @@ Figure \@ref(fig:sbir-vary-a-2) plots the average of each statistic over all yea
 
 Based on the peak of coherence and the fact that $R^2$ and log likelihood are still near their peaks when $a = 0.8$, I choose the model where $a = 0.8$ for deeper analysis.
 
-```{r sbir-vary-a-2, fig.width = 7, fig.height = 4, fig.cap = "Averaging over all years, the patterns for each statistic are clearer. $R^2$ and log likelihood are decreasing functions of $a$, but for values less than $a = 1$, differences are very small. Coherence reaches a small peak at $a = 0.8$. Mean Hellinger distance is also a decreasing function of $a$ as expected."}
+```{r sbir-vary-a-2, fig.width = 6, fig.height = 4, fig.cap = "Averaging over all years, the patterns for each statistic are clearer. $R^2$ and log likelihood are decreasing functions of $a$, but for values less than $a = 1$, differences are very small. Coherence reaches a small peak at $a = 0.8$. Mean Hellinger distance is also a decreasing function of $a$ as expected."}
 
 p1 <- 
   model_metrics |>
@@ -510,7 +510,7 @@ plot(p1 + p2 + p3 + p4 + plot_layout(guides = "collect"))
 Figure \@ref(fig:sbir-deep-1) contains two charts derived from model chains where $a = 0.8$. The top plots the $R^2$ statistic. The bottom plots probabilistic coherence (Appendix 5) averaged across topics. The black line is the actual value of each statistic. The blue line and associated shaded interval is the result of a loess model using default parameters when calling `geom_smooth` from the R package ggplot2 [@ggplot].
 
 
-```{r sbir-deep-1, fig.width = 7, fig.height = 4, fig.cap = "Both $R^2$ and probabilistic coherence are highest in 1983, drop off quickly, and remain flat for remaining time periods. This is likely due to $R^2$ and coherence being calculated using only data in the current period.", warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
+```{r sbir-deep-1, fig.width = 6, fig.height = 4, fig.cap = "Both $R^2$ and probabilistic coherence are highest in 1983, drop off quickly, and remain flat for remaining time periods. This is likely due to $R^2$ and coherence being calculated using only data in the current period.", warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
 
 p1 <-
   model_metrics |>
@@ -559,7 +559,7 @@ I also examine changes in individual topics over time. To showcase one example, 
 
 Most topics show signs of convergence in their top words, as depicted in the top of Figure \@ref(fig:sbir-deep-2). The top word grows to be much more probable than the second and subsequent words, consistent with Zipf's law.
 
-```{r sbir-deep-2, fig.width = 7, fig.height = 4, fig.cap = "Each topic is a time series of its prevalence and distribution of its words. The top depicts changes in the top 5 words for topic 24. The bottom shows changes in prevalence for topic 24 with actual data in black and a blue loess curve with corresponding shaded confidence region.", warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
+```{r sbir-deep-2, fig.width = 6, fig.height = 4, fig.cap = "Each topic is a time series of its prevalence and distribution of its words. The top depicts changes in the top 5 words for topic 24. The bottom shows changes in prevalence for topic 24 with actual data in black and a blue loess curve with corresponding shaded confidence region.", warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
 
 min_year <- 
   year_prev %>%
