@@ -1,3 +1,7 @@
+## As of 2022-10-28, this script produces identical outputs to 
+# R/zipf-analysis/01-sim-data.R So, I am archiving it.
+
+
 # this script creates simulated data sets for the r-squared analysis
 # convergence to a final model
 
