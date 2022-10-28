@@ -195,7 +195,7 @@ library(tidyverse)
 library(patchwork)
 
 ### load simulated data metrics ----
-sim_metrics <- read_rds("data-derived/r-squared/sim-metrics.rds")
+sim_metrics <- read_rds("data-derived/zipf-analysis/sim-metrics.rds")
 
 ### plot R2 by number of topics ----
 
