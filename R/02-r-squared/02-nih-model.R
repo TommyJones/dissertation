@@ -9,7 +9,7 @@ library(furrr)
 set.seed(3851466)
 
 # load nih data
-nih <- read_csv("data-raw/RePORTER_PRJABS_C_FY2014.csv.zip")
+nih <- read_csv("data-raw/RePORTER_PRJABS_C_FY2014.csv")
 
 names(nih) <- tolower(names(nih))
 
