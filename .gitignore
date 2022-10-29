@@ -11,3 +11,4 @@ index_cache
 
 # But not these files...
 !docs/approval-form.pdf
+!figure/drexel-logo.pdf
