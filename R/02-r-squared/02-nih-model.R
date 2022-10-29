@@ -89,7 +89,39 @@ nih_metrics <-
     ll2 = nih_models |> 
       map(function(x) CalcLikelihood(nih_dtm, x$beta, x$theta)) |>
       unlist()
+  ) 
+
+# add "raw" log likelihood and mcfadden's r2
+calc_ll_raw <- function(dtm, ...) {
+  
+  # these are for the "no model" ll in McFadden's
+  phi_raw <- Matrix::colSums(dtm) + 1 / ncol(dtm)
+  phi_raw <- phi_raw / sum(phi_raw)
+  phi_raw <- rbind(phi_raw, phi_raw) 
+  rownames(phi_raw) <- c("t_1", "t_2")
+  colnames(phi_raw) <- colnames(dtm)
+  
+  theta_raw <- rep(0.5, nrow(dtm))
+  theta_raw <- cbind(theta_raw, theta_raw)
+  rownames(theta_raw) <- rownames(dtm)
+  colnames(theta_raw) <- rownames(phi_raw)
+  
+  ll_raw <- textmineR::CalcLikelihood(dtm = dtm, phi = phi_raw, theta = theta_raw, ...)
+  
+  ll_raw
+}
+
+nih_metrics <- 
+  nih_metrics |> 
+  mutate(
+    ll_raw = calc_ll_raw(dtm = nih_dtm)
+  ) |>
+  mutate(
+    r2_mac = 1 - ll2 / ll_raw
   )
+
+
+
 
 # save nih-metrics
 write_rds(

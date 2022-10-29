@@ -47,7 +47,7 @@ imitate_zipf <- function(dtm, sum_eta = 1000) {
 
 
 ### create a matrix for plotting NIH vs simulated data ----
-nih <- read_csv("data-raw/RePORTER_PRJABS_C_FY2014.csv.zip")
+nih <- read_csv("data-raw/RePORTER_PRJABS_C_FY2014.csv")
 
 names(nih) <- tolower(names(nih))
 
