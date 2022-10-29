@@ -163,7 +163,7 @@ library(patchwork)
 
 # load analysis data
 load("data-derived/tlda-sims/convergence-analysis.RData")
-load("data-derived/tlda-sims/topic-matches.RData")
+load("data-derived/tlda-sims/topic_matches.RData")
 load("data-derived/tlda-sims/convergence-direction-analysis.RData")
 
 

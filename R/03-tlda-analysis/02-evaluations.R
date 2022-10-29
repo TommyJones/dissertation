@@ -456,8 +456,20 @@ matched_bin_table <-
     )
   )
 
+convergence_direction_regression <-
+  lm(formula = hdist * 100 ~ 
+       a + I(a^2) + 
+       doc_length + 
+       I(doc_length^2) + 
+       beta_sum + 
+       I(beta_sum^2) + 
+       alpha_sum + 
+       I(alpha_sum^2), 
+     data = match_by_avg_periods)
+
 
 save(
+  convergence_direction_regression,
   matched_hdiff_t_test,
   matched_bin_table,
   file = "data-derived/tlda-sims/convergence-direction-analysis.RData"
