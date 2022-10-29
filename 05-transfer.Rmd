@@ -162,9 +162,9 @@ library(patchwork)
 # library(memisc)
 
 # load analysis data
-load("data-derived/tlda-analysis/2022-01-02-50-56/convergence-analysis.RData")
-load("data-derived/tlda-analysis/2022-01-02-50-56/topic-matches.RData")
-load("data-derived/tlda-analysis/2022-01-02-50-56/convergence-direction-analysis.RData")
+load("data-derived/tlda-sims/convergence-analysis.RData")
+load("data-derived/tlda-sims/topic-matches.RData")
+load("data-derived/tlda-sims/convergence-direction-analysis.RData")
 
 
 ```
