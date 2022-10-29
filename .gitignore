@@ -1,3 +1,4 @@
+# ignore these files
 .Rproj.user
 .Rhistory
 .RData
@@ -7,3 +8,6 @@
 index_cache
 *.log
 *.tex
+
+# But not these files...
+!docs/approval-form.pdf
