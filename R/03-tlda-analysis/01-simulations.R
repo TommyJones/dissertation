@@ -9,13 +9,9 @@ library(tmsamples)
 set.seed(8675201)
 
 
-### create a common date/time for saving any elements to disk ----
-clockmark <-
-  Sys.time() %>%
-  str_replace_all("[^a-zA-Z0-9]+", "-")
-
-
 ### generate population parameters ----
+cat(format(Sys.time(), "%a %b %d %X %Y"), "generating population parameters \n")
+
 Nv = 5000
 
 Nd = 10000
@@ -81,18 +77,15 @@ pars <- cross3(
   })
 
 # save pars to track results later
-new_dir <- 
-  paste0("data-derived/", clockmark, "/")
 
-if (! dir.exists(new_dir))
-  dir.create(new_dir)
-
-save(
+write_rds(
   pars,
-  file = paste0(new_dir, "pop-pars.RData")
+  file = "data-derived/tlda-sims/pop-pars.rds"
 )
 
+
 ### sample document term matrices ----
+cat(format(Sys.time(), "%a %b %d %X %Y"), "sampling document term matrices \n")
 dtms <- pars %>%
   parallel::mclapply(
     function(p) {
@@ -109,7 +102,7 @@ dtms <- pars %>%
         theta = pop_pars$theta,
         phi = pop_pars$phi,
         doc_lengths = doc_lengths,
-        threads = 1
+        threads = parallel::detectCores() - 1
       )
       
       # divide docs into batches
@@ -128,14 +121,17 @@ dtms <- pars %>%
     mc.cores = parallel::detectCores() - 1
   )
 
-save(
+write_rds(
   dtms,
-  file = paste0(new_dir, "sim-dtms.RData")
+  file = "data-derived/tlda-sims/sim-dtms.rds"
 )
 
 ### across a range of "a", sample data and  fit models ----
 # at each step, randomly shuffle the set of sampled DTMs
 # this inserts randomness to guard against results being overfit on one set
+
+cat(format(Sys.time(), "%a %b %d %X %Y"), " fitting models across a \n")
+
 
 a_range <- seq(0.2, 2, by = 0.2)
 
@@ -166,12 +162,14 @@ for (j in seq_along(pars)) {
 }
 
 # re-save pars
-save(
+write_rds(
   pars,
-  file = paste0(new_dir, "pop-pars.RData")
+  file = "data-derived/tlda-sims/pop-pars.rds"
 )
 
 # calc Hellinger for real now
+cat(format(Sys.time(), "%a %b %d %X %Y"), " calculating Hellinger \n")
+
 hdist <-
   a_range %>%
   map(
@@ -235,13 +233,13 @@ hdist <-
             }
             
             # save models
-            if (! exists(paste0(new_dir, "a-", a))) {
-              dir.create(paste0(new_dir, "a-", a))
+            if (! exists(paste0("data-derived/tlda-sims/", "a-", a))) {
+              dir.create(paste0("data-derived/tlda-sims/", "a-", a))
             }
             
             save(
               models,
-              file = paste0(new_dir, "a-", a, "/m-", par_list$model_num, ".RData")
+              file = paste0("data-derived/tlda-sims/", "a-", a, "/m-", par_list$model_num, ".RData")
               )
             
             # calculate hellinger
@@ -275,8 +273,8 @@ hdist <-
     }
   )
 
-save(
+write_rds(
   hdist,
-  file = paste0(new_dir, "hdist.RData")
+  file = "data-derived/tlda-sims/hdist.rds"
 )
 

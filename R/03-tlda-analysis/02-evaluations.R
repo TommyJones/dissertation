@@ -6,28 +6,10 @@ library(tidytext)
 library(tidylda)
 
 ### Define a very important variable ----
-# clockmark is a variable to distinguish between runs
-
-# default is to find the most recent stuff
-clockmark <- 
-  list.files(
-    "data-derived", 
-    pattern = "^\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}$"
-  ) %>%
-  max()
-
-# comment out the above, and uncomment the below if you want to 
-# hard code in a specific run 
-
-# clockmark <- "2022-01-02-22-50-56"
-
 ### load relevant data ----
+pars <- read_rds("data-derived/tlda-sims/pop-pars.rds")
 
-new_dir <- paste0("data-derived/", clockmark, "/")
-
-load(paste0(new_dir, "pop-pars.RData"))
-
-load(paste0(new_dir, "hdist.RData"))
+hdist <- read_rds("data-derived/tlda-sims/hdist.rds")
 
 
 ### Get time series of hdist differences ----
@@ -53,9 +35,9 @@ hdiff <- lapply(
   }
 )
 
-save(
+write_rds(
   hdiff,
-  file = paste0(new_dir, "hdiff.RData")
+  file = "data-derived/tlda-sims/hdiff.rds"
 )
 
 ### Reformat hdiff for analysis ----
@@ -142,9 +124,9 @@ hdiff_clean <-
   bind_rows()
 
 # save hdiff_clean
-save(
+write_rds(
   hdiff_clean,
-  file = paste0(new_dir, "hdiff_clean.RData")
+  file = "data-derived/tlda-sims/hdiff_clean.rds"
 )
 
 ### check for model convergence ----
@@ -240,7 +222,7 @@ save(
   t_table,
   bin_table,
   bin_regression,
-  file = paste0(new_dir, "convergence-analysis.RData")
+  file = "data-derived/tlda-sims/convergence-analysis.RData"
 )
 
 # clean up to preserve memory space
