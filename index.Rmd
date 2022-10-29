@@ -45,6 +45,8 @@ acknowledgments: |
   
   To In-Q-Tel, who has supported my resarch through tuition assistance and work flexibility.
   
+  To the members of ASA's Section on Text Analysis, thank you for forging a path to bring analyses of language to the statistical mainstream. I am eager to see what a collection of motivated statisticians can contribute to the field.
+  
 dedication: |
   To my loving mother, who sadly passed away before she could see this moment. Your love and dedication shaped me into the man I am today. For that I am eternally grateful.
   
