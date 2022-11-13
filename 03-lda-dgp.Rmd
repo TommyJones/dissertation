@@ -711,9 +711,9 @@ mean_coherence_plot <-
   geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
   geom_hline(yintercept = 0, lty = 2) +
   xlab("") + ylab("") +
-  ggtitle("Mean Coherence") +
+  ggtitle("Coherence") +
   theme(legend.position = "none") +
-  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  theme(axis.text.x = element_blank()) +
   ylim(
     c(
       t_tests$ci_95_low[t_tests$outcome == "mean_coherence"], 
@@ -735,7 +735,7 @@ mean_prevalence_plot <-
   geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
   geom_hline(yintercept = 0, lty = 2) +
   xlab("") + ylab("") +
-  ggtitle("Mean Prevalence") +
+  ggtitle("Prevalence") +
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   ylim(
@@ -807,7 +807,7 @@ part_r2_plot <-
   geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
   geom_hline(yintercept = 0, lty = 2) +
   xlab("") + ylab("") +
-  ggtitle("Mean Partial R-sq.") +
+  ggtitle("Partial R-sq.") +
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   ylim(
@@ -831,7 +831,7 @@ lambda_coh_plot <-
   geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
   geom_hline(yintercept = 0, lty = 2) +
   xlab("") + ylab("") +
-  ggtitle("Mean Lambda Coherence") +
+  ggtitle("L. Coherence") +
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   ylim(
