@@ -9,8 +9,16 @@ This chapter introduces _tLDA_, short for transfer-LDA. tLDA enables use cases f
 
 Work on transfer learning with LDA and other probabilistic topic models falls into three categories. The first category contains topic models that explicitly model a topic's evolution over time [@blei2006dtm] [@wang2012dynamic] [@tmlda]. These models differ from true transfer learning in that time is explicitly part of the model, rather than being updated post-hoc. The second category contains models that allow external information to guide the development of topics. External information may be in the form of supervised outcomes [@mcauliffe2007supervised] [@ramage2009labled] [@andrzejewski2009latent], seeded by model structure [@jagarlamudi2012transfer], seeded in the prior [@andrzejewski2009], or constructed interactively with subject matter experts [@hu2014interactive]. The third category contains models designed for incremental and on-line learning [@alsumait2008] [@hoffman2010online] [@rollinglda].
 
+AlSumait, Barbará, and Domeniconi's work, _On-Line LDA: Adaptive Topic Models for Mining Text Streams with Applications to Topic Detection and Tracking_ [@alsumait2008], is especially influential in developing tLDA. Their approach encodes the topics from the previous time slices into the prior, $\boldsymbol\eta$, for the next time slice. More formally
+
+\begin{align}
+  \boldsymbol\eta_k^{(t)} = \boldsymbol\omega^{(\delta)} \cdot \boldsymbol\beta_k^{(t-1)}
+\end{align}
+
+where $\boldsymbol\eta_k^{(t)}$ is the prior for the $k$-th topic for the current model, $\boldsymbol\omega^{(\delta)}$ is a vector of weights with one entry for the previous $\delta$ models, and $\boldsymbol\beta_k^{(t-1)}$ is a _matrix_ whose rows correspond to the posterior of the $k$-th topic for the previous $\delta$ models. In essence, $\boldsymbol\eta_k^{(t)}$ is a weighted linear combination of the last $\delta$ posterior distributions for the $k$-th topic. The weights sum to $1$ such that $\sum_{j=t-\delta-1}^{t-1} \omega_j = 1$. There are two mechanical differences between On-Line LDA and tLDA. First, when $\delta > 1$,  On-Line LDA loses the Markov property and can only be applied to time series use cases. Second, if $\delta = 1$, then $\omega = 1$. tLDA does not have a restriction on the size of the weight.
+
 ## Contribution
-tLDA is a model for updating topics in an existing model with new data, enabling incremental updates and time-series use cases. tLDA has three characteristics differentiating it from previous work:
+tLDA is a model for updating topics in an existing model with new data, enabling incremental updates, and time-series use cases. tLDA has three characteristics differentiating it from previous work:
 
 1. Flexibility - Most prior work can only address use cases from one of the above categories. In theory, tLDA can address all three. However, exploring use of tLDA to encode expert input into the $\boldsymbol\eta$ prior is left to future work.
 2. Tunability - tLDA introduces only a single new tuning parameter, $a$. Its use is intuitive, balancing the ratio of tokens in $\boldsymbol{X}^{(t)}$ to the base model's data, $\boldsymbol{X}^{(t-1)}$. 
