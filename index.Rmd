@@ -39,11 +39,11 @@ acknowledgments: |
   
   To Jason Kinser, thank you for being my dissertation director and keeping this committee (and our department) running.
   
-  To my remaining committee members, current and former, Carlotta Domeniconi and Olga Gkountouna, thank you for your time and thoughtful comments. 
+  To my remaining committee members, Carlotta Domeniconi and Olga Gkountouna, thank you for your time and thoughtful comments. 
   
   To Alyson Wilson and Will Doane, from STPI to here! Thank you for all of your coaching and guidance over the years.
   
-  To In-Q-Tel, who has supported my resarch through tuition assistance and work flexibility.
+  To In-Q-Tel, who has supported my resarch through tuition assistance and work flexibility, thank you.
   
   To the members of ASA's Section on Text Analysis, thank you for forging a path to bring analyses of language to the statistical mainstream. I am eager to see what a collection of motivated statisticians can contribute to the field.
   
