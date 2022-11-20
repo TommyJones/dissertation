@@ -113,7 +113,9 @@ The magnitudes of the Dirichlet hyperparameters, $\boldsymbol\eta$ and $\boldsym
 
 I fit a total of 128,000 LDA models to the simulated data. For each of the 128 unique sets of population parameters, I sequentially fit models on 100 batches of data, using tLDA to update the parameters. I do this for 10 different settings for $a$ from $a = 0.2$ to $a = 2$ with a step size of $0.2$. This leads to 1,280 separate model chains.
 
-In each case, the base model was fit with $K = 30$ topics, and commonly-used flat priors with $\alpha_k = 0.05$ and $\eta_v = 0.01$. The Gibbs sampler runs for 200 iterations. Posterior estimates are taken averaging over the last 50 iterations. Subsequent models are fine tuned with an additional 200 iterations with posterior estimates averaged over the last 50 and $a$ set as described above.
+In each case, the base model was fit with $K = 30$ topics, and commonly-used flat priors with $\alpha_k = 0.05$ and $\eta_v = 0.01$. The Gibbs sampler runs for 200 iterations. Posterior estimates are taken averaging over the last 50 iterations. Subsequent models are fine tuned with an additional 200 iterations with posterior estimates averaged over the last 50 and $a$ set as described above[^weirdburnin2].
+
+[^weirdburnin2]: It is common to burn in half of the total number of iterations. I chose to burn in over the last quarter for computational reasons. Specifically, I wanted at least 150 burn in iterations but for time complexity reasons, limited the total number of iterations to 200.
 
 I fit more topics than in the population data for two reasons. First, it's unrealistic that a researcher will know the right number of topics a-priori, and in practice a true number likely does not exist. Second, fitting a fewer number of topics than is in the population would lead to a pathologically-mispecified model regardless of other choices. 
 
@@ -363,9 +365,9 @@ plot(p2 / p1 + plot_annotation(title = "SBIR Corpus Over Time"))
 #### Modeling Choices
 The data are modeled successively by award year using tLDA. For each year, a document term matrix is constructed using _tidytext_ [@tidytextjss]. All text is converted to lowercase, common stop words are removed, and punctuation is stripped. The vocabulary is pruned on a per-document level, rather than for the whole corpus. This prevents unintentional information leakage from period to period. Words that appear only once in a document are removed from that document's vocabulary. 
 
-An initial LDA model is constructed for 1983 with $K = 100$ topics and symmetric priors such that $\alpha_k = 0.1$ and $\eta_v = 0.05$. This corresponds to $\sum_k \alpha_k = 10$ and $\sum_v \eta_v = 148.9$, respectively, as 1983 has 2,978 unique words. The Gibbs sampler is run for 200 iterations and posteriors are averaged over the last 50 iterations. 
+An initial LDA model is constructed for 1983 with $K = 100$ topics and symmetric priors such that $\alpha_k = 0.1$ and $\eta_v = 0.05$. This corresponds to $\sum_k \alpha_k = 10$ and $\sum_v \eta_v = 148.9$, respectively, as 1983 has 2,978 unique words. The Gibbs sampler is run for 200 iterations and posteriors are averaged over the last 50 iterations[^weirdburnin2]. 
 
-For each year from 1984 to 2021, tLDA models are constructed with $a \in \{0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6\}$. As above, the Gibbs sampler is run for 200 iterations and posteriors averaged over the last 50. For each year, one randomly-initialized topic is added to the model in an attempt to detect emergent topics. 
+For each year from 1984 to 2021, tLDA models are constructed with $a \in \{0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6\}$. As above, the Gibbs sampler is run for 200 iterations and posteriors averaged over the last 50[^weirdburnin2]. For each year, one randomly-initialized topic is added to the model in an attempt to detect emergent topics. 
 
 #### Results
 
