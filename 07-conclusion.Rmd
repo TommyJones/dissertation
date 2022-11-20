@@ -16,7 +16,11 @@ In this dissertation, I demonstrated tLDA on a time series use case. But other u
 
 _tidylda_ implements the methods demonstrated in this dissertation. It is available for anyone who wishes to use it. Yet _tidylda_ could still benefit from user feedback. An obvious place to start would be to implment a more scaleable algorithm, as above. Another obvious improvement would be to develop a method for expert-seeded topics using tLDA. Finally, as we get better guidance on how to set LDA's hyper parameters, _tidylda_ would modify its defaults so that a user has a good shot of a reasonable model with minimum effort.
 
-A work is never finished, it's just taken away. In spite of the need for more research, the research contained in this dissertation has taken a tiny step towards making LDA better for Natural Language Statistics and improving our understanding of how to measure ideas and narratives with statistical rigour.
+The real-world data used in this research was all in English and came from abstracts of research funded by the US federal government. That compels the follwing questions: Would the findings in this dissertation apply to non-English languages? Would the findings in this dissertation apply to a wider variety of length and formality of languages? (Tweets vs. newspaper articles vs. conversational language, etc.) I believe the answer to both questions is "yes" but with an important caveat.
+
+Zipf's and Heaps's laws are universal. They apply to any language in any context, even if their numeric parametarizations change. These empirical laws hold for English and Mandarin, speeches to the European Parliament and the tweets of Elon Musk. As a result, the results using simulated data presented in this dissertation should hold. Yet, while the simulations used here accounted for a large variety in corpus properties, it is reasonable to question whether or not the ranges of parameters represented here are representative of the ranges of real-world corpora researchers would encounter. I leave addressing this important caveat to future research.
+
+A work is never finished, it's just taken away. In spite of the need for more research, the results contained in this dissertation take a tiny step towards making LDA better for Natural Language Statistics and improving our understanding of how to measure ideas and narratives with statistical rigor.
 
 
 
