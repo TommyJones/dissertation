@@ -301,7 +301,9 @@ The dataset consists of a random sample of 1,000 abstracts of research grants aw
 #### Modeling Choices
 All text is converted to lower case, common stop words are removed, and punctuation is stripped. The vocabulary is pruned on a per-document level, rather than for the whole corpus. Words that appear only once in a document are removed from that document's vocabulary. 
 
-I construct ten LDA models from $K = 50$ to $K = 500$ topics, increasing by 50 topics each time. I use symmetric priors $\alpha_k = 0.1$ and $\eta_v = 0.05$. This corresponds to $\sum_k \alpha_k \in \{5, 10, 15, ..., 45, 50\}$ and $\sum_v \eta_v = 445.15$. The Gibbs sampler is run for 200 iterations and posteriors are averaged over the last 50 iterations. 
+I construct ten LDA models from $K = 50$ to $K = 500$ topics, increasing by 50 topics each time. I use symmetric priors $\alpha_k = 0.1$ and $\eta_v = 0.05$. This corresponds to $\sum_k \alpha_k \in \{5, 10, 15, ..., 45, 50\}$ and $\sum_v \eta_v = 445.15$. The Gibbs sampler is run for 200 iterations and posteriors are averaged over the last 50 iterations[^weirdburnin1].
+
+[^weirdburnin1]: It is common to burn in half of the total number of iterations. I chose to burn in over the last quarter for computational reasons. Specifically, I wanted at least 150 burn in iterations but for time complexity reasons, limited the total number of iterations to 200.
 
 #### Results
 
