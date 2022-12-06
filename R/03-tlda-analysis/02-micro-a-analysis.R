@@ -9,11 +9,12 @@ library(tmsamples)
 
 set.seed(8675201)
 
+Nk <- 25
 
 # load sim dtms and population parameters
-# pars contains dtms and pop parameters
 pars <- read_rds("data-derived/tlda-sims/pop-pars.rds")
 
+dtms <- read_rds("data-derived/tlda-sims/sim-dtms.rds")
 
 # calc Hellinger for a smaller range of a values
 a_range <- seq(0.65, 0.95, by = 0.05)
