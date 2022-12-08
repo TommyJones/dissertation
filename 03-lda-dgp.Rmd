@@ -116,7 +116,7 @@ p1 <- nih_plotmat |> ggplot() +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   ylab("Frequency") +
   xlab("Rank") +
-  ggtitle("Symmetric Eta")
+  ggtitle(expression(paste("Symmetric ", eta)))
 
 p2 <- nih_plotmat |> ggplot() + 
   geom_line(aes(x = rank, y = pl_pl), color = "#1f78b4", lty = 4, lwd = 1.25) + 
@@ -127,7 +127,7 @@ p2 <- nih_plotmat |> ggplot() +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   ylab("") +
   xlab("Rank") + 
-  ggtitle("Power Law Eta")
+  ggtitle(expression(paste("Power Law ", eta)))
 
 p3 <- nih_plotmat |> ggplot() + 
   geom_line(aes(x = rank, y = nih), color = "#d95f02", lwd = 1.25) + 
