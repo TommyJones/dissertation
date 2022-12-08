@@ -185,6 +185,7 @@ Models where $a < 0.8$ almost never converge; 384 out of 385 such models diverge
 ```{r tlda-boxplot, fig.width = 5, fig.height = 3, fig.cap = "Boxplot of the p-values assessing convergence for each value of $a$. Below $a = 0.8$ almost all p-values are near one. Above $a = 0.8$ almost all p-values are near zero, with a few exceptions. But at $a = 0.8$ there is high variance in the p-values assessing model convergence."}
 
 bin_table %>%
+  filter(! a %in% c(0.65, 0.7, 0.75, 0.85, 0.9, 0.95)) %>%
   ggplot(aes(x = factor(a), y = bin_test_p)) + 
   geom_boxplot(aes(fill = factor(a)), position = position_dodge()) + 
   theme(legend.position = "none") + 
@@ -193,6 +194,50 @@ bin_table %>%
   ggtitle("") # "Figure [x]: Structural break in convergence for a = 0.8"
 
 ```
+
+
+```{r tlda-mean-var, fig.width = 5, fig.height = 3, fig.cap = "this is a caption."}
+
+bin_table_sum <- 
+  bin_table |>
+  group_by(a) |>
+  summarize(
+    mean_p = mean(bin_test_p),
+    var_p = var(bin_test_p)
+  )
+
+p1 <- bin_table_sum |>
+  ggplot() +
+  geom_line(aes(x = a, y = mean_p), lwd = 1.5, col = "red") + 
+  geom_point(data = bin_table, aes(x = a, y = bin_test_p)) + 
+  xlab("") +
+  ylab("P-value") + 
+  geom_vline(aes(xintercept = 0.8), lty = 2) + 
+  geom_vline(aes(xintercept = 0.7), lty = 3) + 
+  geom_vline(aes(xintercept = 0.9), lty = 3) +
+  scale_x_continuous(breaks = seq(0.2, 2, by = 0.1)) + 
+  theme(
+    # legend.position = "none", 
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank()
+  )
+
+p2 <- bin_table_sum |>
+  ggplot() +
+  geom_line(aes(x = a, y = var_p), lwd = 1.5, col = "blue") + 
+  xlab("a") +
+  ylab("Var(p-value)") + 
+  geom_vline(aes(xintercept = 0.8), lty = 2) + 
+  geom_vline(aes(xintercept = 0.7), lty = 3) + 
+  geom_vline(aes(xintercept = 0.9), lty = 3) + 
+  scale_x_continuous(breaks = seq(0.2, 2, by = 0.1)) + 
+  theme(axis.text.x = element_text(angle=45, hjust=1))
+
+plot(p1 / p2)
+
+
+```
+
 
 
 Table \@ref(tab:bin-reg-table) contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratic effects. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $*** \equiv p \leq 0.01$, $** \equiv  p \leq 0.05$, and $* \equiv  p \leq 0.1$.
