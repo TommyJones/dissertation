@@ -139,29 +139,40 @@ H(\hat{\boldsymbol\beta}_k^{(t)},\boldsymbol\beta_{\mathfrak{k}}) &=
 
 Note that it is not necessarily true that $k = \mathfrak{k}$ for any pair of topics. For simplicity, I denote the above $H_{k,\mathfrak{k}}^{(t)}$ and its derivative with respect to $t$ as $H_{k,\mathfrak{k}}^{'(t)}$.
 
-From a theoretical perspective, the following should be true:
+The definition of convergence in probability for random variables on a separable metric space means that if
+
+\begin{align}
+    \underset{t \to \infty}{\lim} 
+      P(H_{k,\mathfrak{k}}^{'(t)} \geq \epsilon) = 0 \label{eq:cprob} 
+\end{align}
+
+then topic $\boldsymbol\beta^{(t)}_k$ converges in probability to $\boldsymbol\beta_\mathfrak{k}$. (\ref{eq:cprob}) is equivalent to 
+
+\begin{align}
+        \underset{t \to \infty}{\lim} 
+      H_{k,\mathfrak{k}}^{(t)} = \epsilon \label{eq:cprob} 
+\end{align}
+
+And since $\epsilon$ is a constant, that would imply
+
 \begin{align}
     & \text{If } \hat{\boldsymbol\beta}_k^{(t)} 
       \text{ converges in probability towards a stable posterior, then }
       \underset{t \to \infty}{\lim} 
-      H_{k,\mathfrak{k}}^{'(t)} = 0 \label{eq:1} \\
-    & \text{If } \hat{\boldsymbol\beta}_k^{(t)} \text{ converges in probability to }
-      \boldsymbol\beta_{\mathfrak{k}} \text{, then (\ref{eq:1}) holds and }
-      \underset{t \to \infty}{\lim}
-      H_{k,\mathfrak{k}}^{(t)} = 0 \label{eq:2}
+      H_{k,\mathfrak{k}}^{'(t)} = 0 \label{eq:1}
 \end{align}
 
-By extension of (\ref{eq:1}), if a whole model converges in probability to a stable posterior, then $\underset{t \to \infty}{\lim} \sum_{k=1}^K H_{k,\mathfrak{k}}^{'(t)} = 0$.  If (\ref{eq:2}) holds, then that also implies that $\hat{\boldsymbol\beta}_k^{(t)}$ is a consistent estimator of $\boldsymbol\beta_{\mathfrak{k}}$. This is unlikely to be true as an imperfect specification of $\boldsymbol\alpha$ and $\boldsymbol\eta$ mean that $H_{k,\mathfrak{k}}^{(t)}$ will always be positive. However, if $\hat{\boldsymbol\beta}_k^{(t)}$ is heading *towards* $\boldsymbol\beta_{\mathfrak{k}}$, then $H_{k,\mathfrak{k}}^{'(t)} < 0$ as it approaches its limit. I approximate $H_{k,\mathfrak{k}}^{'(t)}$ by $H_{k,\mathfrak{k}}^{(t)} - H_{k,\mathfrak{k}}^{(t - 1)}$, normalized by $H_{k,\mathfrak{k}}^{(0)}$. 
+Note that if (\ref{eq:1}) holds, that does not imply that $\hat{\boldsymbol\beta}_k^{(t)}$ is a consistent estimator of $\boldsymbol\beta_{\mathfrak{k}}$. For consistency, $\epsilon$ would have to be zero. This is unlikely to be true as an imperfect specification of $\boldsymbol\alpha$ and $\boldsymbol\eta$ mean that $H_{k,\mathfrak{k}}^{(t)}$ will always be positive. However, if $\hat{\boldsymbol\beta}_k^{(t)}$ is heading *towards* $\boldsymbol\beta_{\mathfrak{k}}$, then $H_{k,\mathfrak{k}}^{'(t)} < 0$ as it approaches its limit. I approximate $H_{k,\mathfrak{k}}^{'(t)}$ by $H_{k,\mathfrak{k}}^{(t)} - H_{k,\mathfrak{k}}^{(t - 1)}$, normalized by $H_{k,\mathfrak{k}}^{(0)}$. 
 
 Assessing (\ref{eq:1}) is a two step process, first assessing the convergence of each estimated topic and then assessing the convergence of the model as a whole. To assess the convergence of a topic, I perform a t-test on the last 20 periods of $H_{k,\mathfrak{k}}^{'(t)}$, with a null hypothesis of the mean being unequal to zero at the 0.05 significance level. If I reject the null, I consider a topic's estimate to have converged. If the null is true for all topics, we'd still expect a 5% rejection rate by random chance.
 
 The second step corrects for multiple tests and assesses the convergence of the model as a whole. I perform a binomial test on the proportion of topics whose null hypothesis is rejected in the first step. Specifically, I test the null hypothesis that the true probability of rejection in step one is less than or equal to 5%. The binomial test is also done at the 0.05 significance level.
 
-Logistic regression is used to analyze which factors lead to model convergence or divergence. I use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is a binary for the model having converged or not.
+I use logistic regression to analyze which factors lead to model convergence or divergence. I use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is a binary for the model having converged or not.
 
-Assessing whether or not the model converges towards the data generating distribution---i.e., assessing (\ref{eq:2})---is a similar two step process. A topic converges in probability towards the true generating distribution if the average slope of $H_{k,\mathfrak{k}}^{(t)}$ is negative, $\mathfrak{k}$ indexes the topic closest to $k$, averaging over the last. After discarding the first two periods, a t-test with a null hypothesis that the average of $H_{k,\mathfrak{k}}^{'(t)}$ from periods 3 to 100 is greater than zero. The whole model is considered to have converged towards the true data generating distribution using a binomial test, as above. Only models considered to have converged, using the procedure defined above, are considered.
+Assessing whether or not the model converges *towards* the data generating distribution is a similar two step process. A topic converges in probability towards the true generating distribution if the average slope of $H_{k,\mathfrak{k}}^{(t)}$ is negative, $\mathfrak{k}$ indexes the topic closest to $k$, averaging over the last. After discarding the first two periods, a t-test with a null hypothesis that the average of $H_{k,\mathfrak{k}}^{'(t)}$ from periods 3 to 100 is greater than zero. I consider the whole model to have converged towards the true data generating distribution using a binomial test, as above. Only models considered to have converged, using the procedure defined above, are considered.
 
-Linear regression is used to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. I use the hyper parameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
+I use linear regression to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. I use the hyper parameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
 
 #### Results
 
