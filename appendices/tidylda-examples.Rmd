@@ -73,8 +73,11 @@ We can plot the log likelihood to visually inspect for convergence. It's also po
 ```{r tidylda-likelihood1, echo=TRUE, fig.width = 6, fig.height = 4}
 # did the model converge?
 # there are actual test stats for this, but should look like "yes"
-qplot(x = iteration, y = log_likelihood, data = lda$log_likelihood, geom = "line") + 
+lda$log_likelihood %>%
+  ggplot(aes(x = iteration, y = log_likelihood)) +
+  geom_line(color = "black") +
   ggtitle("Checking model convergence")
+
 ```
 
 The methods `summary`, `glance`, and `print` produce various model summaries. `tidylda` objects contain a summary Tibble with the top 5 words in each topic, the prevalence of each topic in the training corpus, and probabilistic coherence of the top 5 words in each topic.
@@ -197,7 +200,9 @@ lda2 <- refit(
 
 # we can do similar analyses
 # did the model converge?
-qplot(x = iteration, y = log_likelihood, data = lda2$log_likelihood, geom = "line") +
+lda2$log_likelihood %>%
+  ggplot(aes(x = iteration, y = log_likelihood)) +
+  geom_line(color = "black") +
   ggtitle("Checking model convergence")
 
 # look at the model overall
