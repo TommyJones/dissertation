@@ -807,7 +807,8 @@
       The College of William and Mary, 2009\\
       \blanklines{\@tsp}%
       \setstretch{\@dsp}%
-      Director: Jason Kinser, Chair, Computational and Data Sciences Department\\
+      Director: Jason Kinser, Chair\\ 
+      Department of Computational and Data Sciences\\
       \blanklines{\@tsp}%
       \setstretch{\@dsp}%
       \@DUT@month\ \@DUT@year\\
