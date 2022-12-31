@@ -1019,6 +1019,7 @@
   \blanklines{-4}%
     % \begin{center}
       \setstretch{\@ssp}%
+      \blanklines{3}%
       \uppercase{\@DUT@title}\\
       \@DUT@author\\
       \ifdaring{%

@@ -6,7 +6,9 @@ author:
 
 # date: "`r format(Sys.time(), '%d %B %Y')`"
 
-month: "`r format(Sys.time(), '%B')`"
+# month: "`r format(Sys.time(), '%B')`"
+
+month: "Spring Semester"
 
 year: "`r format(Sys.time(), '%Y')`"
 
@@ -29,7 +31,7 @@ output:
 abstract: |
   \newline{}
   
-  Language is one of the most information rich and abundant data sources available. Rigorous statistical study of linguistic phenomena can elevate the digital humanities, linguistic applications to computational social science, and statistics itself. As yet, statistical applications to language, whether in linguistics, computation, or otherwise, are largely ad-hoc. Performance gains in modeling have largely been due to two factors: fine tuning transfer learning and increasing the size and complexity of models. Due to the statistical nature of human language---governed by several power law phenomena---fine tuning transfer learning may be advantageous for corpus analyses, not just artificial intelligence applications. Yet state of the art "transformer" models are expensive and opaque. I propose we revisit Latent Dirichlet Allocation (LDA) for corpus statistics. As a parametric statistical model of a data generating process, it has the potential to be used in statistically rigorous ways to study language. In this dissertation, I state my case for what I refer to as "corpus statistics", a more statistically rigorous take on analyzing text data. I link the data generating process for LDA to Zipf's law and use that relationship to engage in simulation studies for LDA. I also develop a coefficient of determination for topic models, extend LDA to enable pre-train/fine tuning transfer learning, and implement this research and more in an R package, _tidylda_. 
+  Written language is one of the most information rich and abundant data sources available. Rigorous statistical study of linguistic phenomena can elevate the digital humanities, linguistic applications to computational social science, and statistics itself. As yet, statistical applications to language, whether in linguistics, computation, or otherwise, are largely _ad hoc_. Performance gains in modeling have largely been due to two factors: fine tuning transfer learning and increasing the size and complexity of models. Due to the statistical nature of human language---governed by several power law phenomena---fine tuning transfer learning may be advantageous for corpus analyses, not just artificial intelligence applications. Yet state of the art "transformer" models are expensive and opaque. I propose we revisit Latent Dirichlet Allocation (LDA). As a parametric statistical model of a data generating process, it has the potential to be used in statistically rigorous ways to study written language. In this dissertation, I state my case for what I refer to as "natural language statistics", a more statistically rigorous take on analyzing text data. I link the data generating process for LDA to Zipf's law and use that relationship to engage in simulation studies for LDA. I also develop a coefficient of determination for topic models, extend LDA to enable pre-train/fine tuning transfer learning, and implement this research and more in an R package, _tidylda_. 
   
 acknowledgments: |
   
@@ -60,11 +62,12 @@ copyright: |
   All Rights Reserved.
 
 vita: |
-  Thomas Jones received a Bachelor of Arts in Economics from the College of William and Mary in 2009 and when on to receive a Master of Science in Mathematics and Statistics from Georgetown University in 2012. He is a veteran of the US Marine Corps, having served as an enlisted rifleman from 2000 to 2004. After receiving his Doctor of Philosophy in Computational Sciences and Informatics from George Mason University, he will continue his career as a technology entrepreneur.
+  Thomas Jones received a Bachelor of Arts in Economics from the College of William and Mary in 2009 and went on to receive a Master of Science in Mathematics and Statistics from Georgetown University in 2012. He is a veteran of the US Marine Corps, having served as an enlisted rifleman from 2000 to 2004. After receiving his Doctor of Philosophy in Computational Sciences and Informatics from George Mason University, he will continue his career as a technology entrepreneur.
 
 # Download your specific csl file and refer to it in the line below.
 csl: csl/ieee.csl
 toc: true
+toc_depth: 2
 lot: true
 lof: true
 
