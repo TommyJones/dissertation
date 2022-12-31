@@ -1020,8 +1020,10 @@
     % \begin{center}
       \setstretch{\@ssp}%
       \blanklines{3}%
-      \uppercase{\@DUT@title}\\
-      \@DUT@author\\
+      \MakeUppercase{\@DUT@title}\\
+      \@DUT@author
+      , PhD.\\
+      George Mason University, 2023\\
       \ifdaring{%
         \ifnum\c@@DUT@advisors=\@ne%
         Advisor:
