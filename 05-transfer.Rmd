@@ -150,7 +150,7 @@ then topic $\boldsymbol\beta^{(t)}_k$ converges in probability to $\boldsymbol\b
 
 \begin{align}
         \underset{t \to \infty}{\lim} 
-      H_{k,\mathfrak{k}}^{(t)} = \epsilon \label{eq:cprob} 
+      H_{k,\mathfrak{k}}^{(t)} = \epsilon  
 \end{align}
 
 And since $\epsilon$ is a constant, that would imply
