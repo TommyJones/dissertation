@@ -35,9 +35,17 @@ model_metrics <-
       sort()
   )
 
-### Augment metrics table with partial r2 and lambda coherence ----
+### Augment metrics table with perplexity ----
+model_metrics <-
+  model_metrics |>
+  mutate(
+    perplexity = -1 / (Nv * doc_length) * ll
+  )
+
+### Augment metrics table with partial r2, lambda coherence ----
 
 # define some functions 
+
 remove_one_topic <- function(model, topic_index) {
   
   new_theta <- model$theta[, - topic_index]
@@ -171,6 +179,8 @@ nk_big <-
           ll_est = x$ll[indicator],
           r2_correct = x$r2[x$correct_model],
           r2_est = x$r2[indicator],
+          perplexity_correct = x$perplexity[x$correct_model],
+          perplexity_est = x$perplexity[indicator],
           mean_coherence_correct = x$mean_coherence[x$correct_model],
           mean_coherence_est = x$mean_coherence[indicator],
           var_coherence_correct = x$var_coherence[x$correct_model],
@@ -214,6 +224,8 @@ nk_small <-
           ll_est = x$ll[indicator],
           r2_correct = x$r2[x$correct_model],
           r2_est = x$r2[indicator],
+          perplexity_correct = x$perplexity[x$correct_model],
+          perplexity_est = x$perplexity[indicator],
           mean_coherence_correct = x$mean_coherence[x$correct_model],
           mean_coherence_est = x$mean_coherence[indicator],
           var_coherence_correct = x$var_coherence[x$correct_model],
@@ -258,6 +270,8 @@ eta_sum_big <-
           ll_est = x$ll[indicator],
           r2_correct = x$r2[x$correct_model],
           r2_est = x$r2[indicator],
+          perplexity_correct = x$perplexity[x$correct_model],
+          perplexity_est = x$perplexity[indicator],
           mean_coherence_correct = x$mean_coherence[x$correct_model],
           mean_coherence_est = x$mean_coherence[indicator],
           var_coherence_correct = x$var_coherence[x$correct_model],
@@ -302,6 +316,8 @@ eta_sum_small <-
           ll_est = x$ll[indicator],
           r2_correct = x$r2[x$correct_model],
           r2_est = x$r2[indicator],
+          perplexity_correct = x$perplexity[x$correct_model],
+          perplexity_est = x$perplexity[indicator],
           mean_coherence_correct = x$mean_coherence[x$correct_model],
           mean_coherence_est = x$mean_coherence[indicator],
           var_coherence_correct = x$var_coherence[x$correct_model],
@@ -316,7 +332,7 @@ eta_sum_small <-
           mean_partial_r2_est = x$mean_partial_r2[indicator],
           mean_lambda_coherence_correct = x$mean_lambda_coherence[x$correct_model],
           mean_lambda_coherence_est = x$mean_lambda_coherence[indicator]
-        )
+          )
         
         return(out)
         
@@ -345,6 +361,8 @@ eta_flat <-
           ll_est = x$ll[indicator],
           r2_correct = x$r2[x$correct_model],
           r2_est = x$r2[indicator],
+          perplexity_correct = x$perplexity[x$correct_model],
+          perplexity_est = x$perplexity[indicator],
           mean_coherence_correct = x$mean_coherence[x$correct_model],
           mean_coherence_est = x$mean_coherence[indicator],
           var_coherence_correct = x$var_coherence[x$correct_model],
@@ -388,6 +406,8 @@ alpha_sum_big <-
           ll_est = x$ll[indicator],
           r2_correct = x$r2[x$correct_model],
           r2_est = x$r2[indicator],
+          perplexity_correct = x$perplexity[x$correct_model],
+          perplexity_est = x$perplexity[indicator],
           mean_coherence_correct = x$mean_coherence[x$correct_model],
           mean_coherence_est = x$mean_coherence[indicator],
           var_coherence_correct = x$var_coherence[x$correct_model],
@@ -431,6 +451,8 @@ alpha_sum_small <-
           ll_est = x$ll[indicator],
           r2_correct = x$r2[x$correct_model],
           r2_est = x$r2[indicator],
+          perplexity_correct = x$perplexity[x$correct_model],
+          perplexity_est = x$perplexity[indicator],
           mean_coherence_correct = x$mean_coherence[x$correct_model],
           mean_coherence_est = x$mean_coherence[indicator],
           var_coherence_correct = x$var_coherence[x$correct_model],
@@ -479,6 +501,8 @@ df_helper <- function(df, par) {
       mutate(outcome =  "ll"),
     r2 = t_helper(df$r2_correct, df$r2_est) |>
       mutate(outcome =  "r2"),
+    perplexity = t_helper(perplexity$r2_correct, perplexity$r2_est) |>
+      mutate(outcome =  "perplexity"),
     mean_coherence = t_helper(df$mean_coherence_correct, df$mean_coherence_est) |>
       mutate(outcome =  "mean_coherence"),
     mean_prevalence = t_helper(df$mean_prevalence_correct, df$mean_prevalence_est) |>
