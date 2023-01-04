@@ -1202,7 +1202,7 @@
 \let\DUTbibname\bibname
 \renewcommand\appendixname{Appendix}
 \let\DUTappendixname\appendixname
-\newcommand\vitaname{Vita}
+\newcommand\vitaname{Biography}
 \let\DUTvitaname\vitaname
 \newcommand{\DUTnames}{%
   \gdef\dedicationsname{\DUTdedicationsname}%
