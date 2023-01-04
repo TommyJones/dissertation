@@ -123,7 +123,7 @@ I fit a total of 128,000 LDA models to the simulated data. For each of the 128 u
 
 In each case, the base model was fit with $K = 30$ topics, and commonly-used flat priors with $\alpha_k = 0.05$ and $\eta_v = 0.01$. The Gibbs sampler runs for 200 iterations. Posterior estimates are taken averaging over the last 50 iterations. Subsequent models are fine tuned with an additional 200 iterations with posterior estimates averaged over the last 50 and $a$ set as described above[^weirdburnin2].
 
-[^weirdburnin2]: It is common to burn in half of the total number of iterations. I chose to burn in over the last quarter for computational reasons. Specifically, I wanted at least 150 burn in iterations but for time complexity reasons, limited the total number of iterations to 200.
+[^weirdburnin2]: It is common to burn in half of the total number of iterations. I chose to burn in over the last quarter for computational reasons. Specifically, I wanted at least 150 burn in iterations but due to computation time, limited the total number of iterations to 200.
 
 I fit more topics than in the population data for two reasons. First, it's unrealistic that a researcher will know the right number of topics a-priori, and in practice a true number likely does not exist. Second, fitting a fewer number of topics than is in the population would lead to a pathologically-mispecified model regardless of other choices. 
 
@@ -206,8 +206,10 @@ bin_table %>%
 
 ```
 
+I introduced additional models for $a = 0.65$ to $a = 0.95$---with a step size of $0.05$---to further examine the region around $a = 0.8$. The transition between divergence to convergence happens quickly as shown at the top of Figure \@ref(fig:tlda-mean-var). And the bottom of Figure \@ref(fig:tlda-mean-var) reveals that $a = 0.8$ is the point of maximum variance in p-values of tests measuring whether or not a model converges.
 
-```{r tlda-mean-var, fig.width = 5, fig.height = 3, fig.cap = "this is a caption."}
+
+```{r tlda-mean-var, fig.width = 5, fig.height = 3, fig.cap = "P-values assessing convergence for each value of a with the mean in read (top) and the variance in blue (bottom)."}
 
 bin_table_sum <- 
   bin_table |>
