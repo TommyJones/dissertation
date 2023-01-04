@@ -209,7 +209,7 @@ bin_table %>%
 I introduced additional models for $a = 0.65$ to $a = 0.95$---with a step size of $0.05$---to further examine the region around $a = 0.8$. The transition between divergence to convergence happens quickly as shown at the top of Figure \@ref(fig:tlda-mean-var). And the bottom of Figure \@ref(fig:tlda-mean-var) reveals that $a = 0.8$ is the point of maximum variance in p-values of tests measuring whether or not a model converges.
 
 
-```{r tlda-mean-var, fig.width = 5, fig.height = 3, fig.cap = "P-values assessing convergence for each value of a with the mean in read (top) and the variance in blue (bottom)."}
+```{r tlda-mean-var, fig.width = 5, fig.height = 3, fig.cap = "P-values assessing convergence for each value of a with the mean in read (top) and the variance in blue (bottom). Individual observations are black points (top)."}
 
 bin_table_sum <- 
   bin_table |>
