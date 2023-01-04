@@ -1000,7 +1000,7 @@
     \pdfbookmark[0]{\DUTdedicationsname}{\DUTdedicationsname}
   \fi
   \chapter*{\DUTdedicationsname}
-  \setstretch{\@dsp}%
+  \setstretch{\@ssp}%
 }{%
   \par\setstretch{\@ssp}%
 }

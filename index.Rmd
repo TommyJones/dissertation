@@ -35,23 +35,23 @@ abstract: |
   
 acknowledgments: |
   
-  To Bill Kennedy, your guidance and advice have been invaluable. I wouldn't be here without you. Thank you.
+  To Bill Kennedy, your guidance and advice have been invaluable. I wouldn't be here without you. Thank you.\vspace{5mm}
   
-  To Mark Meyer, your thoughtful comments have kept my research rigorous and grounded in statistical best practices. Thank you.
+  To Mark Meyer, your thoughtful comments have kept my research rigorous and grounded in statistical best practices. Thank you.\vspace{5mm}
   
-  To Jason Kinser, thank you for being my dissertation director and keeping this committee (and our department) running.
+  To Jason Kinser, thank you for being my dissertation director and keeping this committee (and our department) running.\vspace{5mm}
   
-  To my remaining committee members, Carlotta Domeniconi and Olga Gkountouna, thank you for your time and thoughtful comments.
+  To my remaining committee members, Carlotta Domeniconi and Olga Gkountouna, thank you for your time and thoughtful comments.\vspace{5mm}
   
-  To Alyson Wilson and Will Doane, from STPI to here! Thank you for all of your coaching and guidance over the years.
+  To Alyson Wilson and Will Doane, from STPI to here! Thank you for all of your coaching and guidance over the years.\vspace{5mm}
   
-  To In-Q-Tel, who has supported my resarch through tuition assistance and work flexibility, thank you.
+  To In-Q-Tel, who has supported my resarch through tuition assistance and work flexibility, thank you.\vspace{5mm}
   
   To the members of ASA's Section on Text Analysis, thank you for forging a path to bring analyses of language to the statistical mainstream. I am eager to see what a collection of motivated statisticians can contribute to the field.
   
 dedication: |
-  To my loving mother, who sadly passed away before she could see this moment. Your love and dedication shaped me into the man I am today. For that I am eternally grateful.
-  
+  To my loving mother, who sadly passed away before she could see this moment. Your love and dedication shaped me into the man I am today. For that I am eternally grateful. \vspace{5mm}
+
   To my loving father. You are the smartest man that I know. Your hard work and dedication to your career have served me as an example and a curse. May I some day be fit to fill your shoes.
 
 # Specify the location of the bibliography below
