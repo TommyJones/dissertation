@@ -829,8 +829,9 @@
   \ifpdf \pdfbookmark[0]{Copyright Page}{Copyright Page} \fi
   \if@DUT@pagebreak \vspace*{\fill} \fi
   \begin{center}
-    \copyright~Copyright \@DUT@year\\
-    \@DUT@author.  \@DUT@copyrighttext
+    \copyright~Copyright \@DUT@year \hspace{1mm} \@DUT@author.\\
+    \@DUT@copyrighttext
+    \setstretch{\@ssp}%
   \end{center}
   \if@DUT@pagebreak \vspace*{\fill} \fi
   \thispagestyle{empty}
