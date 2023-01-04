@@ -1012,7 +1012,8 @@
     \pdfbookmark[0]{\DUTacknowledgmentsname}{\DUTacknowledgmentsname}
   \fi
   \chapter*{\acknowledgmentsname}
-  \setstretch{\@dsp}%
+% \setstretch{\@dsp}%
+\setstretch{\@ssp}%
 }{%
   \par\setstretch{\@ssp}%
 }
@@ -1062,8 +1063,9 @@
 \let\DUTthesis\thesis
 \let\endDUTthesis\endthesis
 \newenvironment{vita}{%
-  \listed@schapter{\vitaname}
-  \setstretch{\@dsp}%
+  \listed@schapter{\vitaname} % commented out to take out of TOC
+  % \setstretch{\@dsp}% % does this make pages double spaced?
+  \setstretch{\@ssp}
 }{%
   \par\setstretch{\@ssp}%
 }
