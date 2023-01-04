@@ -792,25 +792,25 @@
     \begin{center}%
       {\setstretch{\@tsp} \bfseries \@DUT@title \par}%
       \blanklines{\@tsp}%
-      \setstretch{\@dsp}%
+      \setstretch{\@ssp}%
       A Dissertation submitted in partial fulfillment of the requirements for the degree of 
       Doctor of Philosophy at George Mason University\\
       \blanklines{\@tsp}%
-      \setstretch{\@dsp}%
+      \setstretch{\@ssp}%
       by\\
       \blanklines{\@tsp}%
-      \setstretch{\@dsp}%
+      \setstretch{\@ssp}%
       \@DUT@author\\
       Master of Science\\
       Georgetown University, 2012\\
       Bachelor of Arts\\
       The College of William and Mary, 2009\\
       \blanklines{\@tsp}%
-      \setstretch{\@dsp}%
+      \setstretch{\@ssp}%
       Director: Jason Kinser, Chair\\ 
       Department of Computational and Data Sciences\\
       \blanklines{\@tsp}%
-      \setstretch{\@dsp}%
+      \setstretch{\@ssp}%
       \@DUT@month\ \@DUT@year\\
       George Mason University\\
       Fairfax, Virginia\\
