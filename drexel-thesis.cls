@@ -453,14 +453,14 @@
     \if@DUT@pagebreak \vspace*{\fill} \fi
     \begin{center}%
       {\setstretch{\@tsp} \@DUT@title \par}%
-      \blanklines{\@tsp}%
+      %\blanklines{\@tsp}%
     \end{center}%
       \setstretch{\@ssp}%
       A Dissertation submitted in partial fulfillment of the requirements for the degree of Doctor of Philosophy at George Mason University\\
     \begin{center}%
       \blanklines{\@tsp}%
       \setstretch{\@ssp}%
-      by\\
+      By\\
       \blanklines{\@tsp}%
       \setstretch{\@ssp}%
       \@DUT@author\\
