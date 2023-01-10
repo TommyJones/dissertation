@@ -652,7 +652,7 @@
   \@DUT@maketitle
   \@DUT@makecopyright
 }{%
-  \@DUT@blankpage
+  % \@DUT@blankpage
 }
 \let\DUTpreamble\preamble
 \let\endDUTpreamble\endpreamble
@@ -879,7 +879,7 @@
   \gdef\appendixname{\DUTappendixname}%
   \gdef\vitaname{\DUTvitaname}%
 }
-\AtEndDocument{\@DUT@blankpage}
+%\AtEndDocument{\@DUT@blankpage}
 \endinput
 %%
 %% End of file `drexel-thesis.cls'.
