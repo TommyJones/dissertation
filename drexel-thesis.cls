@@ -452,7 +452,7 @@
     \fi
     \if@DUT@pagebreak \vspace*{\fill} \fi
     \begin{center}%
-      {\setstretch{\@tsp} \bfseries \@DUT@title \par}%
+      {\setstretch{\@tsp} \@DUT@title \par}%
       \blanklines{\@tsp}%
       \setstretch{\@ssp}%
       A Dissertation submitted in partial fulfillment of the requirements for the degree of 
