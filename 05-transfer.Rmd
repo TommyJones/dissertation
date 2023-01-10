@@ -253,7 +253,7 @@ plot(p1 / p2)
 
 
 
-Table \@ref(tab:bin-reg-table) contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratic effects. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $*** \equiv p \leq 0.01$, $** \equiv  p \leq 0.05$, and $* \equiv  p \leq 0.1$.
+Table \@ref(tab:bin-reg-table) contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratic effects. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $* \equiv p \leq 0.01$ and $. \equiv  p \leq 0.05$.
 
 In all cases, $a$ has the most substantial impact on the outcome. If $a$ is too small, a chain of models is unlikely to converge and if $a$ is too large the chain will converge far from the true data generating topics. As $a$ increases, the probability of a model converging also increases, albeit with decreasing returns as indicated by the decreasing quadratic. Intuitively, larger values of $a$ decrease the variance between models in a chain leading to faster convergence. Yet of the models that converge, $a$ increases the distance of the fitted topics to their matches in the data generating distribution, again with decreasing returns.
 
@@ -297,9 +297,9 @@ convergence_direction_regression2 <-
 reg_table <- 
   broom::tidy(bin_regression) %>%
   mutate(sig = case_when(
-    p.value < 0.001 ~ "***",
-    p.value < 0.05 ~ "**",
-    p.value < 0.1 ~ "*",
+    p.value < 0.001 ~ "*",
+    p.value < 0.05 ~ ".",
+    p.value < 0.1 ~ "",
     TRUE ~ ""
   )) %>%
   select(
@@ -310,9 +310,9 @@ reg_table <-
   full_join(
     broom::tidy(bin_regression2) %>%
       mutate(sig = case_when(
-        p.value < 0.001 ~ "***",
-        p.value < 0.05 ~ "**",
-        p.value < 0.1 ~ "*",
+        p.value < 0.001 ~ "*",
+        p.value < 0.05 ~ ".",
+        p.value < 0.1 ~ "",
         TRUE ~ ""
       )) %>%
       select(
@@ -325,9 +325,9 @@ reg_table <-
   full_join(
     broom::tidy(convergence_direction_regression2) %>%
       mutate(sig = case_when(
-        p.value < 0.001 ~ "***",
-        p.value < 0.05 ~ "**",
-        p.value < 0.1 ~ "*",
+        p.value < 0.001 ~ "*",
+        p.value < 0.05 ~ ".",
+        p.value < 0.1 ~ "",
         TRUE ~ ""
       ))%>%
       select(
@@ -340,9 +340,9 @@ reg_table <-
   full_join(
     broom::tidy(convergence_direction_regression) %>%
       mutate(sig = case_when(
-        p.value < 0.001 ~ "***",
-        p.value < 0.05 ~ "**",
-        p.value < 0.1 ~ "*",
+        p.value < 0.001 ~ "*",
+        p.value < 0.05 ~ ".",
+        p.value < 0.1 ~ "",
         TRUE ~ ""
       )) %>%
       select(
