@@ -6,7 +6,7 @@ According to an often-quoted but never cited definition, "the goodness of fit of
 
 Many researchers have eschewed goodness of fit measures as metrics of evaluating topic models. This is unfortunate. Goodness of fit is often the first line of defense against a pathologically misspecified model. If the model does not fit the data well, can it be relied on for inference or interpretation? Of course goodness of fit is not the only, perhaps not even the most important, measure of a good model. In fact a model that fits its training data too well is itself problematic. Nevertheless, a consistent and easily-interpreted measure of goodness of fit for topic models can serve to demystify the dark art of topic modeling to otherwise statistically literate audiences. 
 
-Goodness of fit manifests itself in topic modeling through word frequencies. Topic models are not fully unsupervised methods. If they were unsupervised, this would mean that no observations exist upon which to compare a model’s fitted values. However, probabilistic topic models are ultimately generative models of word frequencies [@blei2002lda]. The expected value of word frequencies in a document under a topic model is given by the expected value of a multinomial random variable. The that can be compared to the predictions, then, are the word frequencies themselves. Most goodness of fit measures in topic modeling are restricted to in-sample fit. Yet some out-of-sample measures have been developed [@buntine2009likelihood].
+Goodness of fit manifests itself in topic modeling through word frequencies. Topic models are not fully unsupervised methods. If they were unsupervised, this would mean that no observations exist upon which to compare a model’s fitted values. However, probabilistic topic models are ultimately generative models of word frequencies [@blei2002lda]. The expected value of word frequencies in a document under a topic model is given by the expected value of a multinomial random variable. The outcomes that can be compared to the predictions, then, are the word frequencies themselves. Most goodness of fit measures in topic modeling are restricted to in-sample fit. Yet some out-of-sample measures have been developed [@buntine2009likelihood].
 
 For any probabilistic topic model, the following relationship holds
 
@@ -14,7 +14,7 @@ For any probabilistic topic model, the following relationship holds
   \mathbb{E}(\boldsymbol{X}) &= \boldsymbol{n} \odot \boldsymbol\Theta \cdot \boldsymbol{B}
 \end{align}
 
-Above, $\boldsymbol{n}$ is a $D$-length vector whose $d$-th entry is the number of terms in the $d$-th document and $\odot$ denotes elementwise multiplication.
+where $\boldsymbol{X}$ is a matrix of observed word frequencies, $\boldsymbol{n}$ is a $D$-length vector whose $d$-th entry is the number of terms in the $d$-th document, $\boldsymbol\Theta$ is a matrix of estimated topic distributions over documents, and $\boldsymbol{B}$ is a matrix of estimated word distributions over topics. Also$\odot$ denotes elementwise multiplication whereas $\cdot$ is the typical dot product.
 
 ## Related Work
 
@@ -22,9 +22,9 @@ Evaluation methods for topic models can be broken down into three categories: ma
 
 Manual inspection is subjective but closely tracks how many topic models are used in real-world applications. Most research on topic model evaluation has focused on presenting ordered lists of words that meet human judgement about words that belong together. For each topic, words are ordered from the highest value of $\boldsymbol\beta_k$ to the lowest (i.e. the most to least frequent in each topic). In [@chang2009tea] the authors introduce the "intruder test." Judges are shown a few high-probability words in a topic, with one low-probability word mixed in. Judges must find the low-probability word, the intruder. They then repeat the procedure with documents instead of words. A good topic model should allow judges to easily detect the intruders.
 
-One class of intrinsic evaluation methods attempt to approximate human judgment. These metrics are called "coherence" metrics. Coherence metrics attempt to approximate the results of intruder tests in an automated fashion. Researchers have put forward several coherence measures. These typically compare pairs of highly-ranked words within topics. Röder et al. evaluate several of these [@roder2015coherence]. They have human evaluators rank topics by quality and then compare rankings based on various coherence measures to the ranking of the evaluators. They express skepticism that existing coherence measures are sufficient to assess topic quality. In a paper presented at the conference of the Association for Computational Linguistics (ACL), [@lau2014machine] find that normalized pointwise mutual information (NPMI) is a coherence metric that closely resembles human judgement. 
+One class of intrinsic evaluation methods attempts to approximate human judgment. These metrics are called "coherence" metrics. Coherence metrics attempt to approximate the results of intruder tests in an automated fashion. Researchers have put forward several coherence measures. These typically compare pairs of highly-ranked words within topics. Röder et al. evaluate several of these [@roder2015coherence]. They have human evaluators rank topics by quality and then compare rankings based on various coherence measures to the ranking of the evaluators. They express skepticism that existing coherence measures are sufficient to assess topic quality. In a paper presented at the conference of the Association for Computational Linguistics (ACL), [@lau2014machine] find that normalized pointwise mutual information (NPMI) is a coherence metric that closely resembles human judgement. 
 
-Other popular intrinsic methods are types of goodness of fit. The primary goodness of fit measures in topic modeling are likelihood metrics. Likelihoods, generally the log likelihood, are naturally obtained from probabilistic topic models. Likelihoods may contain prior information, as is often the case with Bayesian models. If prior information is unknown or undesired, researchers may calculate the likelihood using only estimated parameters. Researchers have used likelihoods to select the number of topics [@griffiths2004scientific], compare priors [@wallach2009rethinking], or otherwise evaluate the efficacy of different modeling procedures [@asuncion2012smoothing] [@nguyen2014sometimes]. A popular likelihood method for evaluating out-of-sample fit is called perplexity. Perplexity measures a transformation of the likelihood of the held-out words conditioned on the trained model.
+Other popular intrinsic methods are types of goodness of fit. The primary goodness of fit measures in topic modeling are likelihood metrics. Likelihoods, generally the log likelihood, are naturally obtained from probabilistic topic models. Researchers have used likelihoods to select the number of topics [@griffiths2004scientific], compare priors [@wallach2009rethinking], or otherwise evaluate the efficacy of different modeling procedures [@asuncion2012smoothing] [@nguyen2014sometimes]. A popular likelihood method for evaluating out-of-sample fit is called perplexity. Perplexity measures a transformation of the likelihood of the held-out words conditioned on the trained model.
 
 The most common extrinsic evaluation method is to compare topic distributions to known document classes. The most prevalent topic in each document is taken as a document’s topical classification. Then, researchers will calculate precision, recall, and/or other diagnostic statistics for classification as measures of a topic model's success.
 
@@ -42,15 +42,17 @@ For a model, $f$, of outcome variable, $y$, where there are $N$ observations, $R
 
 \begin{align}
   \bar{y} &= \frac{1}{N}\sum_{i=1}^{N}y_i\\
-  SS_{tot.} &= \sum_{i=1}^N{(y_i-\bar{y})^2}\\
-  SS_{resid.} &= \sum_{i=1}^N{(f_i-y_i)^2}
+  SST &= \sum_{i=1}^N{(y_i-\bar{y})^2}\\
+  SSR &= \sum_{i=1}^N{(f_i-y_i)^2}
 \end{align}
 
 The standard definition of $R^2$ is a ratio of summed squared errors. 
 
 \begin{align}
-    R^2 \equiv 1 - \frac{SS_{resid.}}{SS_{tot.}}
+    R^2 \equiv 1 - \frac{SSR}{SST}
 \end{align} 
+
+$SST$ and $SSR$ are known as the total sum of squares and residual sum of squares, respectively.
 
 ### A Geometric Interpretation of $R^2$
 
@@ -69,9 +71,9 @@ We can rewrite $R^2$ using the relationships above. Note than now $\bar{\boldsym
 
 \begin{align}
     \bar{\boldsymbol{y}} &= \frac{1}{N} \sum_{i=1}^{N} \boldsymbol{y}_i \\ 
-    SS_{tot.} &= \sum_{i=1}^N{d(\boldsymbol{y}_i, \bar{\boldsymbol{y}}})^2\\
-    SS_{resid.} &= \sum_{i=1}^N{d(\boldsymbol{y}_i, \boldsymbol{f}_i)^2}\\
-    \Rightarrow R^2 & \equiv 1 - \frac{SS_{resid.}}{SS_{tot.}}
+    SST &= \sum_{i=1}^N{d(\boldsymbol{y}_i, \bar{\boldsymbol{y}}})^2\\
+    SSR &= \sum_{i=1}^N{d(\boldsymbol{y}_i, \boldsymbol{f}_i)^2}\\
+    \Rightarrow R^2 & \equiv 1 - \frac{SSR}{SST}
 \end{align}
 
 Figure \@ref(fig:geometric-graphic) visualizes the geometric interpretation of $R^2$ for outcomes in $\mathbb{R}_2$. The left image represents $SS_{tot.}$: the red dots are data points ($\boldsymbol{y}_i$); the black dot is the mean ($\bar{\boldsymbol{y}}$); the line segments represent the Euclidean distance from each $\boldsymbol{y}_i$ to $\bar{\boldsymbol{y}}$. $SS_{tot.}$ is obtained by squaring the length of each line segment and then adding the squared lengths together. The right image represents $SS_{resid.}$: the blue dots are the fitted values under the model ($\boldsymbol{f}_i$); the line segments represent the Euclidean distance from each $\boldsymbol{f}_i$ to its corresponding $\boldsymbol{y}_i$. $SS_{resid.}$ is obtained by squaring the length of each line segment and then adding the squared segments together. 
@@ -138,9 +140,9 @@ The center of the contexts in the corpus, $\bar{\boldsymbol{x}}$, is obtained by
 
 \begin{align}
     \bar{\boldsymbol{x}} &= \frac{1}{D}\sum_{d=1}^{D}\boldsymbol{x}_d\\
-    SS_{tot.} &= \sum_{d=1}^D{d(\boldsymbol{x}_d, \bar{\boldsymbol{x}})^2}\\
-    SS_{resid.} &= \sum_{d=1}^D{d(\boldsymbol{x}_d, \boldsymbol{f}_d)^2}\\
-    R^2 &\equiv 1 - \frac{SS_{resid.}}{SS_{tot.} }
+    SST &= \sum_{d=1}^D{d(\boldsymbol{x}_d, \bar{\boldsymbol{x}})^2}\\
+    SSR &= \sum_{d=1}^D{d(\boldsymbol{x}_d, \boldsymbol{f}_d)^2}\\
+    R^2 &\equiv 1 - \frac{SSR}{SST}
 \end{align} 
 
 ### Pseudo Coefficients of Variation
@@ -181,7 +183,7 @@ Each data set is drawn from a model with a unique combination of the following h
 
 I choose $\boldsymbol\eta$ to be proportional to a power law, consistent with Appendix 3 and and Zipf's law [@zipf1949]. I chose $\boldsymbol\alpha$ to be symmetric. The magnitudes of the Dirichlet hyperparameters, $\boldsymbol\eta$ and $\boldsymbol\alpha$ vary while keeping their shapes fixed. The magnitude of the parameter of a Dirichlet distribution plays a strong role in tuning the covariance between draws from that distribution. A smaller magnitude means larger variability between draws. In other words, if $\left(\sum_{v=1}^V \eta_v \right)$ is smaller, topics are less linguistically similar. If $\left(\sum_{v=1}^V \eta_v \right)$ is larger, topics are more linguistically similar. Similarly, $\left(\sum_{k=1}^K \alpha_k \right)$ tunes the topical similarity of documents.
 
-To remove the effects of estimating a pathologically-misspecified model, I use the data generating parameters $\boldsymbol\Theta$ and $\boldsymbol{B}$ to calculate $R^2$, and McFadden's $R^2$. Thus these calculations represent the best possible model for a given simulated data set.
+To remove the effects of estimating a pathologically-misspecified model, I use the data generating multinomial parameters $\boldsymbol\Theta$ and $\boldsymbol{B}$ to calculate $R^2$, and McFadden's $R^2$. Thus these calculations represent the best possible model for a given simulated data set.
 
 McFadden's $R^2$ is a ratio of likelihoods. Various methods exist for calculating likelihoods of topic models [@buntine2009likelihood]. Most of these methods have a Bayesian perspective and incorporate prior information. Not all topic models are Bayesian, however [@hofmann1999probabilistic]. And in the case of simulated corpora, the exact data-generating parameters are known a priori. As a result, likelihoods calculated for this paper follow the simplest definition: they represent the probability of observing the generated data, given the (known or estimated) multinomial parameters of the model, $\boldsymbol\Theta$ and $\boldsymbol{B}$. The "model-free" likelihood assumes that each document is generated by drawing from a single multinomial distribution. The parameters of this model-free distribution are proportional to the frequency of each token in the data. 
 
@@ -311,7 +313,7 @@ $R^2$ increases with the \textit{estimated} number of topics using LDA. This ind
 
 [^snowballstopwords]: 175 English stop words from the snowball stemmer project. http://snowball.tartarus.org/algorithms/english/stop.txt
 
-The same likelihood calculation is used here, as described above. This likelihood calculation excludes prior information typically used when calculating the likelihood of an LDA model. This is perhaps not the optimal method for calculating likelihoods when using a Bayesian model. However, this prior information is excluded here for two reasons. First, it is consistent with the method used for calculating McFadden's $R^2$ earlier in the paper. Second, this log likelihood can be calculated exactly. The likelihood of an LDA model including the prior is contained within an intractable integral. Various approximations have been developed [@buntine2009likelihood]. However, there is some risk that a comparison of an approximated likelihood to $R^2$ may be biased by the approximation method. 
+The same likelihood calculation is used here, as described above. This likelihood calculation excludes prior information typically used when calculating the likelihood of an LDA model. (See, for example, the likelihood used in [@chen2015warplda].) However, this prior information is excluded here for two reasons. First, it is consistent with the method used for calculating McFadden's $R^2$ earlier in the paper. Second, this log likelihood can be calculated exactly. The likelihood of an LDA model including the prior is contained within an intractable integral. Various approximations have been developed [@buntine2009likelihood]. However, there is some risk that a comparison of an approximated likelihood to $R^2$ may be biased by the approximation method. 
 
 
 ```{r sim-likelihood-figure, fig.cap="Comparison of R2 and log likelihood for LDA models fit on simulated corpora. Neither $R^2$ nor log likelihood are effective statistics for detecting the correct number of topics to estimate. The true number of topics is 200 in these corpora.", fig.width = 6, fig.height = 4}
@@ -370,12 +372,12 @@ One can calculate a partial $R^2$ for topic models, similar to a partial coeffic
 
 \begin{align}
   R^2_{partial} &=
-    1 - \frac{SS_{resid.}^{(full)}}{SS_{resid.}^{(reduced)}}
+    1 - \frac{SSR_{(full)}}{SSR_{(reduced)}}
 \end{align}
 
-where $SS_{resid.}^{(full)}$ is the standard $SS_{resid.}$ above and $SS_{resid.}^{(reduced)}$ is the residual sum of squares with topic $k$ removed. 
+where $SSR_{(full)}$ is the standard $SSR$ above and $SSR_{(reduced)}$ is the residual sum of squares with topic $k$ removed. 
 
-A key difference between a partial $R^2$ for topic models and the one for standard linear models is how one obtains $SS_{resid.}^{(reduced)}$. For a standard linear model, the variables are explicit. A variable is removed, a new model fitted, and $SS_{resid.}^{(reduced)}$ calculated. However topics are latent variables and topic models like LDA are initialized at random during fitting. So instead of fitting a new model, the $k$-th column is removed from $\boldsymbol\Theta$ and $k$-th row removed from $\boldsymbol{B}$. The rows of $\boldsymbol\Theta$ are normalized to sum to 1. Then $SS_{resid.}^{(reduced)}$ is calculated from the reduced $\boldsymbol\Theta$ and $\boldsymbol{B}$.
+A key difference between a partial $R^2$ for topic models and the one for standard linear models is how one obtains $SSR_{(reduced)}$. For a standard linear model, the variables are explicit. A variable is removed, a new model fitted, and $SSR_{(reduced)}$ calculated. However topics are latent variables and topic models like LDA are initialized at random during fitting. So instead of fitting a new model, the $k$-th column is removed from $\boldsymbol\Theta$ and $k$-th row removed from $\boldsymbol{B}$. The rows of $\boldsymbol\Theta$ are normalized to sum to 1. Then $SSR_{(reduced)}$ is calculated from the reduced $\boldsymbol\Theta$ and $\boldsymbol{B}$.
 
 The left of Figure \@ref(fig:nih-partial-r2) plots the partial $R^2$ for the 10 topics contributing the most to the goodness of fit for a 50-topic model on the sample of NIH grant abstracts. The right of Figure \@ref(fig:nih-partial-r2) plots the correlation between probabilistic coherence and the partial $R^2$ of topics in the same 50-topic model. There is a slight positive correlation between a topic's partial $R^2$ and its probabilistic coherence in this model. I leave a deeper exploration between the two variables' relationship to future research.
 
@@ -424,7 +426,7 @@ plot(p1 + p2)
 
 ## Discussion
 
-$R^2$ has many advantages over standard goodness of fit measures commonly used in topic modeling. Current goodness of fit measures are difficult to interpret, compare across corpora, and explain to lay audiences. $R^2$ does not have any of these issues. Its scale is effectively bounded between 0 and 1, as negative values (though possible) indicate extreme model misspecification. $R^2$ may be used to compare models of different corpora, if necessary. Scientifically-literate lay audiences are almost uniformly familiar with $R^2$ in the context of linear regression; the topic model $R^2$ has a similar interpretation, making it an intuitive measure. 
+$R^2$ has many advantages over standard goodness of fit measures commonly used in topic modeling. Current goodness of fit measures are difficult to interpret, to compare across corpora, and to explain to lay audiences. $R^2$ does not have any of these issues. Its scale is effectively bounded between 0 and 1, as negative values (though possible) indicate extreme model misspecification. $R^2$ may be used to compare models of different corpora, if necessary. Scientifically-literate lay audiences are almost uniformly familiar with $R^2$ in the context of linear regression; the topic model $R^2$ has a similar interpretation, making it an intuitive measure. 
 
 The standard (geometric) interpretation of $R^2$ is preferred to McFadden's pseudo $R^2$. The effective upper bound for McFadden's $R^2$ is considerably smaller than 1. A scale correction measure is needed. Also, it is debatable which likelihood calculation(s) are most appropriate. These issues make McFadden's $R^2$ complicated and subjective. However, a primary motivation for deriving a topic model $R^2$ is to remove the complications that currently hinder evaluating and communicating the fidelity with which topic models represent observed text. Most problematically, McFadden's $R^2$ varies with the number of \textit{true} topics in the data. It is therefore unreliable in practice where the true number of topics in unknown.
 
