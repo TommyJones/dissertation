@@ -1,13 +1,13 @@
 # Fine Tuning Latent Dirichlet Allocation for Transfer Learning {#transfer}
 As stated in Section 1, statistical properties of language make the fine tuning paradigm of transfer learning attractive for analyses of corpora. The pervasiveness of power laws in language---the most famous example of which is Zipf's law [@zipf1949]---mean that we can expect just about any corpus of language to not contain information relevant to the analysis. (i.e., Linguistic information necessary for understanding the corpus of study would be contained in a super set of language around---but not contained in---said corpus.) 
 
-Intuitively, when people learn a new subject from by reading, they do it in a way that on its surface appears consistent with fine tuning transfer learning. Humans have general competence in a language before consulting a corpus to learn a new subject. This person then reads the corpus, learns about the subject, and in the process updates and expands their knowledge of the anguage. Also as stated in Section 1, LDA has attractive properties as a model for statistical analyses of corpora. Its very nature allows us to use probability theory to guide model specification and quantify uncertainty around claims made with the model. 
+Intuitively, when people learn a new subject by reading, they do it in a way that on its surface appears consistent with fine tuning transfer learning. Humans have general competence in a language before consulting a corpus to learn a new subject. This person then reads the corpus, learns about the subject, and in the process updates and expands their knowledge of the language. Also as stated in Section 1, LDA has attractive properties as a model for statistical analyses of corpora. Its very nature allows us to use probability theory to guide model specification and quantify uncertainty around claims made with the model. 
 
 This chapter introduces _tLDA_, short for transfer-LDA. tLDA enables use cases for fine-tuning from a base model with a single incremental update (i.e., "fine tuning") or with many incremental updates---e.g., on-line learning, possibly in a time-series context---using Latent Dirichlet Allocation. tLDA uses collapsed Gibbs sampling [@griffiths2004scientific] but its methods should extend to other MCMC methods [@yao2009streaming] [@lightlda] [@yahoolda] [@chen2015warplda]. tLDA is available for the R language for statistical computing [@rlang] in the _tidylda_ package [@tidylda].
 
 ## Related Work
 
-Work on transfer learning with LDA and other probabilistic topic models falls into three categories. The first category contains topic models that explicitly model a topic's evolution over time [@blei2006dtm] [@wang2012dynamic] [@tmlda]. These models differ from true transfer learning in that time is explicitly part of the model, rather than being updated post-hoc. The second category contains models that allow external information to guide the development of topics. External information may be in the form of supervised outcomes [@mcauliffe2007supervised] [@ramage2009labled] [@andrzejewski2009latent], seeded by model structure [@jagarlamudi2012transfer], seeded in the prior [@andrzejewski2009], or constructed interactively with subject matter experts [@hu2014interactive]. The third category contains models designed for incremental and on-line learning [@alsumait2008] [@hoffman2010online] [@rollinglda].
+Work on transfer learning with LDA and other probabilistic topic models falls into three categories. The first category contains topic models that explicitly model a topic's evolution over time [@blei2006dtm] [@wang2012dynamic] [@tmlda]. These models differ from true transfer learning in that time is explicitly part of the model, rather than being updated post-hoc. The second category contains models that allow external information to guide the development of topics. External information may be in the form of supervised outcomes [@mcauliffe2007supervised] [@ramage2009labled] [@andrzejewski2009latent], introduced by model structure [@jagarlamudi2012transfer], introduced in the prior [@andrzejewski2009], or constructed interactively with subject matter experts [@hu2014interactive]. The third category contains models designed for incremental and on-line learning [@alsumait2008] [@hoffman2010online] [@rollinglda].
 
 AlSumait, Barbará, and Domeniconi's work, _On-Line LDA: Adaptive Topic Models for Mining Text Streams with Applications to Topic Detection and Tracking_ [@alsumait2008], is especially influential in developing tLDA. Their approach encodes the topics from the previous time slices into the prior, $\boldsymbol\eta$, for the next time slice. More formally
 
@@ -20,7 +20,7 @@ where $\boldsymbol\eta_k^{(t)}$ is the prior for the $k$-th topic for the curren
 ## Contribution
 tLDA is a model for updating topics in an existing model with new data, enabling incremental updates, and time-series use cases. tLDA has three characteristics differentiating it from previous work:
 
-1. Flexibility - Most prior work can only address use cases from one of the above categories. In theory, tLDA can address all three. However, exploring use of tLDA to encode expert input into the $\boldsymbol\eta$ prior is left to future work.
+1. Flexibility - Most prior work can only address use cases from one of the above categories of related work. In theory, tLDA can address all three. However, exploring use of tLDA to encode expert input into the $\boldsymbol\eta$ prior is left for the future.
 2. Tunability - tLDA introduces only a single new tuning parameter, $a$. Its use is intuitive, balancing the ratio of tokens in $\boldsymbol{X}^{(t)}$ to the base model's data, $\boldsymbol{X}^{(t-1)}$. 
 3. Analytical - tLDA allows data sets and model updates to be chained together preserving the Markov property, enabling analytical study through incremental updates.
 
@@ -90,13 +90,15 @@ Like most other LDA implementations, _tidylda_'s tLDA initializes tokens for $\b
 P(z_{d_{n}} = k) &= \hat{\boldsymbol\beta}_{k,n}^{(t)} \cdot \hat{\boldsymbol\theta}_{d,k}^{(t)}
 \end{align}
 
+where $\hat{\boldsymbol\beta}_{k,n}^{(t)}$ is the estimated probability of choosing the $n$-th word from topic $k$ in the $t$-th period and $\hat{\boldsymbol\theta}_{d,k}^{(t)}$ is the estimated probability of choosing the $k$-th topic from the $d$-th document in the $t$-th period.
+
 After a single iteration, the number of times each topic was sampled at each document and word occurrence is counted to produce $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$. After initialization where topic-word distributions are fixed, MCMC sampling then continues in a standard fashion, recalculating $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ (and therefore $P(z_{d_{n}} = k)$) at each step.
 
 ## Experiments
 To evaluate tLDA, I conduct two simulation experiments and an analysis on a real-world data set. The simulation experiments evaluate the degree to which tLDA converges towards a ground truth data generating distribution. The real-world data analysis constructs time series of topics from a data set of Small Business Innovation Research (SBIR) grant abstracts from 1983 to 2021.
 
 ### Simulation Analysis
-Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall\ i,j \geq 0, i \neq j$, and (2) if $a \geq 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyperparameters for any LDA model remains an open problem. Yet I hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
+Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall\ i,j \geq 0, i \neq j$, and (2) if $a \geq 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyper-parameters for any LDA model remains an open problem. Yet I hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
 
 To test the above, I conduct two simulation experiments. I generate topics by drawing from 128 data generating distributions. Then for each data generating distribution, I sample 100 corpora of 100 contexts each. I fit a model on the first 100 contexts of the data and iteratively add the remaining 100 contexts at a time, fine tuning at each stage, with values of $a$ ranging from $0.2$ to $2$. The experiments are described in more detail in the below sections.
 
@@ -108,14 +110,14 @@ I assume that the total vocabulary size, $V$, and number of topics, $K$, are fix
 
 Specifically, I chose the following:
 
-1. $\left(\sum_{v=1}^V \eta_v \right) \in \{50, 100, 200, 400\}$
+1. $\left(\sum_{v=1}^V \eta_v \right) \in \{50, 250, 500, 1000\}$
 2. $\left(\sum_{k=1}^K \alpha_k \right) \in \{0.5, 1, 3, 5\}$
 3. $N_d \sim \text{Pois}(\lambda)$ where $\lambda \in \{50, 100, 200, 400\}$
-4. $V = 5,000$ and $K = 25$
+4. $V = 5000$ and $K = 25$
 
-The above creates 64 unique sets of hyper parameters. From each, I generate two sets of population statistics, $\left\{ \boldsymbol\Theta, \boldsymbol{B} \right\}$, leaving 128 unique sets of population parameters to parametarize the generation process described in Section 1.1. From each of these sets of population parameters, $i$, 100 word count matrices, $\boldsymbol{X}_i^{(t)}$, with 100 contexts each are sampled.
+The above creates 64 unique sets of hyper-parameters. From each, I generate two sets of population statistics, $\left\{ \boldsymbol\Theta, \boldsymbol{B} \right\}$, leaving 128 unique sets of population parameters to parametarize the generation process described in Section 1.1. From each of these sets of population parameters, $i$, 100 word count matrices, $\boldsymbol{X}_i^{(t)}$, with 100 contexts each are sampled.
 
-The magnitudes of the Dirichlet hyperparameters, $\boldsymbol\eta$ and $\boldsymbol\alpha$ vary while keeping their shapes fixed. The magnitude of the parameter of a Dirichlet distribution plays a strong role in tuning the covariance between draws from that distribution. A smaller magnitude means larger variability between draws. In other words, if $\left(\sum_{v=1}^V \eta_v \right)$ is smaller, topics are less linguistically similar. If $\left(\sum_{v=1}^V \eta_v \right)$ is larger, topics are more linguistically similar. Similarly, $\left(\sum_{k=1}^K \alpha_k \right)$ tunes the topical similarity of contexts.
+The magnitudes of the Dirichlet hyper-parameters, $\boldsymbol\eta$ and $\boldsymbol\alpha$ vary while keeping their shapes fixed. The magnitude of the parameter of a Dirichlet distribution plays a strong role in tuning the covariance between draws from that distribution. A smaller magnitude means larger variability between draws. In other words, if $\left(\sum_{v=1}^V \eta_v \right)$ is smaller, topics are less linguistically similar. If $\left(\sum_{v=1}^V \eta_v \right)$ is larger, topics are more linguistically similar. Similarly, $\left(\sum_{k=1}^K \alpha_k \right)$ tunes the topical similarity of contexts.
 
 #### Modeling Choices
 
@@ -129,7 +131,7 @@ I fit more topics than in the population data for two reasons. First, it's unrea
 
 #### Evaluation Method
 
-I base the analysis on calculations from the pairwise Hellinger distance [@hellinger1909] from the estimated topics to each of the ground truth simulated topics. For estimated topic $\hat{\boldsymbol\beta}_k^{(t)}$ and ground-truth topic $\boldsymbol\beta_{\mathfrak{k}}$, the Hellinger distance is calculated as
+I evaluate the models using pairwise Hellinger distance [@hellinger1909] calculated from the estimated topics to each of the ground truth simulated topics. For estimated topic $\hat{\boldsymbol\beta}_k^{(t)}$ and ground-truth topic $\boldsymbol\beta_{\mathfrak{k}}$, the Hellinger distance is calculated as
 
 \begin{align}
 H(\hat{\boldsymbol\beta}_k^{(t)},\boldsymbol\beta_{\mathfrak{k}}) &=
@@ -168,11 +170,11 @@ Assessing (\ref{eq:1}) is a two step process, first assessing the convergence of
 
 The second step corrects for multiple tests and assesses the convergence of the model as a whole. I perform a binomial test on the proportion of topics whose null hypothesis is rejected in the first step. Specifically, I test the null hypothesis that the true probability of rejection in step one is less than or equal to 5%. The binomial test is also done at the 0.05 significance level.
 
-I use logistic regression to analyze which factors lead to model convergence or divergence. I use the hyperparameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is a binary for the model having converged or not.
+I use logistic regression to analyze which factors lead to model convergence or divergence. I use the hyper-parameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is binary indicating whether the model has converged or not.
 
 Assessing whether or not the model converges *towards* the data generating distribution is a similar two step process. A topic converges in probability towards the true generating distribution if the average slope of $H_{k,\mathfrak{k}}^{(t)}$ is negative, $\mathfrak{k}$ indexes the topic closest to $k$, averaging over the last. After discarding the first two periods, a t-test with a null hypothesis that the average of $H_{k,\mathfrak{k}}^{'(t)}$ from periods 3 to 100 is greater than zero. I consider the whole model to have converged towards the true data generating distribution using a binomial test, as above. Only models considered to have converged, using the procedure defined above, are considered.
 
-I use linear regression to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. I use the hyper parameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
+I use linear regression to analyze which factors lead to fitted topics being closer to their matches in the true data generating distributions. I use the hyper-parameters that define the data generating process (described in Chapter 2) and the value of $a$ used in fine tuning that model as predictors. The outcome variable is the hellinger distance between matched topics averaged over the last 10 periods. 
 
 #### Results
 
@@ -253,7 +255,7 @@ plot(p1 / p2)
 
 
 
-Table \@ref(tab:bin-reg-table) contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyperparameters of the data generating distributions with and without quadratic effects. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $* \equiv p \leq 0.01$ and $. \equiv  p \leq 0.05$.
+Table \@ref(tab:bin-reg-table) contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyper-parameters of the data generating distributions with and without quadratic effects. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $* \equiv p \leq 0.01$ and $. \equiv  p \leq 0.05$.
 
 In all cases, $a$ has the most substantial impact on the outcome. If $a$ is too small, a chain of models is unlikely to converge and if $a$ is too large the chain will converge far from the true data generating topics. As $a$ increases, the probability of a model converging also increases, albeit with decreasing returns as indicated by the decreasing quadratic. Intuitively, larger values of $a$ decrease the variance between models in a chain leading to faster convergence. Yet of the models that converge, $a$ increases the distance of the fitted topics to their matches in the data generating distribution, again with decreasing returns.
 
@@ -613,7 +615,7 @@ plot(p1 + p2 + plot_layout(ncol = 1))
 ```
 
 
-Both show a similar patter. The initial value of the statistic in 1983 is the largest. The statistic then quickly drops off and remains more or less flat over the remainder of the series. I hypothesize that this is due to two factors: the relative effects of the prior and data on the posterior and the fact that $R2$ and probabilistic coherence are comparisons of the posterior to the data, disregarding the prior. The initial model has a flat and small prior, its relative weight in the posterior is small compared to the words.[^notactuallysmalltho] But because $a = 0.8$, there is more weight on the prior, relative to the data, as time goes by. The end result is that posterior contains a significant amount of information not in the data at any time period.
+Both show a similar patter. The initial value of the statistic in 1983 is the largest. The statistic then quickly drops off and remains more or less flat over the remainder of the series. I hypothesize that this is due to two factors: the relative effects of the prior and data on the posterior and the fact that $R^2$ and probabilistic coherence are comparisons of the posterior to the data, disregarding the prior. The initial model has a flat and small prior, its relative weight in the posterior is small compared to the words.[^notactuallysmalltho] But because $a = 0.8$, there is more weight on the prior, relative to the data, as time goes by. The end result is that posterior contains a significant amount of information not in the data at any time period.
 
 [^notactuallysmalltho]: Note that this does not imply the prior is non-informative as the non-informative Dirichlet prior would have $\eta_k = 1$ or $\eta_k = \frac{1}{2}, \forall k$.
 
@@ -801,7 +803,7 @@ plot(p1 / p2)
 
 tLDA supports several transfer learning use cases. Using simulated and real-world data, I show some properties of the tuning parameter $a$ on models using tLDA. I leave exploration of using tLDA to encode expert input for future work. In principle this would require encoding expert judgement into a matrix prior $\boldsymbol\eta$. 
 
-One other area I leave for future study is using tLDA to build large pre-trained language models, as is common with deep learning transformers like BERT and the GPT family. This is similarly possible in principle. However, the Gibbs algorithm used for this paper makes building such large models computationally infeasible. However, existing algorithms for scaling LDA estimates to "web-scale" data such as [@chen2015warplda] can be used to implement tLDA.
+One other area I leave for future study is using tLDA to build large pre-trained language models, as is common with deep learning transformers like BERT and the GPT family. This is similarly possible in principle. However, the Gibbs algorithm used for this paper makes building such large models computationally infeasible. Algorithms exist for scaling LDA estimates to "web-scale" data,  such as [@chen2015warplda], which can be used to implement tLDA in the future.
 
 Empirical studies here show that tLDA should converge if $a \geq 1$. The simulations showed this when fine tuning on more data drawn from the same distribution. The real-world data analysis still showed signs of convergence for large $a$ even though the generating distributions are presumed to be different over time. 
 
