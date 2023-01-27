@@ -206,7 +206,7 @@ p1 <- sim_metrics |>
   ggplot(aes(x = Nk, y = r2)) +
   geom_boxplot(fill = "#33a02c") + 
   ylab("") + 
-  xlab("Estimated Topics") +
+  xlab("Num. Topics") +
   ylim(c(0,1)) + 
   ggtitle("Standard R-Squared") + 
   coord_flip()
