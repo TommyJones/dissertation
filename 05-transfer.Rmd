@@ -3,7 +3,7 @@ As stated in Section 1, statistical properties of language make the fine tuning 
 
 Intuitively, when people learn a new subject by reading, they do it in a way that on its surface appears consistent with fine tuning transfer learning. Humans have general competence in a language before consulting a corpus to learn a new subject. This person then reads the corpus, learns about the subject, and in the process updates and expands their knowledge of the language. Also as stated in Section 1, LDA has attractive properties as a model for statistical analyses of corpora. Its very nature allows us to use probability theory to guide model specification and quantify uncertainty around claims made with the model. 
 
-This chapter introduces _tLDA_, short for transfer-LDA. tLDA enables use cases for fine-tuning from a base model with a single incremental update (i.e., "fine tuning") or with many incremental updates---e.g., on-line learning, possibly in a time-series context---using Latent Dirichlet Allocation. tLDA uses collapsed Gibbs sampling [@griffiths2004scientific] but its methods should extend to other MCMC methods [@yao2009streaming] [@lightlda] [@yahoolda] [@chen2015warplda]. tLDA is available for the R language for statistical computing [@rlang] in the _tidylda_ package [@tidylda].
+This chapter introduces _tLDA_, short for transfer-LDA. tLDA enables use cases for fine-tuning from a base model with a single incremental update (i.e., "fine tuning") or with many incremental updates---e.g., on-line learning, possibly in a time-series context---using Latent Dirichlet Allocation. This work uses collapsed Gibbs sampling to implement tLDA [@griffiths2004scientific] but tLDA should be able to be implemented in other MCMC methods [@yao2009streaming] [@lightlda] [@yahoolda] [@chen2015warplda]. tLDA is available for the R language for statistical computing [@rlang] in the _tidylda_ package [@tidylda].
 
 ## Related Work
 
@@ -18,7 +18,7 @@ AlSumait, Barbará, and Domeniconi's work, _On-Line LDA: Adaptive Topic Models f
 where $\boldsymbol\eta_k^{(t)}$ is the prior for the $k$-th topic for the current model, $\boldsymbol\omega^{(\delta)}$ is a vector of weights with one entry for the previous $\delta$ models, and $\boldsymbol\beta_k^{(t-1)}$ is a _matrix_ whose rows correspond to the expected value of the posterior distribution of the $k$-th topic for the previous $\delta$ models. In essence, $\boldsymbol\eta_k^{(t)}$ is a weighted linear combination of the last $\delta$ posterior distributions for the $k$-th topic. The weights sum to $1$ such that $\sum_{j=t-\delta-1}^{t-1} \omega_j = 1$. There are two mechanical differences between On-Line LDA and tLDA. First, when $\delta > 1$,  On-Line LDA loses the Markov property and can only be applied to time series use cases. Second, if $\delta = 1$, then $\omega = 1$. tLDA does not have a restriction on the size of the weight.
 
 ## Contribution
-tLDA is a model for updating topics in an existing model with new data, enabling incremental updates, and time-series use cases. tLDA has three characteristics differentiating it from previous work:
+tLDA is a model for updating topics in an existing model with new data, enabling incremental updates, and time-series use cases. It has three characteristics differentiating it from previous work:
 
 1. Flexibility - Most prior work can only address use cases from one of the above categories of related work. In theory, tLDA can address all three. However, exploring use of tLDA to encode expert input into the $\boldsymbol\eta$ prior is left for the future.
 2. Tunability - tLDA introduces only a single new tuning parameter, $a$. Its use is intuitive, balancing the ratio of tokens in $\boldsymbol{X}^{(t)}$ to the base model's data, $\boldsymbol{X}^{(t-1)}$. 
@@ -28,7 +28,7 @@ tLDA is a model for updating topics in an existing model with new data, enabling
 
 ### The Model
 
-Formally, tLDA is
+Formally, tLDA is:
 
 \begin{align}
 z_{d_{n}}|\boldsymbol\theta_d &\sim 
@@ -48,7 +48,7 @@ Each $\omega_k^{(t)}$ tunes the relative weight between the base model (as prior
 
 \begin{align}
 \omega_k^{(t)} &=
-a^{(t)} \cdot \sum_{v = 1}^V Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)}
+a^{(t)} \cdot \sum_{v = 1}^V Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)} \label{eq:priorweight}
 \end{align}
 
 Appendix 4 shows the full derivation of the relationship between $a^{(t)}$ and $\omega_k^{(t)}$.
@@ -60,7 +60,7 @@ When $a^{(t)} < 1$, then the posterior has recency bias. Each word occurrence in
 Another pair of critical values are $a^{(t)} = \frac{N^{(t)}}{N^{(t-1)}}$ and $a^{(t)} = \frac{N^{(t)}}{N^{(t-1)} +\sum_{d,v} \eta_{d,v}}$, where $N^{(\cdot)} = \sum_{d,v} X^{(\cdot)}_{d,v}$. These put the total number of word occurrences in $\boldsymbol{X}^{(t)}$ and $\boldsymbol{X}^{(t-1)}$ on equal footing excluding and including $\boldsymbol\eta^{(t-1)}$, respectively. These values may be useful when comparing topical differences between a baseline group in $\boldsymbol{X}^{(t-1)}$ and "treatment" group in $\boldsymbol{X}^{(t)}$, though this use case is left to future work.
 
 ### The _tidylda_ Implementation of tLDA
-_tidylda_---described in Chapter 6---implements an algorithm for tLDA in 6 steps.
+The _tidylda_ package---described in Chapter 6---implements an algorithm for tLDA in 6 steps.
 
 1. Construct $\boldsymbol\eta^{(t)}$
 2. Predict $\hat{\boldsymbol\Theta}^{(t)}$ using topics from $\hat{\boldsymbol{B}}^{(t-1)}$
@@ -69,12 +69,12 @@ _tidylda_---described in Chapter 6---implements an algorithm for tLDA in 6 steps
 5. Initialize $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$
 6. Begin Gibbs sampling with $P(z = k) = \frac{Cv_{k, n} + \eta_{k,n}}{\sum_{v=1}^V Cv_{k, v} + \eta_{k,v}} \cdot \frac{Cd_{d, k} + \alpha_k}{\left(\sum_{k=1}^K Cd_{d, k} + \alpha_k\right) - 1}$
 
-Step 1 uses the relationship in (27), above. Step 2 uses a standard prediction method for LDA models. _tidylda_ uses a dot-product prediction described in Appendix 1 for speed. MCMC prediction would work as well.
+Step 1 uses the relationship in (\ref{eq:priorweight}), above. Step 2 uses a standard prediction method for LDA models. The _tidylda_ implementation uses a dot-product prediction described in Appendix 1 for speed. MCMC prediction would work as well.
 
 Any real-world application of tLDA presents several practical issues which are addressed in steps 3 - 5, described in more detail below. These issues include: the vocabularies in $\boldsymbol{X}^{(t-1)}$ and $\boldsymbol{X}^{(t)}$ will not be identical; users may wish to add topics, expecting $\boldsymbol{X}^{(t)}$ to contain topics not in $\boldsymbol{X}^{(t-1)}$; and $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ should be initialized proportional to $\boldsymbol{Cd}^{(t-1)}$ and $\boldsymbol{Cv}^{(t-1)}$, respectively.
 
 #### Aligning Vocabulary
-_tidylda_ implements an algorithm to fold in new words. This method slightly modifies the posterior probabilities in $\boldsymbol{B}^{(t-1)}$ and adds a non-zero prior by modifying $\boldsymbol\eta^{(t)}$. It involves three steps. First, append columns to $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$ that correspond to out-of-vocabulary words. Next, set the new entries for these new words to some small value, $\epsilon > 0$ in both $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$. Finally, re-normalize the rows of $\boldsymbol{B}^{(t-1)}$ so that they sum to one. For computational reasons, $\epsilon$ must be greater than zero. Specifically, the _tidylda_ implementation chooses $\epsilon$ to the lowest decile of all values in $\boldsymbol{B}^{(t-1)}$ or $\boldsymbol\eta^{(t)}$, respectively. This choice is somewhat arbitrary. I have not performed a sensitivity analysis to the choice of $\epsilon$. Yet I hypothesize that if $\epsilon$ is sufficiently small, there should not be a significant effect on the posterior. The other entries of $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$ should swamp the magnitude of either vector. The lowest decile of a power law seems like a sufficiently small choice. 
+The _tidylda_ package implements an algorithm to fold in new words. This method slightly modifies the posterior probabilities in $\boldsymbol{B}^{(t-1)}$ and adds a non-zero prior by modifying $\boldsymbol\eta^{(t)}$. It involves three steps. First, append columns to $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$ that correspond to out-of-vocabulary words. Next, set the new entries for these new words to some small value, $\epsilon > 0$ in both $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$. Finally, re-normalize the rows of $\boldsymbol{B}^{(t-1)}$ so that they sum to one. For computational reasons, $\epsilon$ must be greater than zero. Specifically, the _tidylda_ implementation chooses $\epsilon$ to the lowest decile of all values in $\boldsymbol{B}^{(t-1)}$ or $\boldsymbol\eta^{(t)}$, respectively. This choice is somewhat arbitrary. I have not performed a sensitivity analysis to the choice of $\epsilon$. Yet I hypothesize that if $\epsilon$ is sufficiently small, there should not be a significant effect on the posterior. The other entries of $\boldsymbol{B}^{(t-1)}$ and $\boldsymbol\eta^{(t)}$ should swamp the magnitude of either vector. The lowest decile of a power law seems like a sufficiently small choice. 
 
 #### Adding New Topics
 tLDA employs a similar method to add new, randomly initialized, topics if desired. This is achieved by appending rows to both $\boldsymbol\eta^{(t)}$ and $\boldsymbol{B}^{(t)}$, adding entries to $\boldsymbol\alpha$, and adding columns to $\boldsymbol\Theta^{(t)}$, obtained in step two above. The tLDA implementation in _tidylda_ sets the rows of $\boldsymbol\eta^{(t)}$ equal to the column means across previous topics. Then new rows of $\boldsymbol{B}^{(t)}$ are the new rows of $\boldsymbol\eta^{(t)}$ but normalized to sum to one. This effectively sets the prior for new topics equal to the average of the weighted posteriors of pre-existing topics.
@@ -87,7 +87,7 @@ New entries to $\boldsymbol\alpha$ are initialized to be the median value of the
 Like most other LDA implementations, _tidylda_'s tLDA initializes tokens for $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ with a single Gibbs iteration. However, instead of sampling from a uniform random for this initial step, a topic for the $n$-th word of the $d$-th document is drawn from the following:
 
 \begin{align}
-P(z_{d_{n}} = k) &= \hat{\boldsymbol\beta}_{k,n}^{(t)} \cdot \hat{\boldsymbol\theta}_{d,k}^{(t)}
+P(z_{d_{n}} = k) &= \hat{\boldsymbol\beta}_{k,n}^{(t)} \cdot \hat{\boldsymbol\theta}_{d,k}^{(t)} 
 \end{align}
 
 where $\hat{\boldsymbol\beta}_{k,n}^{(t)}$ is the estimated probability of choosing the $n$-th word from topic $k$ in the $t$-th period and $\hat{\boldsymbol\theta}_{d,k}^{(t)}$ is the estimated probability of choosing the $k$-th topic from the $d$-th document in the $t$-th period.
@@ -98,9 +98,9 @@ After a single iteration, the number of times each topic was sampled at each doc
 To evaluate tLDA, I conduct two simulation experiments and an analysis on a real-world data set. The simulation experiments evaluate the degree to which tLDA converges towards a ground truth data generating distribution. The real-world data analysis constructs time series of topics from a data set of Small Business Innovation Research (SBIR) grant abstracts from 1983 to 2021.
 
 ### Simulation Analysis
-Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, (1) if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall\ i,j \geq 0, i \neq j$, and (2) if $a \geq 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyper-parameters for any LDA model remains an open problem. Yet I hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
+Under two assumptions, tLDA should converge to stable topic estimates as it is fine tuned on more data. Specifically, first, if $\boldsymbol{X}^{(i)}$ and $\boldsymbol{X}^{(j)}$ are generated from the same distribution, $\forall\ i,j \geq 0, i \neq j$, and, second, if $a \geq 1$, then tLDA should converge to stable topic estimates. However, unless a user correctly chooses $\boldsymbol\alpha$, $\boldsymbol\eta^{(0)}$, and $K$ there is no guarantee that tLDA will converge to _correct_ topic estimates. This is not a limitation of tLDA as selecting hyper-parameters for any LDA model remains an open problem. Yet, I hypothesize that there are heuristics one can use to get reasonably good estimates, so long as the two assumptions above hold.
 
-To test the above, I conduct two simulation experiments. I generate topics by drawing from 128 data generating distributions. Then for each data generating distribution, I sample 100 corpora of 100 contexts each. I fit a model on the first 100 contexts of the data and iteratively add the remaining 100 contexts at a time, fine tuning at each stage, with values of $a$ ranging from $0.2$ to $2$. The experiments are described in more detail in the below sections.
+To test the above, I conduct two simulation experiments. I generate topics by drawing from 128 data generating distributions. Then, for each data generating distribution, I sample 100 corpora of 100 contexts each. I fit a model on the first 100 contexts of the data and iteratively add the remaining 100 contexts at a time, fine tuning at each stage, with values of $a$ ranging from $0.2$ to $2$. The experiments are described in more detail in the below sections.
 
 On average, models converge towards the true topics of the data generating process when values of $a$ are greater than 0.8. When values of $a$ are less than 0.8, the models tend not to converge as there is high variance between estimates. There is very high variance as to whether or not models converge when $a$ is around 0.8. Properties of the data generating process, particularly the magnitude of $\boldsymbol\alpha$, also influence whether or not the models converge. This points towards a need for more study of LDA as a data generating process of language, rather than an inherent limitation of tLDA. 
 
@@ -123,7 +123,7 @@ The magnitudes of the Dirichlet hyper-parameters, $\boldsymbol\eta$ and $\boldsy
 
 I fit a total of 128,000 LDA models to the simulated data. For each of the 128 unique sets of population parameters, I sequentially fit models on 100 batches of data, using tLDA to update the parameters. I do this for 10 different settings for $a$ from $a = 0.2$ to $a = 2$ with a step size of $0.2$. This leads to 1,280 separate model chains.
 
-In each case, the base model was fit with $K = 30$ topics, and commonly-used flat priors with $\alpha_k = 0.05$ and $\eta_v = 0.01$. The Gibbs sampler runs for 200 iterations. Posterior estimates are taken averaging over the last 50 iterations. Subsequent models are fine tuned with an additional 200 iterations with posterior estimates averaged over the last 50 and $a$ set as described above[^weirdburnin2].
+In each case, the base model is fit with $K = 30$ topics, and commonly-used flat priors with $\alpha_k = 0.05$ and $\eta_v = 0.01$. The Gibbs sampler runs for 200 iterations. Posterior estimates are taken averaging over the last 50 iterations. Subsequent models are fine tuned with an additional 200 iterations with posterior estimates averaged over the last 50 and $a$ set as described above[^weirdburnin2].
 
 [^weirdburnin2]: It is common to burn in half of the total number of iterations. I chose to burn in over the last quarter for computational reasons. Specifically, I wanted at least 150 burn in iterations but due to computation time, limited the total number of iterations to 200.
 
@@ -195,7 +195,7 @@ load("data-derived/tlda-sims/convergence-direction-analysis.RData")
 
 Models where $a < 0.8$ almost never converge; 384 out of 385 such models diverged. Models where $a > 0.8$ tend to converge; 94% of such models converged. There is high variability in convergence where $a = 0.8$. Roughly 1/3 of the models converged when $a = 0.8$, the other 2/3 diverged. Figure \@ref(fig:tlda-boxplot), below, shows a box plot of p-values in the binomial test for each value of $a$. There is a clear structural break at $a = 0.8$, reflecting the clear patterns of convergence/divergence on either side of 0.8 and a high variance of convergence at 0.8.
 
-```{r tlda-boxplot, fig.width = 5, fig.height = 3, fig.cap = "Boxplot of the p-values assessing convergence for each value of $a$. Below $a = 0.8$ almost all p-values are near one. Above $a = 0.8$ almost all p-values are near zero, with a few exceptions. But at $a = 0.8$ there is high variance in the p-values assessing model convergence."}
+```{r tlda-boxplot, fig.width = 5, fig.height = 3, fig.cap = "Boxplots of the p-values assessing convergence for each value of $a$. Below $a = 0.8$ almost all p-values are near one. Above $a = 0.8$ almost all p-values are near zero, with a few exceptions. But at $a = 0.8$ there is high variance in the p-values assessing model convergence."}
 
 bin_table %>%
   filter(! a %in% c(0.65, 0.7, 0.75, 0.85, 0.9, 0.95)) %>%
@@ -257,7 +257,7 @@ plot(p1 / p2)
 
 Table \@ref(tab:bin-reg-table) contains the results of four regression models. The models labeled "Convergence" represent logistic regression models predicting whether each of the model chains converged ($N = 1,280$). The models labeled "Direction" represent linear regression models predicting the Hellinger distance of estimated topics from converged models matched to data-generating topics, averaged over the last 20 periods and multiplied by 100 for scale ($N = 22,920$). Each of the models regresses their outcomes on $a$ and the hyper-parameters of the data generating distributions with and without quadratic effects. Both logistic models have an in-sample accuracy of 93% and the linear models have an adjusted $R^2$ of 0.90 and 0.72 with and without quadratics, respectively. Asterisks represent the p-value associated with each coefficient: $* \equiv p \leq 0.01$ and $. \equiv  p \leq 0.05$.
 
-In all cases, $a$ has the most substantial impact on the outcome. If $a$ is too small, a chain of models is unlikely to converge and if $a$ is too large the chain will converge far from the true data generating topics. As $a$ increases, the probability of a model converging also increases, albeit with decreasing returns as indicated by the decreasing quadratic. Intuitively, larger values of $a$ decrease the variance between models in a chain leading to faster convergence. Yet of the models that converge, $a$ increases the distance of the fitted topics to their matches in the data generating distribution, again with decreasing returns.
+In all cases, $a$ has the most substantial impact on the outcome. If $a$ is too small, a chain of models is unlikely to converge and if $a$ is too large, the chain will converge far from the true data generating topics. As $a$ increases, the probability of a model converging also increases, albeit with decreasing returns as indicated by the decreasing quadratic. Intuitively, larger values of $a$ decrease the variance between models in a chain leading to faster convergence. Yet, of the models that converge, $a$ increases the distance of the fitted topics to their matches in the data generating distribution, again with decreasing returns.
 
 
 ```{r bin-reg-table}
@@ -391,7 +391,7 @@ knitr::kable(
 The simulations above examines the properties of tLDA when fine tuning is performed by adding data from the same generating distribution. Simulations are helpful for isolating effects, but the real world data is far messier. This section demonstrates tLDA for topic discovery on real data in a time series context. The analysis consists of two parts: exploring the aggregate effect of varying values of $a$ on the model chains and a more detailed exploration of the model chain when $a = 0.8$.
 
 #### Data Description
-The data set consists of 188,554 titles and abstracts of Small Business Innovation Research (SBIR) and Small Business Technology Transfer (STTR) research grants awarded from 1983 to 2021. The SBIR and STTR programs provide grants to small businesses to encourage them to participate in US federal government research programs. The data set grows from 785 grants in 1983 to an average of 6,377 per year from 2001 to 2020. Only 815 grants had been published for 2021 at the time the data set was downloaded. After applying common preprocessing steps (described below) the data set contained 92,196 unique words across all years. From the charts in Figure \@ref(fig:sbir-counts), we can see there is a structural break in the volume of data at the year 2000. 
+The data set consists of 188,554 titles and abstracts of Small Business Innovation Research (SBIR) and Small Business Technology Transfer (STTR) research grants awarded from 1983 to 2021. The SBIR and STTR programs provide grants to small businesses to encourage them to participate in US federal government research programs. The data set grows from 785 grants in 1983 to an average of 6,377 per year from 2001 to 2020. Only 815 grants had been published for 2021 at the time the data set was downloaded. After applying common preprocessing steps (described below), the data set contained 92,196 unique words across all years. From the charts in Figure \@ref(fig:sbir-counts), we can see there is a structural break in the volume of data at the year 2000. 
 
 ```{r sbir-counts, fig.cap = "Number of abstracts and number of words for the SBIR corpus over time. In 2000, there appears to be a structural break. Only 815 grants had been published for 2021 at the time the data set was downloaded.", fig.width = 6, fig.height = 4}
 
@@ -509,7 +509,7 @@ plot(p1 + p2 + p3 + p4 + plot_layout(guides = "collect"))
 ```
 
 
-Figure \@ref(fig:sbir-vary-a-2) plots the average of each statistic over all years. The pattern for mean Hellinger distance is the same and the patterns for other statistics are now clearer. Log likelihood and $R^2$ are also highest for low values of $a$ and decrease as $a$ increases. Yet over $a = 0.4$ to $a = 0.8$ the difference is extremely subtle. The pattern for coherence is somewhat surprising. That coherence is maximized when a = 0.8 may suggest the importance of this value. Further study is warranted on the optimal choice of $a$.
+Figure \@ref(fig:sbir-vary-a-2) plots the average of each statistic over all years. The pattern for mean Hellinger distance is the same and the patterns for other statistics are now clearer. Log likelihood and $R^2$ are also highest for low values of $a$ and decrease as $a$ increases. Yet, over $a = 0.4$ to $a = 0.8$, the difference is extremely subtle. The pattern for coherence is somewhat surprising. That coherence is maximized when a = 0.8 may suggest the importance of this value. Further study is warranted on the optimal choice of $a$.
 
 Based on the peak of coherence and the fact that $R^2$ and log likelihood are still near their peaks when $a = 0.8$, I choose the model where $a = 0.8$ for deeper analysis.
 
@@ -619,7 +619,9 @@ Both show a similar patter. The initial value of the statistic in 1983 is the la
 
 [^notactuallysmalltho]: Note that this does not imply the prior is non-informative as the non-informative Dirichlet prior would have $\eta_k = 1$ or $\eta_k = \frac{1}{2}, \forall k$.
 
-I also examine changes in individual topics over time. To showcase one example, Figure \@ref(fig:sbir-deep-2) contains two charts for topic 24. The top chart plots changes in the top 5 words. As the mix of words in the top 5 changes, some lines drop off and new lines emerge. The top 5 words are labeled at the first period where a topic emerges (1983 for topic 24) and in the final period, 2021. The bottom chart plots a topic's prevalence over time using the actual statistic in black and blue loess line with a corresponding shaded interval. The calculation for prevalence is in \@ref(eq:prevalence), below.
+I also examine changes in individual topics over time. To showcase one example, Figure \@ref(fig:sbir-deep-2) contains two charts for topic 24. The top chart plots changes in the top 5 words. As the mix of words in the top 5 changes, some lines drop off and new lines emerge. The top 5 words are labeled at the first period where a topic emerges (1983 for topic 24) and in the final period, 2021. The bottom chart plots a topic's prevalence over time using the actual statistic in black and blue loess[^loess] line with a corresponding shaded interval. The calculation for prevalence is in \@ref(eq:prevalence), below.
+
+[^loess]: Locally weighted scatterplot smoothing
 
 \begin{align}
 \text{Prevalence} &\equiv 
@@ -666,7 +668,7 @@ plot(p1 / p2)
 ```
 
 
-In most cases, topic prevalence decreases over time. In fact, only 15 of 138 topics show sign of increasing over time on average. These results are obtained by averaging over the slope of the loess curves for prevalence (the dashed blue line in Figure \@ref(fig:sbir-deep-2)) for each topic. Of those, only one topic (126) was not in the initial 100 topics covering all years. The top five words for the five topics showing most increase are in Table \@ref(tab:sbir-word-table). 
+In most cases, topic prevalence decreases over time. In fact, only 15 of 138 topics show sign of increasing over time on average. These results are obtained by averaging over the slope of the loess curves for prevalence (the dashed blue line in Figure \@ref(fig:sbir-deep-2)) for each topic. Of those, only one topic (topic 126) was not in the initial 100 topics covering all years. The top five words for the five topics showing most increase are in Table \@ref(tab:sbir-word-table). 
 
 ```{r sbir-deep-delta, warning = FALSE, message = FALSE,results='hide',fig.keep='all'}
 
@@ -743,7 +745,7 @@ knitr::kable(
 
 I hypothesize that most topics decreased over time because of the addition of one randomly initialized topic in each year. This is due to two related effects. Having more topics, all else constant, diffuses the probability mass of the posterior over more categories. In the years where a new topic is introduced, more posterior probability mass comes from the data than the prior for these topics, again shifting mass away from established topics.  
 
-Yet there is some evidence that adding randomized topics is successful for topic discovery. For example, a topic related to Covid-19 emerges (topic 137, top terms in 2021 {19, covid, opiod, oud, sars}) from a randomly-initialized topic in 2020. Topic 126, which emerged in 2019 and whose words relate to the US Air Force (air, force, uas, solution, benefit) , correspond to a major increase in the number of SBIR grants from the US Air Force. Presumably the granting institution is mentioned in the title or abstract. (See Figure \@ref(fig:sbir-emerge-win))
+Yet there is some evidence that adding randomized topics is successful for topic discovery. For example, a topic related to Covid-19 emerges (topic 137, top terms in 2021 {19, covid, opiod, oud, sars}) from a randomly-initialized topic in 2020. Topic 126, which emerged in 2019 and whose words relate to the US Air Force (air, force, uas, solution, benefit), correspond to a major increase in the number of SBIR grants from the US Air Force. Presumably the granting institution is mentioned in the title or abstract. (See Figure \@ref(fig:sbir-emerge-win))
 
 
 ```{r sbir-emerge-win, warning = FALSE, message = FALSE,results='hide',fig.keep='all', fig.width = 6, fig.height = 3, fig.cap="SBIR/STTR grants issued by the US Air Force, 1983 to 2020. There is a significant increase in 2019, corresponding to the emergence of topic 171, whose most probable words relate to the Air Force."}
@@ -803,7 +805,7 @@ plot(p1 / p2)
 
 tLDA supports several transfer learning use cases. Using simulated and real-world data, I show some properties of the tuning parameter $a$ on models using tLDA. I leave exploration of using tLDA to encode expert input for future work. In principle this would require encoding expert judgement into a matrix prior $\boldsymbol\eta$. 
 
-One other area I leave for future study is using tLDA to build large pre-trained language models, as is common with deep learning transformers like BERT and the GPT family. This is similarly possible in principle. However, the Gibbs algorithm used for this paper makes building such large models computationally infeasible. Algorithms exist for scaling LDA estimates to "web-scale" data,  such as [@chen2015warplda], which can be used to implement tLDA in the future.
+One other area I leave for future study is using tLDA to build large pre-trained language models, as is common with deep learning transformers like BERT [@bert2018] and the GPT [@gpt2] [@gpt3] family. This is similarly possible in principle. However, the Gibbs algorithm used here paper makes building such large models computationally infeasible. Algorithms exist for scaling LDA estimates to "web-scale" data,  such as [@chen2015warplda], which can be used to implement tLDA in the future.
 
 Empirical studies here show that tLDA should converge if $a \geq 1$. The simulations showed this when fine tuning on more data drawn from the same distribution. The real-world data analysis still showed signs of convergence for large $a$ even though the generating distributions are presumed to be different over time. 
 
