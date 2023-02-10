@@ -647,7 +647,7 @@ In theory, a smal
 --->
 
 
-```{r model-plots, fig.cap = "Mean differences (with 95% confidence intervals) in the evaluation metrics between perfectly-specified models and misspecified models. The misspecified hyper parameter is on the x-axis.  ", fig.width = 6, fig.height = 5}
+```{r model-plots, fig.cap = "Mean differences (with 95% confidence intervals) in the evaluation metrics between perfectly-specified models and misspecified models. The misspecified hyper parameter is on the x-axis.  ", fig.width = 6, fig.height = 6}
 
 # The Geweke statistic is measured in absolute value since because it is a statistic with a two-tailed test distribution. Histograms of the Geweke Statistic are plotted on the top right. The vertical lines ar at +/- 1.96, between which a model might be considered to have converged at the 0.05 significance level.
 
@@ -715,7 +715,7 @@ mean_coherence_plot <-
   xlab("") + ylab("") +
   ggtitle("Coherence") +
   theme(legend.position = "none") +
-  theme(axis.text.x = element_blank()) +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
   ylim(
     c(
       t_tests$ci_95_low[t_tests$outcome == "mean_coherence"], 
@@ -811,7 +811,7 @@ part_r2_plot <-
   xlab("") + ylab("") +
   ggtitle("Partial R-sq.") +
   theme(legend.position = "none") +
-  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  theme(axis.text.x = element_blank()) +
   ylim(
     c(
       t_tests$ci_95_low[t_tests$outcome == "partial_r2"], 
@@ -905,13 +905,13 @@ perplexity_plot <-
 pw <- 
   (
     ll_plot + 
-      r2_plot + 
-      mean_coherence_plot + 
       dic_plot +
       perplexity_plot +
+      r2_plot + 
+      part_r2_plot +
       plot_spacer() +
       mean_prevalence_plot +
-      part_r2_plot +
+      mean_coherence_plot + 
       lambda_coh_plot 
   ) +
   plot_annotation(title = "Mean Differences") 
