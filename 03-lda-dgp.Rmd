@@ -616,20 +616,24 @@ In addition to the Geweke statistic, I also compare the following between correc
 I compare the following between correctly-specified and misspecified models:
 
 * Log Likelihood, averaged over the last 50 Gibbs iterations, of perfectly specified to misspecified models. The log likelihood calculation follows that used in [@chen2015warplda].
+* Deviance information criterion, or DIC. This is a somewhat Bayesian version of the Akaike information criterion, an estimate of predictive error, trading off goodness of fit and model simplicity. 
+* Perplexity, a transformation of the log likelihood---above---weighted by the number of word occurrences in a corpus and multiplied by negative one.
 * Coefficient of determination, or $R^2$. This statistic calculates the proportion of variability in the data that has been accounted for in the fit model. This statistic and a study of its properties is the next chapter of this dissertation.
-* Probabilistic coherence (see Appendix 5)---or just "coherence"---averaged over all topics in a model. 
-* Prevalence of each topic, averaged across all topics in the model. The prevalence of topic $k$ is calculated with $\sum_{d = 1} ^ D N_d \cdot \theta_{d,k} \cdot100$.
+* Partial coefficient of determination---see Chapter 4---averaged over all topics in a model.
+* Prevalence of each topic, averaged across all topics in the model. The prevalence of topic $k$ is calculated with $\sum_{d = 1} ^ D N_d \cdot \theta_{d,k} \cdot 100$.
+* Probabilistic coherence (see Appendix 5)---or just "coherence"---calculated on $\boldsymbol\beta_k$ and averaged over all topics in a model. 
+* Lambda coherence (L. coherence), probabilistic coherence calculated on $\boldsymbol\lambda_k$ (see Appendix 1) and averaged over all topics in a model.
 
-In the comparing correctly specified and misspecified models, I use a paired t-statistic to calculate 95% confidence intervals in the difference between the correct (i.e., "untreated") and misspecified (i.e., "treated") groups. This paired t-statistic confidence interval is applied to the log likelihood, $R^2$, probabilistic coherence, and prevalence.
+In the comparing correctly specified and misspecified models, I use a paired t-statistic to calculate 95% confidence intervals in the difference between the correct (i.e., "untreated") and misspecified (i.e., "treated") groups. This paired t-statistic confidence interval is applied to all metrics above.
 
 #### Results
 Figure \@ref(fig:model-plots) plots the mean differences and 95% confidence intervals comparing the perfectly-specified model and each of the models where a single hyper parameter was misspecified. Note that because only one hyper parameter was misspecified at a time, that these mean differences represent a causal effect of single hyper parameter misspecification. This analysis does not evaluate the effects of multiple misspecifications at once.
 
-Misspecifying the number of topics has the largest effects on model goodness of fit, whether measured with log likelihood or $R^2$. This may reflect the nature of the goodness of fit metrics. All else constant, a model with more topics will have a lower likelihood, reflecting a larger sample space. And, as demonstrated in Chapter 4, $R^2$ increases with the number of estimated topics, seemingly independently of the true number of topics. However, it is worth noting that having too many topics does not increase $R^2$ nearly as much as having too few topics decreases it. 
+Misspecifying the number of topics has the largest effects on model goodness of fit, whether measured with log likelihood, perplexity, DIC, or $R^2$. This may reflect the nature of the goodness of fit metrics. All else constant, a model with more topics will have a lower likelihood, reflecting a larger sample space. And, as demonstrated in Chapter 4, $R^2$ increases with the number of estimated topics, seemingly independently of the true number of topics. However, it is worth noting that having too many topics does not increase $R^2$ nearly as much as having too few topics decreases it. 
 
 Misspecifying the number of topics is seemingly the only misspecification that affects the average prevalence of topics. This result is intuitive and similarly a reflection of the properties of prevalence. Having more estimated topics will spread prevalence over more topics, decreasing the average.
 
-Misspecifying $\boldsymbol\eta$ has mixed effects. A flat $\boldsymbol\eta$ seems to improve the log likelihood of the model and mean topic coherence, yet it decreases $R^2$. Specifying the magnitude of $\boldsymbol\eta$ to be too large has a negative effect on log likelihood, $R^2$, and coherence. Yet specifying the magnitude of $\boldsymbol\eta$ to be too small seems to have little effect save a moderate boost in $R^2$.
+Misspecifying $\boldsymbol\eta$ has mixed effects. A flat $\boldsymbol\eta$ seems to improve all evaluation metrics except for $R^2$. Specifying the magnitude of $\boldsymbol\eta$ to be too large has a negative effect on log likelihood, $R^2$, and coherence. Yet specifying the magnitude of $\boldsymbol\eta$ to be too small seems to have little effect save a moderate boost in $R^2$.
 
 Misspecifying $\boldsymbol\alpha$ does not seem to have much of an effect at all. 
 
