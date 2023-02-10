@@ -63,8 +63,8 @@ Assuming there are $D$ contexts, $K$ topics, $V$ unique words, $N$ total words a
 1. Generate $\boldsymbol{B}$ by sampling $K$ topics $\boldsymbol\beta_k \sim \text{Dirichlet}(\boldsymbol\eta), \forall k \in \{1,2,...,K\}$
 2. Generate $\boldsymbol\Theta$ by sampling $D$ documents $\boldsymbol\theta_d \sim \text{Dirichlet}(\boldsymbol\alpha), \forall d \in \{1,2, ..., D\}$
 3. Then for each word, $n$ in each context, $d$
-    a. Draw topic $z_{d,n}$ from $\text{Multinomial}(\boldsymbol\theta_d)$
-    b. Draw word $w_{d,n}$ from $\text{Multinomial}(\boldsymbol\beta_{z_{d,n}})$
+a. Draw topic $z_{d,n}$ from $\text{Multinomial}(\boldsymbol\theta_d)$
+b. Draw word $w_{d,n}$ from $\text{Multinomial}(\boldsymbol\beta_{z_{d,n}})$
 4. Repeat a. and b. $N_d$ times.
 
 Note that context $d$ has $N_d$ words $\forall \text{ } d \in \{1, 2, ..., D\}$ and that the total number of words in the corpus is $N = \sum_{d=1}^D N_d$.
@@ -95,7 +95,7 @@ where $C$ and $\gamma$ may be estimated from data and $r_v$, the rank of word $v
 
 \begin{align}
 \frac{\eta_v}{\sum_{v = 1}^V \eta_v} = \frac{C}{N}\cdot r_v ^ {-\gamma}, 
-  \forall \text{ } v
+\forall \text{ } v
 \end{align}
 
 What still remains is for a researcher to specify the magnitude of $\boldsymbol\eta$, in other words $\sum_{v=1}^V \eta_v$, $\boldsymbol\alpha$, and the number of topics, $K$. The empirical evidence for specifying $\boldsymbol\eta$ as a power law rather than a flat prior is explored, though not resolved, in Section 3.4.3.
@@ -651,7 +651,7 @@ In theory, a smal
 
 # The Geweke statistic is measured in absolute value since because it is a statistic with a two-tailed test distribution. Histograms of the Geweke Statistic are plotted on the top right. The vertical lines ar at +/- 1.96, between which a model might be considered to have converged at the 0.05 significance level.
 
-t_tests <- read_rds("data-derived/zipf-analysis/model-t-tests.rds")
+t_tests <- read_rds("data-derived/zipf-analysis/model-t-tests-combined.rds")
 
 model_metrics <- read_rds("data-derived/zipf-analysis/model-metrics.rds")
 
@@ -850,20 +850,70 @@ lambda_coh_plot <-
   )
 
 
+dic_plot <- 
+  t_tests |> 
+  filter(outcome == "dic") |> 
+  ggplot() + 
+  geom_bar(aes(x = parameter, y = mean_diff, fill = factor(parameter)), stat = "identity") + 
+  geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
+  geom_hline(yintercept = 0, lty = 2) +
+  xlab("") + ylab("") +
+  ggtitle("DIC") +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_blank()) +
+  ylim(
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "dic"], 
+      t_tests$ci_95_high[t_tests$outcome == "dic"]
+    ) |> 
+      abs() |> max() %>% times_help(-1),
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "dic"], 
+      t_tests$ci_95_high[t_tests$outcome == "dic"]
+    ) |> 
+      abs() |> max()
+  )
 
-
+perplexity_plot <- 
+  t_tests |> 
+  filter(outcome == "perplexity") |> 
+  ggplot() + 
+  geom_bar(aes(x = parameter, y = mean_diff, fill = factor(parameter)), stat = "identity") + 
+  geom_errorbar(aes(x = parameter, ymin = ci_95_low, ymax = ci_95_high)) + 
+  geom_hline(yintercept = 0, lty = 2) +
+  xlab("") + ylab("") +
+  ggtitle("Perplexity") +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_blank()) +
+  ylim(
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "perplexity"], 
+      t_tests$ci_95_high[t_tests$outcome == "perplexity"]
+    ) |> 
+      abs() |> max() %>% times_help(-1),
+    c(
+      t_tests$ci_95_low[t_tests$outcome == "perplexity"], 
+      t_tests$ci_95_high[t_tests$outcome == "perplexity"]
+    ) |> 
+      abs() |> max()
+  )
 # pw <- 
 #   (ll_plot + r2_plot + geweke_density + 
 #      mean_coherence_plot + mean_prevalence_plot + geweke_plot) +
 #   plot_annotation(title = "Mean Differences") 
 
 pw <- 
-  (ll_plot + 
-     r2_plot + 
-     mean_coherence_plot + 
-     mean_prevalence_plot +
-     part_r2_plot +
-     lambda_coh_plot) +
+  (
+    ll_plot + 
+      r2_plot + 
+      mean_coherence_plot + 
+      dic_plot +
+      perplexity_plot +
+      plot_spacer() +
+      mean_prevalence_plot +
+      part_r2_plot +
+      lambda_coh_plot 
+  ) +
   plot_annotation(title = "Mean Differences") 
 
 plot(pw)
