@@ -1,4 +1,4 @@
-# Appendix 5: Probabilistic Coherence
+# Probabilistic Coherence
 
 Coherence measures seek to emulate human judgement quantifiably. They tend to rely on the degree to which words co-occur together. Yet, words may co-occur in ways that are unhelpful. For example, consider the words "the" and "this". They co-occur very frequently in English-language documents. Yet these words are statistically independent. Knowing the relative frequency of the word "the" in a document does not give you any additional information on the relative frequency of the word "this" in a document. 
 

@@ -51,7 +51,7 @@ Each $\omega_k^{(t)}$ tunes the relative weight between the base model (as prior
 a^{(t)} \cdot \sum_{v = 1}^V Cv_{k,v}^{(t-1)} + \eta_{k,v}^{(t-1)} \label{eq:priorweight}
 \end{align}
 
-Appendix 4 shows the full derivation of the relationship between $a^{(t)}$ and $\omega_k^{(t)}$.
+Appendix D shows the full derivation of the relationship between $a^{(t)}$ and $\omega_k^{(t)}$.
 
 When $a^{(t)} = 1$, fine tuning is equivalent to adding the data in $\boldsymbol{X}^{(t)}$ to $\boldsymbol{X}^{(t-1)}$. In other words, each word occurrence in $\boldsymbol{X}^{(t)}$ carries the same weight in the posterior as each word occurrence in $\boldsymbol{X}^{(t-1)}$. If $\boldsymbol{X}^{(t)}$ has more data than $\boldsymbol{X}^{(t-1)}$, then it will carry more weight overall. If it has less, it will carry less.
 
@@ -69,7 +69,7 @@ The _tidylda_ package---described in Chapter 6---implements an algorithm for tLD
 5. Initialize $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$
 6. Begin Gibbs sampling with $P(z = k) = \frac{Cv_{k, n} + \eta_{k,n}}{\sum_{v=1}^V Cv_{k, v} + \eta_{k,v}} \cdot \frac{Cd_{d, k} + \alpha_k}{\left(\sum_{k=1}^K Cd_{d, k} + \alpha_k\right) - 1}$
 
-Step 1 uses the relationship in (\ref{eq:priorweight}), above. Step 2 uses a standard prediction method for LDA models. The _tidylda_ implementation uses a dot-product prediction described in Appendix 1 for speed. MCMC prediction would work as well.
+Step 1 uses the relationship in (\ref{eq:priorweight}), above. Step 2 uses a standard prediction method for LDA models. The _tidylda_ implementation uses a dot-product prediction described in Appendix A for speed. MCMC prediction would work as well.
 
 Any real-world application of tLDA presents several practical issues which are addressed in steps 3 - 5, described in more detail below. These issues include: the vocabularies in $\boldsymbol{X}^{(t-1)}$ and $\boldsymbol{X}^{(t)}$ will not be identical; users may wish to add topics, expecting $\boldsymbol{X}^{(t)}$ to contain topics not in $\boldsymbol{X}^{(t-1)}$; and $\boldsymbol{Cd}^{(t)}$ and $\boldsymbol{Cv}^{(t)}$ should be initialized proportional to $\boldsymbol{Cd}^{(t-1)}$ and $\boldsymbol{Cv}^{(t-1)}$, respectively.
 
@@ -451,7 +451,7 @@ model_metrics <- read_rds("data-derived/tlda-sbir/model-metrics.rds")
 
 ##### Analysis for varying values of $a$
 
-For each value of $a$, a chain of 39 models is produced. The first model in the chain has 100 topics and the last has 138. The analysis focuses on four key statistics: $R^2$, log likelihood, probabilistic coherence (see Appendix 5)---or just "coherence"---averaged over all topics, and the Hellinger distance of each topic at time $t$ to itself at time $t-1$ averaged across all topics. $R^2$ and the log likelihood are model-wide goodness-of-fit metrics. Coherence is a proxy for human interpretability. And mean Hellinger distance measures how much the estimated topics change from year to year. 
+For each value of $a$, a chain of 39 models is produced. The first model in the chain has 100 topics and the last has 138. The analysis focuses on four key statistics: $R^2$, log likelihood, probabilistic coherence (see Appendix E)---or just "coherence"---averaged over all topics, and the Hellinger distance of each topic at time $t$ to itself at time $t-1$ averaged across all topics. $R^2$ and the log likelihood are model-wide goodness-of-fit metrics. Coherence is a proxy for human interpretability. And mean Hellinger distance measures how much the estimated topics change from year to year. 
 
 Figure \@ref(fig:sbir-vary-a-1) plots these four statistics for each value of $a$ over time. A clear pattern appears for mean Hellinger distance but not for other statistics. Mean Hellinger distance is highest when $a$ is smallest and decrease as $a$ grows, consistent with expectation. When $a$ is small, the prior has less weight in the posterior than the data. This results in a posterior that changes significantly period to period as it is more-strongly shaped by that period's data. 
 
@@ -577,7 +577,7 @@ plot(p1 + p2 + p3 + p4 + plot_layout(guides = "collect"))
 
 ##### Analysis for $a = 0.8$
 
-Figure \@ref(fig:sbir-deep-1) contains two charts derived from model chains where $a = 0.8$. The top plots the $R^2$ statistic. The bottom plots probabilistic coherence (Appendix 5) averaged across topics. The black line is the actual value of each statistic. The blue line and associated shaded interval is the result of a loess model using default parameters when calling `geom_smooth` from the R package ggplot2 [@ggplot].
+Figure \@ref(fig:sbir-deep-1) contains two charts derived from model chains where $a = 0.8$. The top plots the $R^2$ statistic. The bottom plots probabilistic coherence (Appendix E) averaged across topics. The black line is the actual value of each statistic. The blue line and associated shaded interval is the result of a loess model using default parameters when calling `geom_smooth` from the R package ggplot2 [@ggplot].
 
 
 ```{r sbir-deep-1, fig.width = 6, fig.height = 4, fig.cap = "Both $R^2$ and probabilistic coherence are highest in 1983, drop off quickly, and remain flat for remaining time periods. This is likely due to $R^2$ and coherence being calculated using only data in the current period.", warning = FALSE, message = FALSE,results='hide',fig.keep='all'}

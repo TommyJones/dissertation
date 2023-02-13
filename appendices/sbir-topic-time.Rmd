@@ -1,4 +1,4 @@
-# Appendix X: SBIR Topics Over Time
+# SBIR Topics Over Time
 
 
 ```{r setup2, include=FALSE}

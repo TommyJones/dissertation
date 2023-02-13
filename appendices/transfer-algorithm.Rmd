@@ -1,4 +1,4 @@
-# Appendix 3: Transfer Learning Algorithm for LDA
+# Transfer Learning Algorithm for LDA
 
 * $t-1$ indexes the base model parameters and data
 * $t$ indexes the current model parameters and data

@@ -1,6 +1,4 @@
-
-
-# Appendix 1: Projection Matrix for Probabilistic Embedding Models
+# Projection Matrix for Probabilistic Embedding Models
 
 We can use Bayes's rule to derive a projection matrix, $\boldsymbol\Lambda$, for any model that embeds text into a probability space such as pLSI, LDA, and similar. 
 

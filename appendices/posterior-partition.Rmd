@@ -1,4 +1,4 @@
-# Appendix 4: Partitioning the Posterior
+# Partitioning the Posterior
 
 The posterior distribution of topic $k$ is
 
